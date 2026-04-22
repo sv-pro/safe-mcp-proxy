@@ -34,7 +34,7 @@ There are two distinct outcomes when a tool call is blocked:
 
 This distinction matters. An agent that cannot see a tool cannot be manipulated into calling it. ABSENT is stronger than DENY.
 
-**Agent Hypervisor connection:** safe-mcp-proxy is an Agent Hypervisor bridge — it virtualizes tool reality for the agent. The agent sees only the world the manifest defines. Tools absent from the manifest do not exist in that world; they cannot be denied because they were never offered.
+**[Agent Hypervisor](https://github.com/sv-pro/agent-hypervisor) bridge:** safe-mcp-proxy is a concrete MCP implementation of the Agent Hypervisor model — a real security framework from the same author. Agent Hypervisor defines a four-layer architecture (execution isolation → base ontology → dynamic ontology → execution governance); safe-mcp-proxy implements Layers 1–3 for the MCP context. The agent sees only the world the manifest defines. Tools absent from the manifest do not exist in that world; they cannot be denied because they were never offered.
 
 ## Architecture
 
