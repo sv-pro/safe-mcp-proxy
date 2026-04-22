@@ -7,3 +7,5 @@
 {"decision": "DENY", "descriptor_hash": "45dfabdd32b140f2c22605b588d85ff3b54d14f5cc1e848932e048bd9b6db5d0", "rule": "tainted_external_side_effect", "source_channel": "web", "taint": true, "timestamp": "2026-04-22T07:09:18.128580+00:00", "tool": "send_email"}
 {"decision": "DENY", "descriptor_hash": "47e3c1e19919b69dc0bfef5c29477580bf5be91a0b78400d57d1d2e241f2d86e", "rule": "descriptor_drift", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T07:09:18.184181+00:00", "tool": "read_file"}
 {"decision": "ABSENT", "descriptor_hash": "", "rule": "tool_not_allowlisted", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T07:09:18.233695+00:00", "tool": "dangerous_exec"}
+{"decision": "ALLOW", "descriptor_hash": "45dfabdd32b140f2c22605b588d85ff3b54d14f5cc1e848932e048bd9b6db5d0", "rule": "default_allow", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T09:59:45.977904+00:00", "tool": "send_email"}
+{"decision": "ABSENT", "descriptor_hash": "", "rule": "tool_not_allowlisted", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T09:59:46.041007+00:00", "tool": "send_email"}
