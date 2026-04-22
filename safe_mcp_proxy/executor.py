@@ -60,6 +60,32 @@ class Executor:
         )
         return {"decision": policy.decision, "rule": policy.rule_hit, "result": response}
 
+    def replay(self, audit_entry: Dict[str, Any]) -> Dict[str, Any]:
+        tool_name = audit_entry["tool"]
+        tainted = audit_entry["taint"]
+
+        tool = self.registry.get_tool(tool_name)
+        capability = tool.capability if tool else tool_name
+        side_effect_type = tool.side_effect_type if tool else "unknown"
+        descriptor_hash_ok = descriptor_hash_valid(tool.schema, tool.descriptor_hash) if tool else True
+
+        policy = self.policy_engine.decide(
+            tool_name=tool_name,
+            capability=capability,
+            taint=tainted,
+            side_effect_type=side_effect_type,
+            descriptor_hash_valid=descriptor_hash_ok,
+        )
+
+        matches = policy.decision == audit_entry["decision"] and policy.rule_hit == audit_entry["rule"]
+        return {
+            "recorded_decision": audit_entry["decision"],
+            "recorded_rule": audit_entry["rule"],
+            "replayed_decision": policy.decision,
+            "replayed_rule": policy.rule_hit,
+            "matches": matches,
+        }
+
     def _audit(
         self,
         tool: str,
