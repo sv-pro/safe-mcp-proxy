@@ -6,6 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
+from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.trace_store import SCHEMA_VERSION, TraceRecord, TraceStore
 
 
@@ -63,7 +64,7 @@ class TestTraceRecord(unittest.TestCase):
         self.assertEqual(rec.schema_version, SCHEMA_VERSION)
         self.assertEqual(rec.timestamp, raw["timestamp"])
         self.assertEqual(rec.tool_requested, raw["tool"])
-        self.assertEqual(rec.decision, raw["decision"])
+        self.assertEqual(rec.decision, Decision.ALLOW)
         self.assertEqual(rec.rule_hit, raw["rule"])
         self.assertEqual(rec.source_channel, raw["source_channel"])
         self.assertEqual(rec.taint, raw["taint"])
@@ -88,6 +89,11 @@ class TestTraceRecord(unittest.TestCase):
         self.assertEqual(d["tool_requested"], raw["tool"])
         self.assertEqual(d["decision"], raw["decision"])
         self.assertIn("input", d)
+
+    def test_from_raw_unknown_decision_preserved_as_string(self):
+        raw = dict(SAMPLE_ENTRIES[0], decision="FUTURE")
+        rec = TraceRecord.from_raw(1, raw)
+        self.assertEqual(rec.decision, "FUTURE")
 
     def test_record_is_immutable(self):
         rec = TraceRecord.from_raw(1, SAMPLE_ENTRIES[0])
@@ -170,13 +176,13 @@ class TestTraceStoreFilter(unittest.TestCase):
     def test_filter_by_decision_allow(self):
         records = self.store.filter(decision="ALLOW")
         self.assertEqual(len(records), 1)
-        self.assertEqual(records[0].decision, "ALLOW")
+        self.assertEqual(records[0].decision, Decision.ALLOW)
 
     def test_filter_by_decision_deny(self):
         records = self.store.filter(decision="DENY")
         self.assertEqual(len(records), 2)
         for r in records:
-            self.assertEqual(r.decision, "DENY")
+            self.assertEqual(r.decision, Decision.DENY)
 
     def test_filter_by_decision_absent(self):
         records = self.store.filter(decision="ABSENT")
@@ -192,7 +198,12 @@ class TestTraceStoreFilter(unittest.TestCase):
     def test_filter_by_tool_and_decision(self):
         records = self.store.filter(tool="read_file", decision="ALLOW")
         self.assertEqual(len(records), 1)
-        self.assertEqual(records[0].decision, "ALLOW")
+        self.assertEqual(records[0].decision, Decision.ALLOW)
+
+    def test_filter_accepts_decision_enum(self):
+        records = self.store.filter(decision=Decision.ABSENT)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].tool_requested, "dangerous_exec")
 
     def test_filter_by_since(self):
         since = datetime(2026, 4, 22, 8, 30, tzinfo=timezone.utc)
@@ -236,7 +247,10 @@ class TestTraceStoreFilter(unittest.TestCase):
         records = store.all()
         self.assertGreater(len(records), 0)
         for rec in records:
-            self.assertIn(rec.decision, {"ALLOW", "DENY", "ABSENT", "SIMULATE", ""})
+            self.assertIn(
+                rec.decision.value if isinstance(rec.decision, Decision) else rec.decision,
+                {"ALLOW", "DENY", "ABSENT", "SIMULATE", ""},
+            )
             self.assertEqual(rec.schema_version, SCHEMA_VERSION)
 
 

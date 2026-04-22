@@ -5,6 +5,7 @@ import textwrap
 import unittest
 from pathlib import Path
 
+from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import ABSENT_MESSAGE, Executor
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.policy_engine import PolicyEngine
@@ -27,6 +28,7 @@ class SafeMCPProxyTests(unittest.TestCase):
     def test_benign_cli_read_allows(self):
         result = self.executor.execute("read_file", {"path": "README.md"}, Provenance.from_source("cli"))
         self.assertEqual(result["decision"], "ALLOW")
+        self.assertEqual(self.policy.decide("read_file", "read_file", False, "read", True).decision, Decision.ALLOW)
 
     def test_tainted_external_is_denied(self):
         result = self.executor.execute(
@@ -36,6 +38,10 @@ class SafeMCPProxyTests(unittest.TestCase):
         )
         self.assertEqual(result["decision"], "DENY")
         self.assertEqual(result["rule"], "tainted_external_side_effect")
+        self.assertEqual(
+            self.policy.decide("send_email", "send_email", True, "external", True).decision,
+            Decision.DENY,
+        )
 
     def test_descriptor_drift_is_denied(self):
         tool = self.registry.get_tool("read_file")
@@ -48,6 +54,10 @@ class SafeMCPProxyTests(unittest.TestCase):
         result = self.executor.execute("dangerous_exec", {"cmd": "whoami"}, Provenance.from_source("cli"))
         self.assertEqual(result["decision"], "ABSENT")
         self.assertEqual(result["result"]["error"], ABSENT_MESSAGE)
+        self.assertEqual(
+            self.policy.decide("dangerous_exec", "dangerous_exec", False, "external", True).decision,
+            Decision.ABSENT,
+        )
 
     def _last_audit_entry(self):
         with self.audit_file.open() as f:

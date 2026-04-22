@@ -123,7 +123,7 @@ Multiple worlds are supported via the `worlds/` directory. Pass `--world <world_
 
 ## Quick start
 
-No build step. The only dependency is PyYAML.
+No build step. The CLI/demo path depends on PyYAML. The optional HTTP API uses FastAPI + Uvicorn.
 
 ```bash
 pip install pyyaml
@@ -144,10 +144,25 @@ Or call the CLI entrypoint directly:
 python -m safe_mcp_proxy.main --tool read_file --source cli --payload '{"path":"README.md"}'
 ```
 
+Run the HTTP API locally:
+
+```bash
+pip install fastapi uvicorn
+uvicorn api.main:app --reload
+```
+
+Available endpoints:
+
+```text
+GET /traces?limit=N
+GET /traces/{id}
+GET /stats
+```
+
 Run the test suite:
 
 ```bash
-python -m unittest tests.test_proxy
+python -m unittest tests.test_proxy tests.test_trace_store tests.test_api
 ```
 
 ## Example outputs

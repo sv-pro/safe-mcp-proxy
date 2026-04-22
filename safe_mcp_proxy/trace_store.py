@@ -19,7 +19,9 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
+
+from safe_mcp_proxy.decision import Decision
 
 SCHEMA_VERSION = 1
 
@@ -30,7 +32,7 @@ class TraceRecord:
     schema_version: int
     timestamp: str
     tool_requested: str
-    decision: str
+    decision: Union[Decision, str]
     rule_hit: str
     source_channel: str
     taint: bool
@@ -43,7 +45,7 @@ class TraceRecord:
             "schema_version": self.schema_version,
             "timestamp": self.timestamp,
             "tool_requested": self.tool_requested,
-            "decision": self.decision,
+            "decision": self.decision.value if isinstance(self.decision, Decision) else self.decision,
             "rule_hit": self.rule_hit,
             "source_channel": self.source_channel,
             "taint": self.taint,
@@ -59,7 +61,7 @@ class TraceRecord:
             schema_version=SCHEMA_VERSION,
             timestamp=raw.get("timestamp", ""),
             tool_requested=raw.get("tool", ""),
-            decision=raw.get("decision", ""),
+            decision=Decision.parse(raw.get("decision", "")),
             rule_hit=raw.get("rule", ""),
             source_channel=raw.get("source_channel", ""),
             taint=bool(raw.get("taint", False)),
@@ -105,7 +107,7 @@ class TraceStore:
     def filter(
         self,
         *,
-        decision: Optional[str] = None,
+        decision: Optional[Union[Decision, str]] = None,
         tool: Optional[str] = None,
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
@@ -119,8 +121,9 @@ class TraceStore:
             until:    include only records with timestamp <= until (tz-aware datetime).
         """
         results = []
+        expected_decision = Decision.parse(decision) if isinstance(decision, str) else decision
         for rec in self._iter_records():
-            if decision is not None and rec.decision != decision:
+            if expected_decision is not None and rec.decision != expected_decision:
                 continue
             if tool is not None and rec.tool_requested != tool:
                 continue

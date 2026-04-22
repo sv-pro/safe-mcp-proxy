@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 from typing import Dict, Iterable, Set
 
+from safe_mcp_proxy.decision import Decision
+
 
 @dataclass(frozen=True)
 class PolicyResult:
-    decision: str
+    decision: Decision
     rule_hit: str
 
 
@@ -22,11 +24,11 @@ class PolicyEngine:
         descriptor_hash_valid: bool,
     ) -> PolicyResult:
         if tool_name not in self.allowlist:
-            return PolicyResult(decision="ABSENT", rule_hit="tool_not_allowlisted")
+            return PolicyResult(decision=Decision.ABSENT, rule_hit="tool_not_allowlisted")
         if not self.capability_map.get(capability, False):
-            return PolicyResult(decision="ABSENT", rule_hit="capability_not_allowed")
+            return PolicyResult(decision=Decision.ABSENT, rule_hit="capability_not_allowed")
         if not descriptor_hash_valid:
-            return PolicyResult(decision="DENY", rule_hit="descriptor_drift")
+            return PolicyResult(decision=Decision.DENY, rule_hit="descriptor_drift")
         if taint and side_effect_type == "external":
-            return PolicyResult(decision="DENY", rule_hit="tainted_external_side_effect")
-        return PolicyResult(decision="ALLOW", rule_hit="default_allow")
+            return PolicyResult(decision=Decision.DENY, rule_hit="tainted_external_side_effect")
+        return PolicyResult(decision=Decision.ALLOW, rule_hit="default_allow")

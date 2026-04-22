@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
+from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.descriptor import compute_descriptor_hash, descriptor_hash_valid
 from safe_mcp_proxy.policy_engine import PolicyEngine
 from safe_mcp_proxy.provenance import Provenance
@@ -40,25 +41,25 @@ class Executor:
             descriptor_hash_valid=descriptor_hash_ok,
         )
 
-        if policy.decision == "ALLOW":
+        if policy.decision == Decision.ALLOW:
             if self.simulate_external and tool and tool.side_effect_type == "external":
                 response = simulate_external_action()
             else:
                 response = self.registry.execute_tool(tool_name, payload)
-        elif policy.decision == "DENY":
+        elif policy.decision == Decision.DENY:
             response = {"error": "Denied by policy", "reason": policy.rule_hit}
         else:
             response = {"error": ABSENT_MESSAGE}
 
         self._audit(
             tool=tool_name,
-            decision=policy.decision,
+            decision=policy.decision.value,
             rule=policy.rule_hit,
             taint=provenance.tainted,
             descriptor_hash=descriptor_hash,
             source_channel=provenance.source_channel,
         )
-        return {"decision": policy.decision, "rule": policy.rule_hit, "result": response}
+        return {"decision": policy.decision.value, "rule": policy.rule_hit, "result": response}
 
     def replay(self, audit_entry: Dict[str, Any]) -> Dict[str, Any]:
         tool_name = audit_entry["tool"]
@@ -77,11 +78,11 @@ class Executor:
             descriptor_hash_valid=descriptor_hash_ok,
         )
 
-        matches = policy.decision == audit_entry["decision"] and policy.rule_hit == audit_entry["rule"]
+        matches = policy.decision.value == audit_entry["decision"] and policy.rule_hit == audit_entry["rule"]
         return {
             "recorded_decision": audit_entry["decision"],
             "recorded_rule": audit_entry["rule"],
-            "replayed_decision": policy.decision,
+            "replayed_decision": policy.decision.value,
             "replayed_rule": policy.rule_hit,
             "matches": matches,
         }
