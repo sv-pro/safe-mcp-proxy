@@ -86,3 +86,17 @@ Every decision is appended to `safe_mcp_proxy/logs/audit.jsonl` in JSON lines fo
 1. Add a `ToolRecord` entry to the `TOOLS` list in `registry.py` with name, capability, schema, descriptor_hash (compute via `descriptor.hash_schema()`), side_effect_type, and handler.
 2. Add the tool name to `allowed_tools` and the capability under `capabilities` in `world_manifest.yaml`.
 3. Add a test in `tests/test_proxy.py` using a temp audit file and `simulate_external=True`.
+
+## Roadmap & "What's next?"
+
+When asked **"what's next?"**, **"что дальше?"**, **"next issue"**, **"next task"**, or similar:
+
+1. Fetch open issues: use `mcp__github__list_issues` with `owner=sv-pro`, `repo=safe-mcp-proxy`, `state=OPEN`.
+2. Pick the highest-priority open issue from the lowest EPIC number.
+3. Report the issue number, title, and task list before starting work.
+
+Issues live at: https://github.com/sv-pro/safe-mcp-proxy/issues
+
+- **Open** = work remaining (EPICs 5–7)
+- **Closed** = already implemented (EPICs 0–4)
+- Labels: `epic/N-*`, `type/*`, `priority/*`
