@@ -22,6 +22,24 @@ A narrow control plane that:
 
 `ABSENT` means the tool/capability is hidden from this world. `DENY` means a visible action was blocked by policy.
 
+## World model
+
+`world_manifest.yaml` is the **static world definition** — the source of truth for what tools
+exist and what policies apply. It is the only policy surface; nothing is configured elsewhere.
+
+`compile_world_manifest()` in `compiler.py` transforms it into a **compiled config** — the
+in-memory runtime state consumed by the policy engine and registry at startup.
+
+| Concept | Role | Mutability |
+|---|---|---|
+| `world_manifest.yaml` | World definition | Static (file on disk) |
+| compiled config | World runtime | Immutable after startup |
+| `world_id` | World identifier | Declared in manifest |
+
+**Agent Hypervisor connection:** safe-mcp-proxy is an Agent Hypervisor bridge — it virtualizes
+tool reality for the agent. The agent sees only the world the manifest defines. Tools absent from
+the manifest do not exist in that world; they cannot be denied because they were never offered.
+
 ## Architecture
 
 ```text

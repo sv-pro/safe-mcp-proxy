@@ -18,6 +18,7 @@ def compile_world_manifest(path: str) -> Dict[str, Any]:
     side_effects = raw.get("side_effects", {})
 
     return {
+        "world_id": raw.get("world_id", ""),
         "allowlist": allowed_tools,
         "capability_map": capability_map,
         "taint_rules": taint_rules,
