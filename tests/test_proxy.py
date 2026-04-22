@@ -1,3 +1,4 @@
+import json
 import shutil
 import tempfile
 import textwrap
@@ -47,6 +48,46 @@ class SafeMCPProxyTests(unittest.TestCase):
         result = self.executor.execute("dangerous_exec", {"cmd": "whoami"}, Provenance.from_source("cli"))
         self.assertEqual(result["decision"], "ABSENT")
         self.assertEqual(result["result"]["error"], ABSENT_MESSAGE)
+
+    def _last_audit_entry(self):
+        with self.audit_file.open() as f:
+            return json.loads(f.readlines()[-1])
+
+    def test_replay_allow(self):
+        self.executor.execute("read_file", {"path": "README.md"}, Provenance.from_source("cli"))
+        result = self.executor.replay(self._last_audit_entry())
+        self.assertTrue(result["matches"])
+        self.assertEqual(result["replayed_decision"], "ALLOW")
+
+    def test_replay_deny_tainted(self):
+        self.executor.execute("send_email", {"to": "x@y.com"}, Provenance.from_source("web"))
+        result = self.executor.replay(self._last_audit_entry())
+        self.assertTrue(result["matches"])
+        self.assertEqual(result["replayed_decision"], "DENY")
+
+    def test_replay_absent(self):
+        self.executor.execute("dangerous_exec", {"cmd": "whoami"}, Provenance.from_source("cli"))
+        result = self.executor.replay(self._last_audit_entry())
+        self.assertTrue(result["matches"])
+        self.assertEqual(result["replayed_decision"], "ABSENT")
+
+    def test_replay_100_entries(self):
+        scenarios = [
+            ("read_file", {"path": "README.md"}, Provenance.from_source("cli")),
+            ("send_email", {"to": "x@y.com"}, Provenance.from_source("web")),
+            ("dangerous_exec", {"cmd": "whoami"}, Provenance.from_source("cli")),
+            ("list_repo", {}, Provenance.from_source("cli")),
+        ]
+        for i in range(100):
+            tool_name, payload, prov = scenarios[i % len(scenarios)]
+            self.executor.execute(tool_name, payload, prov)
+
+        entries = [json.loads(line) for line in self.audit_file.read_text().splitlines() if line.strip()]
+        self.assertGreaterEqual(len(entries), 100)
+
+        results = [self.executor.replay(e) for e in entries]
+        matches = sum(1 for r in results if r["matches"])
+        self.assertEqual(matches, len(entries), f"Only {matches}/{len(entries)} entries matched")
 
 
 class TestMultipleWorlds(unittest.TestCase):
