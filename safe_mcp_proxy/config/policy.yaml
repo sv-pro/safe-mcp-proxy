@@ -1,0 +1,2 @@
+simulation:
+  external_side_effects: true
