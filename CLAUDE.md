@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**safe-mcp-proxy** is a minimal, deterministic control plane for the Model Context Protocol (MCP) that constrains tool exposure and execution to mitigate runtime supply-chain risks.
+**safe-mcp-proxy** is a minimal, deterministic control plane for the Model Context Protocol (MCP) that constrains tool exposure and execution to mitigate runtime supply-chain risks. It is a productized MCP spinoff of [Agent Hypervisor](https://github.com/sv-pro/agent-hypervisor) — the author's experimental research playground where all ideas about agent security are explored (whitepapers, ADRs, benchmarks, full reference implementation). When working on an approach not fully specified here, check agent-hypervisor first for prior art, design decisions, and implementation patterns.
 
 Core design principle: *"Some actions are denied. Others do not exist."*
 
