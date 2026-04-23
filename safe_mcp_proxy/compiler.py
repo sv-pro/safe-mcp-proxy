@@ -1,6 +1,32 @@
-from typing import Any, Dict
+from typing import Any, Dict, Iterable
 
 import yaml
+
+
+def build_opa_input(
+    tool_name: str,
+    capability: str,
+    taint: bool,
+    side_effect_type: str,
+    descriptor_hash_valid: bool,
+    allowlist: Iterable[str],
+    capability_map: Dict[str, bool],
+) -> Dict[str, Any]:
+    """Assemble the OPA input object from Python domain types.
+
+    This is the single authoritative mapping between the Python engine's
+    argument surface and the Rego ``input`` document consumed by
+    ``safe_mcp_proxy/policies/proxy.rego``.
+    """
+    return {
+        "tool_name": tool_name,
+        "capability": capability,
+        "taint": taint,
+        "side_effect_type": side_effect_type,
+        "descriptor_hash_valid": descriptor_hash_valid,
+        "allowlist": list(allowlist),
+        "capability_map": dict(capability_map),
+    }
 
 
 def compile_world_manifest(path: str) -> Dict[str, Any]:
@@ -23,4 +49,5 @@ def compile_world_manifest(path: str) -> Dict[str, Any]:
         "capability_map": capability_map,
         "taint_rules": taint_rules,
         "side_effect_policy": side_effects,
+        "policy_engine": raw.get("policy_engine", "python"),
     }

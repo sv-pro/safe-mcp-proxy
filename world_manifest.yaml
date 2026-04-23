@@ -1,5 +1,7 @@
 world_id: "repo_assistant"
 
+policy_engine: python   # "python" (default) or "opa"
+
 allowed_tools:
   - read_file
   - list_repo
