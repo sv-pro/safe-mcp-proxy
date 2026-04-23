@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
+import safe_mcp_proxy.scenarios as _scenarios
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.main import build_executor
@@ -77,6 +78,22 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "trace_id": trace.id,
             **replay,
             "diverged": not replay["matches"],
+        }
+
+    @app.post("/scenarios/{name}/run")
+    async def run_scenario(name: str) -> dict:
+        try:
+            outcome = _scenarios.run(name, base_dir=resolved_base_dir)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        traces = app.state.trace_store.all()
+        trace_id = traces[-1].id if traces else None
+        return {
+            "scenario": name,
+            "trace_id": trace_id,
+            "decision": outcome["result"]["decision"],
+            "rule": outcome["result"]["rule"],
+            "matches": outcome["matches"],
         }
 
     @app.get("/stats")
