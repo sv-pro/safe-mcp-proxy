@@ -119,7 +119,7 @@ side_effects:
 | compiled config | World runtime | Immutable after startup |
 | `world_id` | World identifier | Declared in manifest |
 
-Multiple worlds are supported via the `worlds/` directory. Pass `--world <world_id>` to load `worlds/<world_id>.yaml` instead of the default manifest.
+Multiple worlds are supported via `safe_mcp_proxy/config/worlds/` (with legacy fallback to `worlds/`). Pass `--world <world_id>` to load `safe_mcp_proxy/config/worlds/<world_id>.yaml` instead of the default manifest.
 
 ## Quick start
 

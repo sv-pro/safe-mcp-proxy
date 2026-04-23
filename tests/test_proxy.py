@@ -103,11 +103,12 @@ class SafeMCPProxyTests(unittest.TestCase):
 class TestMultipleWorlds(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
-        worlds_dir = self.tmp / "worlds"
-        worlds_dir.mkdir()
+        config_dir = self.tmp / "safe_mcp_proxy" / "config"
+        worlds_dir = config_dir / "worlds"
+        worlds_dir.mkdir(parents=True)
 
-        (worlds_dir / "repo_assistant.yaml").write_text(textwrap.dedent("""\
-            world_id: repo_assistant
+        (worlds_dir / "world_a.yaml").write_text(textwrap.dedent("""\
+            world_id: world_a
             allowed_tools: [read_file, list_repo, send_email]
             capabilities:
               read_file: {allowed: true}
@@ -118,8 +119,8 @@ class TestMultipleWorlds(unittest.TestCase):
             side_effects: {external: restricted}
         """))
 
-        (worlds_dir / "read_only.yaml").write_text(textwrap.dedent("""\
-            world_id: read_only
+        (worlds_dir / "world_b.yaml").write_text(textwrap.dedent("""\
+            world_id: world_b
             allowed_tools: [read_file]
             capabilities:
               read_file: {allowed: true}
@@ -130,9 +131,19 @@ class TestMultipleWorlds(unittest.TestCase):
             side_effects: {external: restricted}
         """))
 
+        (worlds_dir / "world_c.yaml").write_text(textwrap.dedent("""\
+            world_id: world_c
+            allowed_tools: [read_file, list_repo, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: true}
+              send_email: {allowed: false}
+              dangerous_exec: {allowed: false}
+            taint_rules: []
+            side_effects: {external: restricted}
+        """))
+
         # stub policy.yaml so _load_simulation_flag doesn't fail
-        config_dir = self.tmp / "safe_mcp_proxy" / "config"
-        config_dir.mkdir(parents=True)
         (config_dir / "policy.yaml").write_text("simulation:\n  external_side_effects: true\n")
 
         # stub logs dir
@@ -142,14 +153,20 @@ class TestMultipleWorlds(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def test_send_email_allow_in_full_world_absent_in_read_only(self):
-        ex_full = build_executor(self.tmp, world_id="repo_assistant")
-        ex_ro = build_executor(self.tmp, world_id="read_only")
+    def test_same_input_yields_different_decisions_across_worlds(self):
+        ex_world_a = build_executor(self.tmp, world_id="world_a")
+        ex_world_b = build_executor(self.tmp, world_id="world_b")
+        ex_world_c = build_executor(self.tmp, world_id="world_c")
         prov = Provenance.from_source("cli")
-        result_full = ex_full.execute("send_email", {}, prov)
-        result_ro = ex_ro.execute("send_email", {}, prov)
-        self.assertEqual(result_full["decision"], "ALLOW")
-        self.assertEqual(result_ro["decision"], "ABSENT")
+
+        result_a = ex_world_a.execute("send_email", {}, prov)
+        result_b = ex_world_b.execute("send_email", {}, prov)
+        result_c = ex_world_c.execute("send_email", {}, prov)
+
+        self.assertEqual(result_a["decision"], "ALLOW")
+        self.assertEqual(result_b["decision"], "ABSENT")
+        self.assertEqual(result_c["decision"], "ABSENT")
+        self.assertEqual(result_c["rule"], "capability_not_allowed")
 
     def test_invalid_world_raises(self):
         with self.assertRaises(FileNotFoundError):
