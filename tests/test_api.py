@@ -67,6 +67,32 @@ class FastAPITests(unittest.TestCase):
         config_dir = self.tmp / "safe_mcp_proxy" / "config"
         config_dir.mkdir(parents=True)
         (config_dir / "policy.yaml").write_text("simulation:\n  external_side_effects: true\n", encoding="utf-8")
+        worlds_dir = config_dir / "worlds"
+        worlds_dir.mkdir()
+        (worlds_dir / "world_a.yaml").write_text(textwrap.dedent("""\
+            world_id: world_a
+            allowed_tools: [read_file, list_repo, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: true}
+              send_email: {allowed: true}
+              dangerous_exec: {allowed: false}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        (worlds_dir / "world_b.yaml").write_text(textwrap.dedent("""\
+            world_id: world_b
+            allowed_tools: [read_file]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: false}
+              send_email: {allowed: false}
+              dangerous_exec: {allowed: false}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
         logs_dir = self.tmp / "safe_mcp_proxy" / "logs"
         logs_dir.mkdir(parents=True)
         self.audit_log = logs_dir / "audit.jsonl"
@@ -164,6 +190,46 @@ class FastAPITests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["access-control-allow-origin"], "*")
+
+
+    def test_compare_returns_decisions_per_world(self):
+        response = self._request(
+            "POST", "/compare",
+            json={"scenario": "benign_flow", "worlds": ["world_a", "world_b"]},
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["scenario"], "benign_flow")
+        self.assertIn("world_a", body["worlds"])
+        self.assertIn("world_b", body["worlds"])
+        self.assertEqual(body["worlds"]["world_a"]["decision"], "ALLOW")
+        self.assertEqual(body["worlds"]["world_b"]["decision"], "ALLOW")
+
+    def test_compare_shows_divergence_across_worlds(self):
+        response = self._request(
+            "POST", "/compare",
+            json={"scenario": "prompt_injection", "worlds": ["world_a", "world_b"]},
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["worlds"]["world_a"]["decision"], "DENY")
+        self.assertEqual(body["worlds"]["world_a"]["rule"], "tainted_external_side_effect")
+        self.assertEqual(body["worlds"]["world_b"]["decision"], "ABSENT")
+        self.assertEqual(body["worlds"]["world_b"]["rule"], "tool_not_allowlisted")
+
+    def test_compare_unknown_scenario_returns_404(self):
+        response = self._request(
+            "POST", "/compare",
+            json={"scenario": "nonexistent_scenario", "worlds": ["world_a"]},
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_compare_unknown_world_returns_404(self):
+        response = self._request(
+            "POST", "/compare",
+            json={"scenario": "benign_flow", "worlds": ["no_such_world"]},
+        )
+        self.assertEqual(response.status_code, 404)
 
 
 if __name__ == "__main__":

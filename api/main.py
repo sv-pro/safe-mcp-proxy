@@ -2,17 +2,23 @@ from __future__ import annotations
 
 from collections import Counter
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
 
 import safe_mcp_proxy.scenarios as _scenarios
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.trace_store import TraceStore
+
+
+class CompareRequest(BaseModel):
+    scenario: str
+    worlds: List[str] = Field(min_length=1)
 
 
 def _default_base_dir() -> Path:
@@ -95,6 +101,32 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "rule": outcome["result"]["rule"],
             "matches": outcome["matches"],
         }
+
+    @app.post("/compare")
+    async def compare_worlds(req: CompareRequest) -> dict:
+        try:
+            scenario = _scenarios.get(req.scenario)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+
+        from safe_mcp_proxy.provenance import Provenance
+
+        results = {}
+        for world_id in req.worlds:
+            try:
+                executor = build_executor(resolved_base_dir, world_id=world_id)
+            except FileNotFoundError:
+                raise HTTPException(status_code=404, detail=f"World not found: {world_id!r}")
+            if scenario.setup is not None:
+                scenario.setup(executor)
+            provenance = Provenance.from_source(scenario.source_channel)
+            outcome = executor.execute(scenario.tool, scenario.payload, provenance)
+            results[world_id] = {
+                "decision": outcome["decision"],
+                "rule": outcome["rule"],
+            }
+
+        return {"scenario": req.scenario, "worlds": results}
 
     @app.get("/stats")
     async def get_stats() -> dict:
