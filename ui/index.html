@@ -281,6 +281,14 @@
   let traces = [];
   let selectedId = null;
 
+  // ── Decision semantics ───────────────────────────────────
+  const DECISION_SEMANTICS = {
+    ALLOW:    'Action executed',
+    DENY:     'Action exists but blocked by policy',
+    ABSENT:   'Action does not exist in this world',
+    SIMULATE: 'Action simulated (no side effects)',
+  };
+
   // ── Decision → pipeline stage ────────────────────────────
   const PIPELINE_STAGES = [
     { label: 'Provenance', rules: [] },
@@ -305,7 +313,8 @@
 
   function badge(decision) {
     const cls = 'badge badge-' + (decision || 'ABSENT');
-    return `<span class="${cls}">${decision || '?'}</span>`;
+    const tip = DECISION_SEMANTICS[decision] || decision || '?';
+    return `<span class="${cls}" title="${tip}">${decision || '?'}</span>`;
   }
 
   // ── Render list ───────────────────────────────────────────
@@ -359,6 +368,8 @@
         <div class="field-grid">
           <span class="field-key">outcome</span>
           <span class="field-val">${badge(trace.decision)}</span>
+          <span class="field-key">meaning</span>
+          <span class="field-val">${DECISION_SEMANTICS[trace.decision] || ''}</span>
           <span class="field-key">rule</span>
           <span class="field-val">${trace.rule_hit}</span>
         </div>
