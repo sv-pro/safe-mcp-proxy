@@ -3,6 +3,7 @@ import shutil
 import tempfile
 import unittest
 import asyncio
+import textwrap
 from pathlib import Path
 
 import httpx
@@ -51,6 +52,21 @@ def _write_jsonl(path: Path, entries: list) -> None:
 class FastAPITests(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "world_manifest.yaml").write_text(textwrap.dedent("""\
+            world_id: default
+            allowed_tools: [read_file, list_repo, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: true}
+              send_email: {allowed: true}
+              dangerous_exec: {allowed: false}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        config_dir = self.tmp / "safe_mcp_proxy" / "config"
+        config_dir.mkdir(parents=True)
+        (config_dir / "policy.yaml").write_text("simulation:\n  external_side_effects: true\n", encoding="utf-8")
         logs_dir = self.tmp / "safe_mcp_proxy" / "logs"
         logs_dir.mkdir(parents=True)
         self.audit_log = logs_dir / "audit.jsonl"
@@ -90,6 +106,34 @@ class FastAPITests(unittest.TestCase):
 
     def test_get_trace_by_id_returns_404_when_missing(self):
         response = self._request("GET", "/traces/999")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Trace not found")
+
+    def test_post_replay_by_id_returns_matching_result(self):
+        response = self._request("POST", "/replay/1")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["trace_id"], 1)
+        self.assertEqual(body["recorded_decision"], "ALLOW")
+        self.assertEqual(body["replayed_decision"], "ALLOW")
+        self.assertTrue(body["matches"])
+        self.assertFalse(body["diverged"])
+
+    def test_post_replay_by_id_marks_divergence(self):
+        divergent = [dict(SAMPLE_ENTRIES[0], decision="DENY")]
+        _write_jsonl(self.audit_log, divergent)
+        self.app = create_app(self.tmp)
+
+        response = self._request("POST", "/replay/1")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["recorded_decision"], "DENY")
+        self.assertEqual(body["replayed_decision"], "ALLOW")
+        self.assertFalse(body["matches"])
+        self.assertTrue(body["diverged"])
+
+    def test_post_replay_by_id_returns_404_when_missing(self):
+        response = self._request("POST", "/replay/999")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["detail"], "Trace not found")
 

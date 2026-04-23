@@ -157,6 +157,7 @@ Available endpoints:
 GET /traces?limit=N
 GET /traces/{id}
 GET /stats
+POST /replay/{id}
 ```
 
 Run the test suite:
