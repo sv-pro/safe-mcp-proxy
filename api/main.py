@@ -6,6 +6,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
@@ -52,6 +53,12 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    _ui_path = Path(__file__).resolve().parent.parent / "ui" / "index.html"
+
+    @app.get("/", response_class=HTMLResponse)
+    async def serve_ui():
+        return HTMLResponse(content=_ui_path.read_text(encoding="utf-8"))
 
     @app.get("/traces")
     async def list_traces(limit: int = Query(default=100, ge=1, le=1000)) -> dict:
