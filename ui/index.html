@@ -460,6 +460,8 @@
       <button class="scenario-btn" data-scenario="prompt_injection">Injection</button>
       <button class="scenario-btn" data-scenario="poisoned_descriptor">Poisoned</button>
       <button class="scenario-btn" data-scenario="absent_tool">Absent</button>
+      <span class="scenario-label" style="margin-left:auto">Export:</span>
+      <button class="scenario-btn" id="export-bundle-btn">↓ Bundle</button>
     </div>
     <div id="trace-table-wrap">
       <table id="trace-table" aria-label="Audit traces">
@@ -486,6 +488,9 @@
     <div id="detail-view">
       <p class="placeholder" id="detail-placeholder">Select a trace to see details.</p>
       <div id="detail-content" style="display:none"></div>
+      <div id="detail-export" style="display:none; padding: 0 0 16px 0;">
+        <button class="scenario-btn" id="export-trace-btn">↓ Export JSON</button>
+      </div>
     </div>
     <div id="compare-panel" style="display:none">
       <div class="detail-section">
@@ -746,7 +751,45 @@
 
     detailPH.style.display = 'none';
     detailDiv.style.display = 'block';
+    document.getElementById('detail-export').style.display = 'block';
     renderDetail(trace);
+  }
+
+  // ── Export ───────────────────────────────────────────────
+  function _download(filename, obj) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportTrace() {
+    if (selectedId === null) return;
+    const trace = traces.find(t => t.id === selectedId);
+    if (trace) _download(`trace_${trace.id}.json`, trace);
+  }
+
+  async function exportBundle() {
+    const btn = document.getElementById('export-bundle-btn');
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const res = await fetch('/bundle');
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      _download('safe-mcp-proxy-bundle.json', data);
+    } catch (err) {
+      statusEl.textContent = `error: ${err.message}`;
+      statusEl.className = 'error';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↓ Bundle';
+    }
   }
 
   // ── Fetch & poll ──────────────────────────────────────────
@@ -872,6 +915,8 @@
   }
 
   document.getElementById('cmp-run-btn').addEventListener('click', runCompare);
+  document.getElementById('export-trace-btn').addEventListener('click', exportTrace);
+  document.getElementById('export-bundle-btn').addEventListener('click', exportBundle);
 </script>
 </body>
 </html>

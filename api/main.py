@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import json
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 
 import safe_mcp_proxy.scenarios as _scenarios
@@ -30,6 +32,18 @@ def _build_trace_store(base_dir: Path) -> TraceStore:
     return TraceStore(str(audit_log_path))
 
 
+def _seed_demo_data(base_dir: Path) -> None:
+    """Populate audit.jsonl with one trace per decision type if the log is empty."""
+    audit_log = base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"
+    if audit_log.exists() and audit_log.stat().st_size > 0:
+        return
+    for name in ("benign_flow", "prompt_injection", "poisoned_descriptor", "absent_tool"):
+        try:
+            _scenarios.run(name, base_dir=base_dir)
+        except Exception:
+            pass
+
+
 def _find_trace(trace_store: TraceStore, trace_id: int):
     for trace in trace_store.all():
         if trace.id == trace_id:
@@ -49,6 +63,7 @@ def _trace_to_audit_entry(trace) -> dict:
 
 def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = None) -> FastAPI:
     resolved_base_dir = base_dir or _default_base_dir()
+    _seed_demo_data(resolved_base_dir)
     app = FastAPI(title="safe-mcp-proxy API")
     app.state.trace_store = _build_trace_store(resolved_base_dir)
     app.state.executor = executor or build_executor(resolved_base_dir)
@@ -72,9 +87,38 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
         traces = app.state.trace_store.last(limit)
         return {"traces": [trace.as_dict() for trace in traces]}
 
+    @app.get("/traces/export")
+    async def export_traces(limit: int = Query(default=1000, ge=1, le=10000)) -> Response:
+        traces = app.state.trace_store.last(limit)
+        content = json.dumps([t.as_dict() for t in traces], indent=2)
+        return Response(
+            content=content,
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=traces.json"},
+        )
+
     @app.get("/traces/{trace_id}")
     async def get_trace(trace_id: int) -> dict:
         return _find_trace(app.state.trace_store, trace_id).as_dict()
+
+    @app.get("/bundle")
+    async def export_bundle() -> Response:
+        traces = app.state.trace_store.all()
+        manifest_path = resolved_base_dir / "world_manifest.yaml"
+        manifest_text = manifest_path.read_text(encoding="utf-8") if manifest_path.exists() else ""
+        bundle = {
+            "schema_version": 1,
+            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "traces": [t.as_dict() for t in traces],
+            "world_manifest": manifest_text,
+            "scenarios": _scenarios.names(),
+        }
+        content = json.dumps(bundle, indent=2)
+        return Response(
+            content=content,
+            media_type="application/json",
+            headers={"Content-Disposition": "attachment; filename=safe-mcp-proxy-bundle.json"},
+        )
 
     @app.post("/replay/{trace_id}")
     async def replay_trace(trace_id: int) -> dict:
