@@ -1,0 +1,20 @@
+world_id: "world_b"
+
+allowed_tools:
+  - read_file
+
+capabilities:
+  read_file:
+    allowed: true
+  list_repo:
+    allowed: false
+  send_email:
+    allowed: false
+  dangerous_exec:
+    allowed: false
+
+taint_rules:
+  - tainted_external: deny
+
+side_effects:
+  external: restricted
