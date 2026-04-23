@@ -130,6 +130,41 @@
     td.col-dec   { width: 80px; }
     td.col-src   { width: 30%; color: #8b949e; }
 
+    /* ── Scenario bar ───────────────────────────────────── */
+    #scenario-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-bottom: 1px solid #21262d;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .scenario-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6e7681;
+      margin-right: 2px;
+    }
+
+    .scenario-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+
+    .scenario-btn:hover:not(:disabled) { background: #2d333b; color: #e6edf3; }
+    .scenario-btn:disabled { opacity: 0.5; cursor: default; }
+
     /* ── Decision badges ────────────────────────────────── */
     .badge {
       display: inline-block;
@@ -247,6 +282,13 @@
 <main>
   <section id="list-panel" aria-label="Trace list">
     <h2>Traces</h2>
+    <div id="scenario-bar">
+      <span class="scenario-label">Run:</span>
+      <button class="scenario-btn" data-scenario="benign_flow">Benign</button>
+      <button class="scenario-btn" data-scenario="prompt_injection">Injection</button>
+      <button class="scenario-btn" data-scenario="poisoned_descriptor">Poisoned</button>
+      <button class="scenario-btn" data-scenario="absent_tool">Absent</button>
+    </div>
     <div id="trace-table-wrap">
       <table id="trace-table" aria-label="Audit traces">
         <thead>
@@ -443,6 +485,36 @@
       statusEl.className = 'error';
     }
   }
+
+  // ── Scenario buttons ─────────────────────────────────────
+  const SCENARIO_LABELS = {
+    benign_flow:         'Benign',
+    prompt_injection:    'Injection',
+    poisoned_descriptor: 'Poisoned',
+    absent_tool:         'Absent',
+  };
+
+  async function runScenario(name, btn) {
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const res = await fetch(`/scenarios/${name}/run`, { method: 'POST' });
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      await fetchTraces();
+      if (data.trace_id != null) selectTrace(data.trace_id);
+    } catch (err) {
+      statusEl.textContent = `error: ${err.message}`;
+      statusEl.className = 'error';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = SCENARIO_LABELS[name] || name;
+    }
+  }
+
+  document.querySelectorAll('.scenario-btn').forEach(btn => {
+    btn.addEventListener('click', () => runScenario(btn.dataset.scenario, btn));
+  });
 
   fetchTraces();
   setInterval(fetchTraces, POLL_MS);
