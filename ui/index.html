@@ -288,6 +288,7 @@
 
     .cmp-diverged  { background: #3d2200; color: #e3b341; }
     .cmp-converged { background: #1a3d1a; color: #3fb950; }
+    .cmp-row-diff td { background: #3d2200; }
 
     .cmp-table {
       width: 100%;
@@ -729,9 +730,14 @@
       ? `<div class="cmp-banner cmp-diverged">DIVERGED — worlds disagree</div>`
       : `<div class="cmp-banner cmp-converged">CONVERGED — all worlds agree</div>`;
 
-    const rows = Object.entries(worldResults).map(([world, r]) =>
-      `<tr><td>${world}</td><td>${badge(r.decision)}</td><td>${r.rule}</td></tr>`
-    ).join('');
+    const tally = {};
+    decisions.forEach(d => tally[d] = (tally[d] || 0) + 1);
+    const majority = Object.entries(tally).sort((a, b) => b[1] - a[1])[0][0];
+
+    const rows = Object.entries(worldResults).map(([world, r]) => {
+      const cls = r.decision !== majority ? ' class="cmp-row-diff"' : '';
+      return `<tr${cls}><td>${world}</td><td>${badge(r.decision)}</td><td>${r.rule}</td></tr>`;
+    }).join('');
 
     document.getElementById('cmp-result').innerHTML = `
       ${banner}
