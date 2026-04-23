@@ -368,6 +368,7 @@
 
     .pipe-step {
       display: flex;
+      flex-direction: column;
       align-items: center;
     }
 
@@ -386,14 +387,58 @@
       font-weight: 700;
     }
 
-    .pipe-label.active.deny  { background: #3d2200; color: #e3b341; }
-    .pipe-label.active.absent { background: #21262d; color: #c9d1d9; }
+    .pipe-label.active.deny     { background: #3d2200; color: #e3b341; }
+    .pipe-label.active.absent   { background: #21262d; color: #c9d1d9; }
+    .pipe-label.active.simulate { background: #0d2d2d; color: #39d0d0; }
 
     .pipe-arrow {
       color: #30363d;
       margin: 0 4px;
       font-size: 14px;
+      align-self: flex-start;
+      padding-top: 6px;
     }
+
+    .pipe-sublabel {
+      font-size: 9px;
+      color: #6e7681;
+      margin-top: 2px;
+      white-space: nowrap;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+    .pipe-sublabel.allow    { color: #58a6ff; }
+    .pipe-sublabel.deny     { color: #e3b341; }
+    .pipe-sublabel.absent   { color: #8b949e; }
+    .pipe-sublabel.simulate { color: #39d0d0; }
+
+    /* ── Rule explanation (DS4.2) ───────────────────────────── */
+    .rule-explain {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .rule-explain-summary {
+      color: #c9d1d9;
+      margin-bottom: 5px;
+    }
+    .rule-explain-conditions {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 5px 0;
+    }
+    .rule-explain-conditions li { color: #8b949e; }
+    .rule-explain-conditions li::before { content: "✓ "; color: #3fb950; }
+    .rule-explain-conditions li.fired::before { content: "✗ "; color: #f85149; }
+    .rule-explain-link { font-size: 10px; }
+    .rule-explain-link a { color: #58a6ff; text-decoration: none; }
+    .rule-explain-link a:hover { text-decoration: underline; }
 
     #empty-msg { color: #6e7681; padding: 20px 10px; text-align: center; font-size: 12px; }
   </style>
@@ -493,17 +538,90 @@
 
   // ── Decision → pipeline stage ────────────────────────────
   const PIPELINE_STAGES = [
+    { label: 'Input',      rules: [] },
     { label: 'Provenance', rules: [] },
     { label: 'Registry',   rules: ['tool_not_allowlisted', 'capability_not_allowed'] },
     { label: 'Policy',     rules: ['descriptor_drift', 'tainted_external_side_effect'] },
-    { label: 'Execution',  rules: ['default_allow'] },
+    { label: 'Decision',   rules: ['default_allow'] },
   ];
 
   function activeStageIndex(rule) {
     for (let i = 0; i < PIPELINE_STAGES.length; i++) {
       if (PIPELINE_STAGES[i].rules.includes(rule)) return i;
     }
-    return PIPELINE_STAGES.length - 1; // default: Execution
+    return PIPELINE_STAGES.length - 1;
+  }
+
+  // ── Rule explanations (DS4.2) ────────────────────────────
+  const RULE_EXPLANATIONS = {
+    tool_not_allowlisted: {
+      summary: 'Tool is absent from this world — it does not exist here.',
+      conditions: (t) => [
+        { text: `"${t.tool_requested}" is not in allowed_tools`, fired: true },
+      ],
+    },
+    capability_not_allowed: {
+      summary: "Tool's capability is disabled in the world manifest.",
+      conditions: (t) => [
+        { text: `capability for "${t.tool_requested}" is set to false`, fired: true },
+      ],
+    },
+    descriptor_drift: {
+      summary: 'Tool schema changed since registration — possible runtime tampering.',
+      conditions: (t) => [
+        { text: 'SHA-256 of current schema does not match the pinned hash', fired: true },
+        ...(t.descriptor_hash ? [{ text: `recorded hash: ${t.descriptor_hash.slice(0, 16)}…`, fired: false }] : []),
+      ],
+    },
+    tainted_external_side_effect: {
+      summary: 'Request from an untrusted channel cannot trigger external side effects.',
+      conditions: (t) => [
+        { text: `source_channel "${t.source_channel}" is a tainted channel (email / web / tool_output)`, fired: true },
+        { text: `"${t.tool_requested}" has side_effect_type = external`, fired: true },
+      ],
+    },
+    default_allow: {
+      summary: 'All checks passed — tool is allowlisted, enabled, untampered, and source is trusted.',
+      conditions: (t) => [
+        { text: `"${t.tool_requested}" is in allowed_tools`, fired: false },
+        { text: 'capability is enabled', fired: false },
+        { text: 'descriptor hash matches registered value', fired: false },
+        { text: `source_channel "${t.source_channel}" is trusted`, fired: false },
+      ],
+    },
+  };
+
+  // ── Pipeline sub-label for each stage (DS4.1) ────────────
+  function stageSublabel(trace, stageIdx) {
+    const rule = trace.rule_hit;
+    switch (stageIdx) {
+      case 0: return trace.tool_requested;
+      case 1: return trace.taint ? '⚠ tainted' : 'clean';
+      case 2:
+        if (rule === 'tool_not_allowlisted')   return 'not in allowlist';
+        if (rule === 'capability_not_allowed') return 'disabled';
+        return 'present';
+      case 3:
+        if (rule === 'descriptor_drift')                 return 'hash mismatch';
+        if (rule === 'tainted_external_side_effect')     return 'taint blocked';
+        return '—';
+      case 4: return trace.decision;
+      default: return '';
+    }
+  }
+
+  // ── Explanation box ──────────────────────────────────────
+  function renderExplanation(trace) {
+    const explain = RULE_EXPLANATIONS[trace.rule_hit];
+    if (!explain) return '';
+    const condHtml = explain.conditions(trace)
+      .map(c => `<li class="${c.fired ? 'fired' : ''}">${c.text}</li>`)
+      .join('');
+    return `<div class="rule-explain" style="grid-column:1/-1">
+      <div class="rule-explain-summary">${explain.summary}</div>
+      <ul class="rule-explain-conditions">${condHtml}</ul>
+      <div class="rule-explain-link">See: <a href="https://github.com/sv-pro/safe-mcp-proxy/blob/main/safe_mcp_proxy/policy_engine.py" target="_blank">policy_engine.py ↗</a></div>
+    </div>`;
   }
 
   // ── Formatting ────────────────────────────────────────────
@@ -548,16 +666,21 @@
     const isDeny   = dec === 'DENY';
     const isAbsent = dec === 'ABSENT';
 
+    const isSimulate = dec === 'SIMULATE';
     const pipelineHtml = PIPELINE_STAGES.map((s, i) => {
-      let cls = 'pipe-label';
+      let labelCls = 'pipe-label';
+      let sublabelCls = 'pipe-sublabel';
       if (i === stageIdx) {
-        cls += ' active';
-        if (isDeny)   cls += ' deny';
-        if (isAbsent) cls += ' absent';
+        labelCls += ' active';
+        if (isDeny)          { labelCls += ' deny';     sublabelCls += ' deny'; }
+        else if (isAbsent)   { labelCls += ' absent';   sublabelCls += ' absent'; }
+        else if (isSimulate) { labelCls += ' simulate'; sublabelCls += ' simulate'; }
+        else                 { sublabelCls += ' allow'; }
       }
+      const sub = stageSublabel(trace, i);
       const arrow = i < PIPELINE_STAGES.length - 1
         ? '<span class="pipe-arrow">›</span>' : '';
-      return `<span class="pipe-step"><span class="${cls}">${s.label}</span></span>${arrow}`;
+      return `<span class="pipe-step"><span class="${labelCls}">${s.label}</span>${sub ? `<span class="${sublabelCls}">${sub}</span>` : ''}</span>${arrow}`;
     }).join('');
 
     const hashDisplay = trace.descriptor_hash
@@ -574,6 +697,7 @@
           <span class="field-val">${DECISION_SEMANTICS[trace.decision] || ''}</span>
           <span class="field-key">rule</span>
           <span class="field-val">${trace.rule_hit}</span>
+          ${renderExplanation(trace)}
         </div>
       </div>
 
