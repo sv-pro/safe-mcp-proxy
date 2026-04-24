@@ -27,12 +27,14 @@ class OPAPolicyEngine:
         capability_map: Dict[str, bool],
         evaluator: str = "subprocess",
         opa_url: str = _DEFAULT_REST_URL,
+        approval_required: Iterable[str] = (),
     ) -> None:
         self._policy_path = policy_path
         self._allowlist = list(allowlist)
         self._capability_map = dict(capability_map)
         self._evaluator = evaluator
         self._opa_url = opa_url
+        self._approval_required = list(approval_required)
 
         if evaluator == "subprocess" and shutil.which("opa") is None:
             raise RuntimeError(
@@ -57,6 +59,7 @@ class OPAPolicyEngine:
             descriptor_hash_valid=descriptor_hash_valid,
             allowlist=self._allowlist,
             capability_map=self._capability_map,
+            approval_required=self._approval_required,
         )
 
         if self._evaluator == "rest":

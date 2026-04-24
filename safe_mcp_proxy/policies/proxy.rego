@@ -10,16 +10,18 @@
 #   input.descriptor_hash_valid boolean — true when current schema hash matches the pinned hash
 #   input.allowlist           array   — tool names permitted in this world
 #   input.capability_map      object  — capability → boolean (allowed flag)
+#   input.approval_required   array   — capability names that require explicit approval
 #
 # Output: data.safe_mcp_proxy.decision
-#   { "decision": "ALLOW" | "DENY" | "ABSENT", "rule": "<rule_hit>" }
+#   { "decision": "ALLOW" | "DENY" | "ABSENT" | "ASK", "rule": "<rule_hit>" }
 #
 # Decision priority (mirrors policy_engine.py ordering):
 #   1. ABSENT / tool_not_allowlisted
 #   2. ABSENT / capability_not_allowed
 #   3. DENY   / descriptor_drift
 #   4. DENY   / tainted_external_side_effect
-#   5. ALLOW  / default_allow
+#   5. ASK    / approval_required
+#   6. ALLOW  / default_allow
 
 package safe_mcp_proxy
 
@@ -55,6 +57,16 @@ decision = {"decision": "DENY", "rule": "tainted_external_side_effect"} if {
 	input.side_effect_type == "external"
 }
 
+# Rule 5: capability requires explicit approval → ASK
+# Only evaluated when all prior checks pass (not tainted+external).
+decision = {"decision": "ASK", "rule": "approval_required"} if {
+	_tool_allowlisted
+	_capability_allowed
+	input.descriptor_hash_valid
+	not _tainted_external
+	_capability_approval_required
+}
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -65,4 +77,13 @@ _tool_allowlisted if {
 
 _capability_allowed if {
 	input.capability_map[input.capability] == true
+}
+
+_tainted_external if {
+	input.taint == true
+	input.side_effect_type == "external"
+}
+
+_capability_approval_required if {
+	input.approval_required[_] == input.capability
 }

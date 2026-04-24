@@ -198,6 +198,41 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "counts": decision_counts,
         }
 
+    # ------------------------------------------------------------------
+    # Approval endpoints (DS7.1)
+    # ------------------------------------------------------------------
+
+    @app.get("/approvals/{token}")
+    async def get_approval_status(token: str) -> dict:
+        entry = app.state.executor.approval_store.get(token)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="Approval token not found")
+        return {
+            "token": entry.token,
+            "tool_name": entry.tool_name,
+            "status": entry.status,
+            "created_at": entry.created_at,
+        }
+
+    @app.post("/approvals/{token}/approve")
+    async def approve_tool(token: str) -> dict:
+        entry = app.state.executor.approval_store.get(token)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="Approval token not found")
+        if entry.status != "pending":
+            raise HTTPException(status_code=409, detail=f"Token is already {entry.status}")
+        app.state.executor.approval_store.approve(token)
+        return app.state.executor.execute_approved(token)
+
+    @app.post("/approvals/{token}/reject")
+    async def reject_tool(token: str) -> dict:
+        entry = app.state.executor.approval_store.get(token)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="Approval token not found")
+        if entry.status != "pending":
+            raise HTTPException(status_code=409, detail=f"Token is already {entry.status}")
+        return app.state.executor.reject_approval(token)
+
     return app
 
 

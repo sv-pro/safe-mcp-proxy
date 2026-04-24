@@ -5,7 +5,9 @@ import textwrap
 import unittest
 from pathlib import Path
 
+from safe_mcp_proxy.approval_store import ApprovalStore
 from safe_mcp_proxy.decision import Decision
+from safe_mcp_proxy.execution_mode import ExecutionMode
 from safe_mcp_proxy.executor import ABSENT_MESSAGE, Executor
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.policy_engine import PolicyEngine
@@ -98,6 +100,105 @@ class TestProxy(unittest.TestCase):
         results = [self.executor.replay(e) for e in entries]
         matches = sum(1 for r in results if r["matches"])
         self.assertEqual(matches, len(entries), f"Only {matches}/{len(entries)} entries matched")
+
+
+class TestASKDecision(unittest.TestCase):
+    def setUp(self):
+        self.registry = ToolRegistry.with_mock_tools(["read_file", "list_repo", "send_email"])
+        self.policy = PolicyEngine(
+            allowlist=["read_file", "list_repo", "send_email"],
+            capability_map={"read_file": True, "list_repo": True, "send_email": True},
+            approval_required={"send_email"},
+        )
+        self.audit_file = Path(tempfile.gettempdir()) / "safe_mcp_proxy_ask_test_audit.jsonl"
+        if self.audit_file.exists():
+            self.audit_file.unlink()
+        self.store = ApprovalStore()
+        self.executor = Executor(
+            self.registry, self.policy, str(self.audit_file),
+            simulate_external=True, approval_store=self.store,
+        )
+
+    def _ask_send_email(self):
+        """Helper: trigger ASK for send_email from cli (INTERACTIVE)."""
+        prov = Provenance.from_source("cli", execution_mode=ExecutionMode.INTERACTIVE)
+        return self.executor.execute("send_email", {"to": "a@b.com"}, prov)
+
+    def test_ask_emitted_for_approval_required_interactive(self):
+        result = self._ask_send_email()
+        self.assertEqual(result["decision"], "ASK")
+        self.assertEqual(result["rule"], "approval_required")
+        self.assertIn("approval_token", result)
+        self.assertIsNotNone(result["approval_token"])
+
+    def test_ask_falls_back_to_deny_in_background(self):
+        prov = Provenance.from_source("cli", execution_mode=ExecutionMode.BACKGROUND)
+        result = self.executor.execute("send_email", {"to": "a@b.com"}, prov)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertEqual(result["rule"], "ask_unavailable_in_background")
+
+    def test_tainted_external_deny_takes_priority_over_ask(self):
+        prov = Provenance.from_source("web")
+        result = self.executor.execute("send_email", {"to": "a@b.com"}, prov)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertEqual(result["rule"], "tainted_external_side_effect")
+
+    def test_approve_executes_tool(self):
+        ask = self._ask_send_email()
+        token = ask["approval_token"]
+        self.store.approve(token)
+        result = self.executor.execute_approved(token)
+        self.assertEqual(result["decision"], "ALLOW")
+        self.assertEqual(result["rule"], "approved")
+        self.assertIsNotNone(result["result"])
+
+    def test_reject_returns_deny(self):
+        ask = self._ask_send_email()
+        token = ask["approval_token"]
+        result = self.executor.reject_approval(token)
+        self.assertEqual(result["decision"], "DENY")
+        self.assertEqual(result["rule"], "approval_rejected")
+
+    def test_double_approve_returns_error(self):
+        ask = self._ask_send_email()
+        token = ask["approval_token"]
+        self.store.approve(token)
+        self.executor.execute_approved(token)
+        # Second approve attempt on already-approved token
+        result = self.executor.execute_approved(token)
+        self.assertIn("error", result)
+
+    def test_ask_replay_matches_ask(self):
+        self._ask_send_email()
+        with self.audit_file.open() as f:
+            entry = json.loads(f.readlines()[-1])
+        self.assertEqual(entry["decision"], "ASK")
+        result = self.executor.replay(entry)
+        self.assertEqual(result["replayed_decision"], "ASK")
+        self.assertTrue(result["matches"])
+
+    def test_execution_mode_propagates_through_derive(self):
+        prov = Provenance.from_source("cli", execution_mode=ExecutionMode.BACKGROUND)
+        derived = prov.derive("tool_output")
+        self.assertEqual(derived.execution_mode, ExecutionMode.BACKGROUND)
+
+    def test_non_approval_required_tool_still_allows(self):
+        prov = Provenance.from_source("cli")
+        result = self.executor.execute("read_file", {"path": "README.md"}, prov)
+        self.assertEqual(result["decision"], "ALLOW")
+
+    def test_policy_engine_ask_decision(self):
+        result = self.policy.decide("send_email", "send_email", False, "external", True)
+        self.assertEqual(result.decision, Decision.ASK)
+        self.assertEqual(result.rule_hit, "approval_required")
+
+    def test_background_audit_logged_as_deny(self):
+        prov = Provenance.from_source("cli", execution_mode=ExecutionMode.BACKGROUND)
+        self.executor.execute("send_email", {"to": "a@b.com"}, prov)
+        with self.audit_file.open() as f:
+            entry = json.loads(f.readlines()[-1])
+        self.assertEqual(entry["decision"], "DENY")
+        self.assertEqual(entry["rule"], "ask_unavailable_in_background")
 
 
 class TestMultipleWorlds(unittest.TestCase):

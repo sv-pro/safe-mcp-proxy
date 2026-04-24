@@ -9,6 +9,7 @@ class Decision(str, Enum):
     DENY = "DENY"
     ABSENT = "ABSENT"
     SIMULATE = "SIMULATE"
+    ASK = "ASK"
 
     @classmethod
     def parse(cls, value: str) -> Union["Decision", str]:
