@@ -4,6 +4,13 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-24 — DS7.2: Execution modes (INTERACTIVE and BACKGROUND) (Issue #78)
+
+- Updated `wiki/architecture.md` — pipeline description updated to include `execution_mode` in Provenance stage; PolicyEngine "5 rules" → "6 rules"; Executor dispatch expanded to include ASK/INTERACTIVE and ASK/BACKGROUND paths; added `ExecutionMode` and `ApprovalStore` to component map; added `[[ask-approval]]` and `[[src/safe_mcp_proxy/execution_mode]]` to See also
+- Created `safe_mcp_proxy/examples/ask_modes.py` — demo showing INTERACTIVE (ASK + approval token) vs BACKGROUND (immediate DENY fallback) for `send_email`
+
+---
+
 ## 2026-04-24 — DS7.1: Document ASK decision and approval workflow (Issue #77)
 
 - Updated `wiki/policy-engine.md` — 5-path → 6-path; added rule 5 (ASK / approval_required); updated summary line; added [[ask-approval]] to See also
