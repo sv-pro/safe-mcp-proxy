@@ -441,6 +441,20 @@
     .rule-explain-link a:hover { text-decoration: underline; }
 
     #empty-msg { color: #6e7681; padding: 20px 10px; text-align: center; font-size: 12px; }
+
+    .export-btn {
+      background: transparent;
+      color: #58a6ff;
+      border: 1px solid #1f4d7a;
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    .export-btn:hover { background: #1a3a5c; }
+    .export-btn:disabled { opacity: 0.4; cursor: default; }
   </style>
 </head>
 <body>
@@ -482,6 +496,8 @@
     <div id="panel-tabs">
       <button class="panel-tab active" data-panel="detail">Detail</button>
       <button class="panel-tab" data-panel="compare">World Diff</button>
+      <button id="export-btn" class="export-btn" style="margin-left:auto" disabled>Export JSON</button>
+      <button id="bundle-btn" class="export-btn" style="margin-left:6px" disabled>Download Bundle</button>
     </div>
     <div id="detail-view">
       <p class="placeholder" id="detail-placeholder">Select a trace to see details.</p>
@@ -527,6 +543,8 @@
 
   let traces = [];
   let selectedId = null;
+  let lastRunScenario = null;
+  let lastRunTraceId  = null;
 
   // ── Decision semantics ───────────────────────────────────
   const DECISION_SEMANTICS = {
@@ -641,6 +659,7 @@
   function renderList() {
     if (!traces.length) {
       tbody.innerHTML = '<tr><td colspan="4" id="empty-msg">No traces yet.</td></tr>';
+      document.getElementById('export-btn').disabled = true;
       return;
     }
     // Show newest first
@@ -746,8 +765,40 @@
 
     detailPH.style.display = 'none';
     detailDiv.style.display = 'block';
+    document.getElementById('export-btn').disabled = false;
     renderDetail(trace);
   }
+
+  // ── Export ────────────────────────────────────────────────
+  function exportCurrentTrace() {
+    const trace = traces.find(t => t.id === selectedId);
+    if (!trace) return;
+    const blob = new Blob([JSON.stringify(trace, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trace-${trace.id}-${trace.tool_requested}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById('export-btn').addEventListener('click', exportCurrentTrace);
+
+  async function downloadBundle() {
+    if (!lastRunScenario) return;
+    const params = new URLSearchParams({ scenario: lastRunScenario });
+    if (lastRunTraceId != null) params.set('trace_id', lastRunTraceId);
+    const res = await fetch(`/export/bundle?${params}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bundle-${lastRunScenario}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById('bundle-btn').addEventListener('click', downloadBundle);
 
   // ── Fetch & poll ──────────────────────────────────────────
   async function fetchTraces() {
@@ -787,6 +838,9 @@
       const data = await res.json();
       await fetchTraces();
       if (data.trace_id != null) selectTrace(data.trace_id);
+      lastRunScenario = name;
+      lastRunTraceId  = data.trace_id ?? null;
+      document.getElementById('bundle-btn').disabled = false;
     } catch (err) {
       statusEl.textContent = `error: ${err.message}`;
       statusEl.className = 'error';
