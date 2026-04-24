@@ -14,13 +14,24 @@ Each entry has these fields:
 |-------|------|-------------|
 | `timestamp` | ISO-8601 UTC | When the decision was made |
 | `tool` | `str` | Tool name |
-| `decision` | `str` | `ALLOW`, `DENY`, or `ABSENT` |
+| `decision` | `str` | `ALLOW`, `DENY`, `ABSENT`, `ASK`, or `SIMULATE` |
 | `rule` | `str` | Policy rule that was hit |
 | `taint` | `bool` | Whether the request was tainted |
 | `descriptor_hash` | `str` | SHA256 of the tool schema at call time |
 | `source_channel` | `str` | `cli`, `email`, `web`, or `tool_output` |
 
 The file is strictly append-only. `_audit()` opens with mode `"a"` and never reads or modifies existing entries.
+
+### ASK audit entries
+
+An ASK invocation in INTERACTIVE mode produces **two** audit entries:
+
+1. When the approval token is issued: `decision: ASK, rule: approval_required`
+2. After the human decides:
+   - Approved: `decision: ALLOW, rule: approved`
+   - Rejected: `decision: DENY, rule: approval_rejected`
+
+An ASK invocation in BACKGROUND mode produces a **single** entry: `decision: DENY, rule: ask_unavailable_in_background`. The decision is recorded as DENY because no interaction is possible and nothing executes.
 
 ## Replay
 
@@ -53,6 +64,7 @@ The API layer uses `TraceStore` to serve `/traces` and `/traces/{id}` endpoints.
 
 ## See also
 
+- [[ask-approval]] — ASK decision lifecycle and its two-entry audit pattern
 - [[src/safe_mcp_proxy/executor]] — `_audit()` and `replay()` implementation
 - [[src/safe_mcp_proxy/trace_store]] — typed read interface over the log
 - [[src/safe_mcp_proxy/bundle_replay]] — offline bundle replay

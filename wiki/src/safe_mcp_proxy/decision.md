@@ -8,18 +8,19 @@ Defines the `Decision` enum — the complete set of valid policy outcomes.
 
 | Name | Kind | Description |
 |------|------|-------------|
-| `Decision` | str enum | Four values: `ALLOW`, `DENY`, `ABSENT`, `SIMULATE` |
+| `Decision` | str enum | Five values: `ALLOW`, `DENY`, `ABSENT`, `SIMULATE`, `ASK` |
 | `Decision.parse` | classmethod | Safe parse: returns enum member or original string on unknown value |
-| `Decision.values` | classmethod | Returns `("ALLOW", "DENY", "ABSENT", "SIMULATE")` |
+| `Decision.values` | classmethod | Returns `("ALLOW", "DENY", "ABSENT", "SIMULATE", "ASK")` |
 
 ## Values
 
 | Value | Meaning |
 |-------|---------|
 | `ALLOW` | All checks passed; execute the tool |
-| `DENY` | Tool visible but invocation blocked by policy |
+| `DENY` | Tool visible but invocation blocked by policy (terminal) |
 | `ABSENT` | Tool does not exist in this world |
-| `SIMULATE` | Reserved for future approve/simulate workflows |
+| `SIMULATE` | Return mock result without real execution (no side effects) |
+| `ASK` | Invocation structurally valid but capability requires approval; execution paused |
 
 `Decision` inherits from `str`, so `decision.value` equals `str(decision)` and JSON serialization works naturally.
 
@@ -33,6 +34,7 @@ Defines the `Decision` enum — the complete set of valid policy outcomes.
 ## See also
 
 - [[absent-deny]] — ABSENT and DENY semantics
+- [[ask-approval]] — ASK decision: approval lifecycle, execution modes, API endpoints
 - [[policy-engine]] — `decide()` returns a `PolicyResult` carrying a `Decision`
 - [[audit-replay]] — `decision` field is logged in every audit entry
 - [[architecture]] — `Decision` enum is the return type flowing through stage 3→4 of the pipeline

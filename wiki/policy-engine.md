@@ -1,6 +1,6 @@
 # Policy Engine
 
-Five deterministic decision paths evaluated in fixed priority order. Same inputs always produce the same output. No LLM in the enforcement path.
+Six deterministic decision paths evaluated in fixed priority order. Same inputs always produce the same output. No LLM in the enforcement path.
 
 ## What it is
 
@@ -28,13 +28,16 @@ Inputs:
 4. taint == True AND side_effect_type == "external"
    → DENY / tainted_external_side_effect
 
-5. (none of the above)
+5. capability in approval_required
+   → ASK / approval_required
+
+6. (none of the above)
    → ALLOW / default_allow
 ```
 
-Rules 1 and 2 produce ABSENT. Rules 3 and 4 produce DENY. Only if all four checks pass does the request ALLOW.
+Rules 1 and 2 produce ABSENT. Rules 3 and 4 produce DENY. Rule 5 produces ASK. Only if all five checks pass does the request ALLOW.
 
-The ordering is critical: ABSENT checks run before DENY checks. A tool not in the allowlist cannot trigger a taint violation — it simply does not exist.
+The ordering is critical: ABSENT checks run before DENY checks, and DENY checks run before ASK. A tool not in the allowlist cannot trigger a taint violation or an approval request — it simply does not exist.
 
 ## Two implementations
 
@@ -46,7 +49,8 @@ Both implementations produce identical decisions for the same inputs. The Rego p
 
 ## See also
 
-- [[absent-deny]] — the two failure modes this engine produces
+- [[absent-deny]] — the two terminal failure modes (ABSENT and DENY)
+- [[ask-approval]] — the ASK decision: approval lifecycle, execution modes, API endpoints
 - [[provenance-taint]] — source of the `taint` input
 - [[descriptor-drift]] — source of the `descriptor_hash_valid` input
 - [[src/safe_mcp_proxy/policy_engine]] — Python implementation
@@ -54,4 +58,4 @@ Both implementations produce identical decisions for the same inputs. The Rego p
 - [[src/safe_mcp_proxy/policies/index]] — Rego policy file
 - [[src/safe_mcp_proxy/executor]] — calls `policy_engine.decide()` on every invocation
 - [[src/safe_mcp_proxy/registry]] — supplies the allowlist
-- [[src/safe_mcp_proxy/compiler]] — supplies the `capability_map`
+- [[src/safe_mcp_proxy/compiler]] — supplies the `capability_map` and `approval_required` set

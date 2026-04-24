@@ -30,6 +30,8 @@ Both outcomes are produced by [[policy-engine]] and returned as the `decision` f
 - `descriptor_drift` — current schema SHA256 ≠ stored hash
 - `tainted_external_side_effect` — tainted provenance + external side-effect tool
 
+**ASK** is a third distinct outcome, produced by rule 5 (`approval_required`). The tool is visible, the invocation is structurally valid, but execution is paused pending explicit human approval. ASK is provisional — it resolves to ALLOW (approved) or DENY (rejected) after the human decides. See [[ask-approval]] for the full lifecycle.
+
 The response payload differs:
 ```json
 // ABSENT
@@ -43,11 +45,12 @@ The ABSENT message (`"Action does not exist in this world"`) is the canonical st
 
 ## See also
 
-- [[policy-engine]] — the 5-path decision logic
+- [[policy-engine]] — the 6-path decision logic
+- [[ask-approval]] — ASK: the third outcome (provisional, not terminal)
 - [[world-manifest]] — where the allowlist and capability flags live
 - [[provenance-taint]] — taint is the condition for DENY rule 4
 - [[descriptor-drift]] — schema mutation is the condition for DENY rule 3
 - [[src/safe_mcp_proxy/decision]] — the `Decision` enum
-- [[src/safe_mcp_proxy/policy_engine]] — produces ABSENT/DENY results
+- [[src/safe_mcp_proxy/policy_engine]] — produces ABSENT/DENY/ASK results
 - [[src/safe_mcp_proxy/registry]] — `get_tool()` returning `None` triggers ABSENT
 - [[src/safe_mcp_proxy/executor]] — dispatches on decision; defines `ABSENT_MESSAGE`
