@@ -32,6 +32,17 @@ def _build_trace_store(base_dir: Path) -> TraceStore:
     return TraceStore(str(audit_log_path))
 
 
+def _seed_if_empty(base_dir: Path) -> None:
+    audit_path = base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"
+    seed_path = base_dir / "seeds" / "demo.jsonl"
+    if not seed_path.exists():
+        return
+    if audit_path.exists() and audit_path.stat().st_size > 0:
+        return
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    audit_path.write_text(seed_path.read_text(encoding="utf-8"), encoding="utf-8")
+
+
 def _find_trace(trace_store: TraceStore, trace_id: int):
     for trace in trace_store.all():
         if trace.id == trace_id:
@@ -51,6 +62,7 @@ def _trace_to_audit_entry(trace) -> dict:
 
 def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = None) -> FastAPI:
     resolved_base_dir = base_dir or _default_base_dir()
+    _seed_if_empty(resolved_base_dir)
     app = FastAPI(title="safe-mcp-proxy API")
     app.state.trace_store = _build_trace_store(resolved_base_dir)
     app.state.executor = executor or build_executor(resolved_base_dir)
