@@ -1,13 +1,13 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.descriptor import compute_descriptor_hash, descriptor_hash_valid
 from safe_mcp_proxy.policy_engine import PolicyEngine
 from safe_mcp_proxy.provenance import Provenance
-from safe_mcp_proxy.registry import ToolRegistry
+from safe_mcp_proxy.registry import Tool, ToolRegistry
 from safe_mcp_proxy.simulate import simulate_external_action
 
 ABSENT_MESSAGE = "Action does not exist in this world"
@@ -26,11 +26,15 @@ class Executor:
         self.simulate_external = simulate_external
         self.audit_log_path = Path(audit_log_path)
 
-    def execute(self, tool_name: str, payload: Dict[str, Any], provenance: Provenance) -> Dict[str, Any]:
+    def _tool_context(self, tool_name: str) -> Tuple[Optional[Tool], str, str, bool]:
         tool = self.registry.get_tool(tool_name)
         capability = tool.capability if tool else tool_name
         side_effect_type = tool.side_effect_type if tool else "unknown"
-        descriptor_hash_ok = descriptor_hash_valid(tool.schema, tool.descriptor_hash) if tool else True
+        hash_ok = descriptor_hash_valid(tool.schema, tool.descriptor_hash) if tool else True
+        return tool, capability, side_effect_type, hash_ok
+
+    def execute(self, tool_name: str, payload: Dict[str, Any], provenance: Provenance) -> Dict[str, Any]:
+        tool, capability, side_effect_type, hash_ok = self._tool_context(tool_name)
         descriptor_hash = compute_descriptor_hash(tool.schema) if tool else ""
 
         policy = self.policy_engine.decide(
@@ -38,7 +42,7 @@ class Executor:
             capability=capability,
             taint=provenance.tainted,
             side_effect_type=side_effect_type,
-            descriptor_hash_valid=descriptor_hash_ok,
+            descriptor_hash_valid=hash_ok,
         )
 
         if policy.decision == Decision.ALLOW:
@@ -65,17 +69,14 @@ class Executor:
         tool_name = audit_entry["tool"]
         tainted = audit_entry["taint"]
 
-        tool = self.registry.get_tool(tool_name)
-        capability = tool.capability if tool else tool_name
-        side_effect_type = tool.side_effect_type if tool else "unknown"
-        descriptor_hash_ok = descriptor_hash_valid(tool.schema, tool.descriptor_hash) if tool else True
+        _, capability, side_effect_type, hash_ok = self._tool_context(tool_name)
 
         policy = self.policy_engine.decide(
             tool_name=tool_name,
             capability=capability,
             taint=tainted,
             side_effect_type=side_effect_type,
-            descriptor_hash_valid=descriptor_hash_ok,
+            descriptor_hash_valid=hash_ok,
         )
 
         matches = policy.decision.value == audit_entry["decision"] and policy.rule_hit == audit_entry["rule"]

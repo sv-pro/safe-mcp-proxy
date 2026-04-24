@@ -1,17 +1,4 @@
-"""OPAPolicyEngine — evaluates safe_mcp_proxy/policies/proxy.rego via OPA.
-
-Two evaluation strategies are supported:
-
-* ``"subprocess"`` (default) — spawns ``opa eval`` for every decision.
-  Requires the ``opa`` binary on PATH.  No extra Python dependencies.
-
-* ``"rest"`` — POSTs to a running OPA server
-  (``opa run --server``, default address ``http://localhost:8181``).
-  Uses only stdlib ``urllib.request``; no extra Python dependencies.
-
-Both strategies implement the same interface as ``PolicyEngine`` so they are
-a transparent drop-in replacement inside ``Executor``.
-"""
+"""OPA-backed policy engine — subprocess and REST evaluation strategies."""
 
 from __future__ import annotations
 
@@ -31,15 +18,7 @@ _DEFAULT_REST_URL = "http://localhost:8181/v1/data/safe_mcp_proxy/decision"
 
 
 class OPAPolicyEngine:
-    """Policy engine that delegates decisions to OPA/Rego.
-
-    Args:
-        policy_path: Absolute or relative path to ``proxy.rego``.
-        allowlist:   Iterable of tool names permitted in this world.
-        capability_map: Mapping of capability name → enabled flag.
-        evaluator:   ``"subprocess"`` or ``"rest"``.
-        opa_url:     OPA server URL (only used when *evaluator* is ``"rest"``).
-    """
+    """Evaluates decisions via OPA/Rego; drop-in replacement for PolicyEngine."""
 
     def __init__(
         self,
@@ -62,10 +41,6 @@ class OPAPolicyEngine:
                 "or switch to evaluator='rest' and run `opa run --server`."
             )
 
-    # ------------------------------------------------------------------
-    # Public interface (mirrors PolicyEngine.decide)
-    # ------------------------------------------------------------------
-
     def decide(
         self,
         tool_name: str,
@@ -74,7 +49,6 @@ class OPAPolicyEngine:
         side_effect_type: str,
         descriptor_hash_valid: bool,
     ) -> PolicyResult:
-        """Evaluate the Rego policy and return a :class:`PolicyResult`."""
         opa_input = build_opa_input(
             tool_name=tool_name,
             capability=capability,
@@ -95,12 +69,7 @@ class OPAPolicyEngine:
             rule_hit=raw["rule"],
         )
 
-    # ------------------------------------------------------------------
-    # Subprocess evaluator
-    # ------------------------------------------------------------------
-
     def _eval_subprocess(self, opa_input: dict) -> dict:
-        """Run ``opa eval`` in a subprocess and parse the result."""
         input_json = json.dumps(opa_input)
         cmd = [
             "opa",
@@ -134,12 +103,7 @@ class OPAPolicyEngine:
                 f"OPA returned non-JSON output: {proc.stdout!r}"
             ) from exc
 
-    # ------------------------------------------------------------------
-    # REST evaluator
-    # ------------------------------------------------------------------
-
     def _eval_rest(self, opa_input: dict) -> dict:
-        """POST to a running OPA server and parse the result."""
         body = json.dumps({"input": opa_input}).encode("utf-8")
         req = urllib.request.Request(
             self._opa_url,

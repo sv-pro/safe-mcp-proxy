@@ -13,6 +13,7 @@ import safe_mcp_proxy.scenarios as _scenarios
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.main import build_executor
+from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.trace_store import TraceStore
 
 
@@ -109,8 +110,6 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc))
 
-        from safe_mcp_proxy.provenance import Provenance
-
         results = {}
         for world_id in req.worlds:
             try:
@@ -131,9 +130,6 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     @app.get("/stats")
     async def get_stats() -> dict:
         counts = Counter(trace.decision for trace in app.state.trace_store.all())
-        # Future interaction semantics are tracked in GitHub:
-        #   - #77: ASK decision and approval workflow
-        #   - #78: execution modes (INTERACTIVE and BACKGROUND)
         decision_counts = {
             decision.value: counts.get(decision, 0)
             for decision in Decision

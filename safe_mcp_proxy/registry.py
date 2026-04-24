@@ -34,10 +34,26 @@ class ToolRegistry:
             return {"ok": True, "sent_to": payload.get("to", "unknown@example.com")}
 
         tool_defs = [
-            ("read_file", "read_file", {"type": "object", "properties": {"path": {"type": "string"}}}, "read", _read_file),
-            ("list_repo", "list_repo", {"type": "object", "properties": {}}, "internal", _list_repo),
-            ("send_email", "send_email", {"type": "object", "properties": {"to": {"type": "string"}, "body": {"type": "string"}}}, "external", _send_email),
-            ("dangerous_exec", "dangerous_exec", {"type": "object", "properties": {"cmd": {"type": "string"}}}, "external", lambda payload: {"ok": True, "cmd": payload.get("cmd")}),
+            (
+                "read_file", "read_file",
+                {"type": "object", "properties": {"path": {"type": "string"}}},
+                "read", _read_file,
+            ),
+            (
+                "list_repo", "list_repo",
+                {"type": "object", "properties": {}},
+                "internal", _list_repo,
+            ),
+            (
+                "send_email", "send_email",
+                {"type": "object", "properties": {"to": {"type": "string"}, "body": {"type": "string"}}},
+                "external", _send_email,
+            ),
+            (
+                "dangerous_exec", "dangerous_exec",
+                {"type": "object", "properties": {"cmd": {"type": "string"}}},
+                "external", lambda payload: {"ok": True, "cmd": payload.get("cmd")},
+            ),
         ]
 
         tools = [

@@ -1,13 +1,4 @@
-"""tests/test_opa_engine.py — Parity and integration tests for OPAPolicyEngine.
-
-These tests mirror the decision-level assertions from test_proxy.py but wire
-OPAPolicyEngine in place of PolicyEngine.  The full executor integration tests
-confirm that the Executor + OPAPolicyEngine pipeline produces identical outputs
-to the Executor + PolicyEngine pipeline for every supported decision path.
-
-All tests are skipped automatically when the ``opa`` binary is not on PATH so
-the suite degrades gracefully in environments without OPA installed.
-"""
+"""Parity and integration tests for OPAPolicyEngine vs PolicyEngine."""
 
 import shutil
 import tempfile
@@ -52,13 +43,7 @@ def _make_python_engine() -> PolicyEngine:
     return PolicyEngine(allowlist=_ALLOWLIST, capability_map=_CAPABILITY_MAP)
 
 
-# ---------------------------------------------------------------------------
-# Helper: all five (input, expected) test vectors shared by both test classes
-# ---------------------------------------------------------------------------
-
 _DECISION_VECTORS = [
-    # (tool_name, capability, taint, side_effect_type, descriptor_hash_valid,
-    #  expected_decision, expected_rule)
     ("read_file", "read_file", False, "read", True, Decision.ALLOW, "default_allow"),
     ("list_repo", "list_repo", False, "internal", True, Decision.ALLOW, "default_allow"),
     ("send_email", "send_email", True, "external", True, Decision.DENY, "tainted_external_side_effect"),
@@ -105,7 +90,6 @@ class TestOPAPolicyEngineDecide(unittest.TestCase):
         self._check_vector("dangerous_exec", "dangerous_exec", False, "external", True, Decision.ABSENT, "tool_not_allowlisted")
 
     def test_capability_not_allowed_is_absent(self):
-        # Use an engine with send_email capability disabled
         opa = OPAPolicyEngine(
             policy_path=_POLICY_PATH,
             allowlist=["read_file", "list_repo", "send_email"],
@@ -205,15 +189,10 @@ class TestBuildOpaInput(unittest.TestCase):
         self.assertEqual(result["capability_map"], {"read_file": True})
 
     def test_allowlist_is_list(self):
-        # Accepts an arbitrary iterable and normalises it to a list
         result = build_opa_input("x", "x", False, "read", True, ("a", "b"), {})
         self.assertIsInstance(result["allowlist"], list)
 
     def test_capability_map_is_dict(self):
-        class _Proxy:
-            def items(self):
-                return {"a": True}.items()
-
         result = build_opa_input("x", "x", False, "read", True, [], {"a": True})
         self.assertIsInstance(result["capability_map"], dict)
 

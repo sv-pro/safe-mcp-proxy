@@ -13,7 +13,7 @@ from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.registry import ToolRegistry
 
 
-class SafeMCPProxyTests(unittest.TestCase):
+class TestProxy(unittest.TestCase):
     def setUp(self):
         self.registry = ToolRegistry.with_mock_tools(["read_file", "list_repo", "send_email"])
         self.policy = PolicyEngine(

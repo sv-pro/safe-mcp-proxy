@@ -1,4 +1,4 @@
-"""Tests for TraceStore (DS0.1)."""
+"""Tests for TraceStore."""
 
 import json
 import tempfile
