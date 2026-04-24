@@ -34,4 +34,10 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 
 ## See also
 
+- [[absent-deny]] — the core semantic distinction this package enforces
+- [[world-manifest]] — the static policy surface consumed by this package
+- [[policy-engine]] — the 5-path decision logic at the heart of the package
+- [[provenance-taint]] — taint tracking implemented in this package
+- [[descriptor-drift]] — schema integrity checking implemented in this package
+- [[audit-replay]] — audit log format and replay semantics
 - [[architecture]] — how these modules wire together

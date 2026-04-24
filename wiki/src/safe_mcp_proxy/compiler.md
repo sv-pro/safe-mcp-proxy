@@ -43,3 +43,6 @@ Single authoritative mapping from Python domain types to the OPA `input` documen
 ## See also
 
 - [[world-manifest]] — the YAML format this function parses
+- [[policy-engine]] — `allowlist` and `capability_map` output feeds directly into `PolicyEngine`
+- [[absent-deny]] — `allowlist` produced here is what makes tools ABSENT when missing
+- [[architecture]] — compiler runs at startup as part of `build_executor()` wiring

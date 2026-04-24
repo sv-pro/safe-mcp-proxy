@@ -39,3 +39,7 @@ The `poisoned_descriptor` scenario has a `setup` function that mutates `read_fil
 
 - [[src/safe_mcp_proxy/examples/index]] — standalone scripts for the same scenarios
 - [[absent-deny]] — the outcomes scenarios demonstrate
+- [[policy-engine]] — all 4 scenarios exercise different policy paths
+- [[world-manifest]] — scenarios execute against the default `world_manifest.yaml`
+- [[provenance-taint]] — each scenario declares a `source_channel`; tainted ones test rule 4
+- [[architecture]] — `scenarios.run()` exercises the full executor pipeline

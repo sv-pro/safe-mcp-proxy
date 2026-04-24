@@ -33,3 +33,6 @@ Defines the `Decision` enum — the complete set of valid policy outcomes.
 ## See also
 
 - [[absent-deny]] — ABSENT and DENY semantics
+- [[policy-engine]] — `decide()` returns a `PolicyResult` carrying a `Decision`
+- [[audit-replay]] — `decision` field is logged in every audit entry
+- [[architecture]] — `Decision` enum is the return type flowing through stage 3→4 of the pipeline

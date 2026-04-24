@@ -41,4 +41,9 @@ OPA unit tests for `proxy.rego`.
 ## See also
 
 - [[policy-engine]] — concept page; both implementations described
+- [[absent-deny]] — the Rego rules directly implement ABSENT and DENY outcomes
+- [[world-manifest]] — `allowlist` and `capability_map` flow in as OPA `input`
+- [[provenance-taint]] — `input.taint` drives rule 4 in the Rego policy
+- [[descriptor-drift]] — `input.descriptor_hash_valid` drives rule 3 in the Rego policy
+- [[architecture]] — `proxy.rego` is the alternative stage 3 in the pipeline
 - [[src/safe_mcp_proxy/opa_engine]] — the Python module that invokes this file

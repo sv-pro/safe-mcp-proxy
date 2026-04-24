@@ -48,3 +48,6 @@ The ABSENT message (`"Action does not exist in this world"`) is the canonical st
 - [[provenance-taint]] — taint is the condition for DENY rule 4
 - [[descriptor-drift]] — schema mutation is the condition for DENY rule 3
 - [[src/safe_mcp_proxy/decision]] — the `Decision` enum
+- [[src/safe_mcp_proxy/policy_engine]] — produces ABSENT/DENY results
+- [[src/safe_mcp_proxy/registry]] — `get_tool()` returning `None` triggers ABSENT
+- [[src/safe_mcp_proxy/executor]] — dispatches on decision; defines `ABSENT_MESSAGE`

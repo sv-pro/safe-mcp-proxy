@@ -31,3 +31,5 @@ Top-level files and directories in the safe-mcp-proxy repository.
 
 - [[world-manifest]] — world_manifest.yaml explained
 - [[architecture]] — full pipeline overview
+- [[absent-deny]] — the core semantic distinction enforced by this project
+- [[audit-replay]] — `safe_mcp_proxy/logs/audit.jsonl` lives in this repo

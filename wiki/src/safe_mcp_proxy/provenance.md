@@ -39,3 +39,6 @@ Once tainted, `tainted` is never set back to `False` regardless of subsequent so
 ## See also
 
 - [[provenance-taint]] — concept page with threat model
+- [[absent-deny]] — taint leads directly to DENY rule 4
+- [[policy-engine]] — `taint` is the fourth input to `decide()`
+- [[architecture]] — Provenance is stage 1 (classification) in the fixed pipeline

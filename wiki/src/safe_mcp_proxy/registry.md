@@ -49,5 +49,8 @@ A tool in `_all_tools` but not in `_exposed_tools` is invisible to the executor 
 
 ## See also
 
-- [[absent-deny]] — get_tool() returning None is the ABSENT trigger
-- [[descriptor-drift]] — descriptor_hash is pinned here
+- [[absent-deny]] — `get_tool()` returning `None` is the ABSENT trigger
+- [[descriptor-drift]] — `descriptor_hash` is pinned here at registration
+- [[world-manifest]] — `allowlist` that controls `_exposed_tools` comes from the manifest
+- [[policy-engine]] — allowlist fed to `PolicyEngine` comes from the same manifest source
+- [[architecture]] — ToolRegistry is stage 2 (lookup) in the fixed pipeline

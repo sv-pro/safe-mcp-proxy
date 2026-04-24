@@ -24,3 +24,7 @@ Nothing (no imports beyond stdlib typing).
 
 - [[src/safe_mcp_proxy/executor]] — `simulate_external_action()` on the ALLOW path
 - [[src/safe_mcp_proxy/bundle_replay]] — `simulate_external=False` (replay does not simulate)
+
+## See also
+
+- [[architecture]] — `simulate_external_action()` is the mock branch on the ALLOW execution path

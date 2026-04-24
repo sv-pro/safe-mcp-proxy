@@ -75,3 +75,5 @@ Built-in worlds:
 - [[src/safe_mcp_proxy/compiler]] — parses this file
 - [[src/safe_mcp_proxy/main]] — loads and wires the manifest
 - [[src/safe_mcp_proxy/config/index]] — world file locations
+- [[src/safe_mcp_proxy/executor]] — receives compiled manifest tables at construction
+- [[src/safe_mcp_proxy/opa_engine]] — receives `allowlist` and `capability_map` from manifest

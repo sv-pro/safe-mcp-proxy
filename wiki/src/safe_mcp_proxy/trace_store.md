@@ -47,3 +47,5 @@ Read-only streaming filter over the audit JSONL log. Provides a typed `TraceReco
 ## See also
 
 - [[audit-replay]] — audit log format and replay semantics
+- [[absent-deny]] — `TraceStore.filter(decision=...)` filters by ABSENT/DENY/ALLOW
+- [[architecture]] — TraceStore reads the audit log that is the pipeline's output

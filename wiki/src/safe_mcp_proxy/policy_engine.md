@@ -48,4 +48,9 @@ def decide(
 ## See also
 
 - [[policy-engine]] — concept page with full design rationale
+- [[absent-deny]] — ABSENT and DENY are the two failure outcomes this module produces
+- [[provenance-taint]] — `taint` input comes from `Provenance.tainted`
+- [[descriptor-drift]] — `descriptor_hash_valid` input drives rule 3
+- [[world-manifest]] — `allowlist` and `capability_map` constructor args come from the compiled manifest
+- [[architecture]] — PolicyEngine is stage 3 in the fixed pipeline
 - [[src/safe_mcp_proxy/opa_engine]] — alternative OPA implementation with same interface

@@ -44,3 +44,8 @@ policy.decision == ABSENT → {"error": ABSENT_MESSAGE}
 
 - [[audit-replay]] — audit format and replay semantics
 - [[absent-deny]] — the two failure modes
+- [[policy-engine]] — `decide()` is called on every `execute()` call
+- [[provenance-taint]] — `provenance.tainted` drives DENY rule 4
+- [[descriptor-drift]] — `descriptor_hash_valid()` drives DENY rule 3
+- [[world-manifest]] — compiled manifest tables are passed in at construction
+- [[architecture]] — executor is the central orchestrator of the pipeline

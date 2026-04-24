@@ -31,3 +31,9 @@ These are standalone scripts that print output directly. The [[src/safe_mcp_prox
 
 - [[src/safe_mcp_proxy/scenarios/index]] — registered scenario system
 - [[absent-deny]] — the two outcomes these demos illustrate
+- [[policy-engine]] — each demo exercises a different policy decision path
+- [[provenance-taint]] — `prompt_injection.py` demonstrates taint-based DENY
+- [[descriptor-drift]] — `poisoned_descriptor.py` demonstrates drift-based DENY
+- [[world-manifest]] — demos load `world_manifest.yaml` via `build_executor()`
+- [[audit-replay]] — each demo run appends entries to the audit log
+- [[architecture]] — demos run the full executor pipeline end-to-end

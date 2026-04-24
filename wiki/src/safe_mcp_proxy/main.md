@@ -60,5 +60,9 @@ world_id="x"  → base_dir/safe_mcp_proxy/config/worlds/x.yaml   (preferred)
 
 ## See also
 
-- [[architecture]] — how build_executor() fits the startup sequence
+- [[architecture]] — how `build_executor()` fits the startup sequence
 - [[world-manifest]] — manifest resolution and format
+- [[provenance-taint]] — `Provenance.from_source(args.source)` is created here
+- [[absent-deny]] — CLI prints decision which may be ABSENT or DENY
+- [[policy-engine]] — `_build_policy_engine()` selects Python or OPA engine
+- [[audit-replay]] — audit log path is wired here (`safe_mcp_proxy/logs/audit.jsonl`)

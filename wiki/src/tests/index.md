@@ -48,3 +48,8 @@ Key test cases:
 
 - [[audit-replay]] — replay test patterns
 - [[absent-deny]] — the outcomes being tested
+- [[policy-engine]] — test cases cover all 5 decision paths
+- [[world-manifest]] — `TestMultipleWorlds` tests cross-world policy variation
+- [[provenance-taint]] — `test_tainted_external_is_denied` tests taint rule directly
+- [[descriptor-drift]] — `test_descriptor_drift_is_denied` tests schema mutation detection
+- [[architecture]] — tests exercise the full executor pipeline end-to-end

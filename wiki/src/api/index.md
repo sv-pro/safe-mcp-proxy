@@ -53,3 +53,6 @@ Returns per-world `{decision, rule}` for the same scenario.
 
 - [[audit-replay]] — trace and replay semantics
 - [[architecture]] — full pipeline this API exposes
+- [[absent-deny]] — API responses carry ABSENT/DENY decisions from the pipeline
+- [[policy-engine]] — each `/scenarios/{name}/run` and `/compare` call goes through policy evaluation
+- [[provenance-taint]] — `Provenance.from_source(scenario.source_channel)` created per request

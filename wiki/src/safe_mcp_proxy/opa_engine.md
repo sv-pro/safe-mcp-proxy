@@ -43,5 +43,9 @@ Input is built by [[src/safe_mcp_proxy/compiler]]'s `build_opa_input()`. Output 
 
 ## See also
 
-- [[policy-engine]] — Python implementation with same semantics
+- [[policy-engine]] — concept page; Python and OPA implementations described
+- [[absent-deny]] — both evaluators produce ABSENT and DENY outcomes
+- [[world-manifest]] — `allowlist` and `capability_map` passed in from compiled manifest
+- [[descriptor-drift]] — `descriptor_hash_valid` is one of the inputs to `decide()`
+- [[architecture]] — `OPAPolicyEngine` is an alternative stage 3 in the pipeline
 - [[src/safe_mcp_proxy/policies/index]] — the Rego policy file

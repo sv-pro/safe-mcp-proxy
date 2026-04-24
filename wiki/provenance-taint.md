@@ -52,3 +52,5 @@ Request from "web" → tainted=True
 - [[absent-deny]] — taint is the condition for DENY rule 4
 - [[policy-engine]] — consumes `provenance.tainted` as the `taint` input
 - [[src/safe_mcp_proxy/provenance]] — implementation
+- [[src/safe_mcp_proxy/executor]] — receives `Provenance` and extracts `tainted`
+- [[src/safe_mcp_proxy/main]] — creates `Provenance.from_source()` from CLI `--source` flag

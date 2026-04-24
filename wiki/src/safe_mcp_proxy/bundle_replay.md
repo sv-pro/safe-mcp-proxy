@@ -54,4 +54,7 @@ python -m safe_mcp_proxy.bundle_replay path/to/bundle.json
 ## See also
 
 - [[audit-replay]] — replay semantics
+- [[policy-engine]] — `PolicyEngine` is reconstructed from bundle manifest and re-evaluated
+- [[absent-deny]] — replay verifies that ABSENT/DENY/ALLOW decisions are reproducible
+- [[architecture]] — bundle_replay is an offline variant of the executor pipeline
 - [[src/api/index]] — `/export/bundle` produces the input to this module

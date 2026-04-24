@@ -42,3 +42,4 @@ The `poisoned_descriptor` scenario in [[src/safe_mcp_proxy/scenarios/index]] dem
 - [[src/safe_mcp_proxy/descriptor]] — implementation
 - [[src/safe_mcp_proxy/registry]] — where hashes are pinned at startup
 - [[src/safe_mcp_proxy/executor]] — where `descriptor_hash_valid()` is called
+- [[src/safe_mcp_proxy/policy_engine]] — evaluates `descriptor_hash_valid` flag as rule 3

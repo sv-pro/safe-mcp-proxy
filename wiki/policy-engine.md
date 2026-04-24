@@ -52,3 +52,6 @@ Both implementations produce identical decisions for the same inputs. The Rego p
 - [[src/safe_mcp_proxy/policy_engine]] — Python implementation
 - [[src/safe_mcp_proxy/opa_engine]] — OPA implementation
 - [[src/safe_mcp_proxy/policies/index]] — Rego policy file
+- [[src/safe_mcp_proxy/executor]] — calls `policy_engine.decide()` on every invocation
+- [[src/safe_mcp_proxy/registry]] — supplies the allowlist
+- [[src/safe_mcp_proxy/compiler]] — supplies the `capability_map`
