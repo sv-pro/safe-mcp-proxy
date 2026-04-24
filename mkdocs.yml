@@ -1,0 +1,10 @@
+site_name: safe-mcp-proxy wiki
+docs_dir: wiki
+theme:
+  name: material
+  palette:
+    scheme: slate
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - content.code.copy
