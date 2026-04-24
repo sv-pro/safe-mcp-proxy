@@ -7,8 +7,9 @@ Content-oriented catalog of all pages in this wiki.
 | Page | Description |
 |------|-------------|
 | [[absent-deny]] | The two distinct failure modes: ABSENT (tool hidden) vs DENY (action blocked) |
+| [[ask-approval]] | ASK decision — provisional approval gate, lifecycle, execution modes, API endpoints |
 | [[world-manifest]] | `world_manifest.yaml` as the sole policy surface — allowlist, capabilities, taint rules |
-| [[policy-engine]] | Five deterministic decision paths evaluated in fixed order |
+| [[policy-engine]] | Six deterministic decision paths evaluated in fixed order |
 | [[provenance-taint]] | Source channel tracking and taint propagation through tool output chains |
 | [[descriptor-drift]] | SHA256 schema integrity — detecting runtime tool descriptor mutations |
 | [[audit-replay]] | Append-only audit log and forensic policy replay |
@@ -34,11 +35,13 @@ Content-oriented catalog of all pages in this wiki.
 | [[src/safe_mcp_proxy/provenance]] | `Provenance` dataclass — source channel and taint tracking |
 | [[src/safe_mcp_proxy/descriptor]] | SHA256 schema normalization and hash validation |
 | [[src/safe_mcp_proxy/compiler]] | World manifest YAML parser — produces typed runtime config |
-| [[src/safe_mcp_proxy/decision]] | `Decision` enum: ALLOW, DENY, ABSENT, SIMULATE |
+| [[src/safe_mcp_proxy/decision]] | `Decision` enum: ALLOW, DENY, ABSENT, SIMULATE, ASK |
 | [[src/safe_mcp_proxy/simulate]] | Mock external action handler for tests and demos |
 | [[src/safe_mcp_proxy/trace_store]] | Read-only streaming filter over the audit JSONL log |
 | [[src/safe_mcp_proxy/bundle_replay]] | Offline bundle replayer for saved demo artifacts |
 | [[src/safe_mcp_proxy/opa_engine]] | OPA/Rego drop-in replacement for `PolicyEngine` |
+| [[src/safe_mcp_proxy/approval_store]] | In-memory approval token store — pending/approved/rejected/executed lifecycle |
+| [[src/safe_mcp_proxy/execution_mode]] | `ExecutionMode` enum: INTERACTIVE vs BACKGROUND — controls ASK behavior |
 
 ### Sub-packages
 

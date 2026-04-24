@@ -4,6 +4,21 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-24 — DS7.1: Document ASK decision and approval workflow (Issue #77)
+
+- Updated `wiki/policy-engine.md` — 5-path → 6-path; added rule 5 (ASK / approval_required); updated summary line; added [[ask-approval]] to See also
+- Updated `wiki/audit-replay.md` — added ASK and SIMULATE to `decision` field; documented two-entry audit pattern for INTERACTIVE ASK; documented single-entry DENY pattern for BACKGROUND ASK
+- Updated `wiki/absent-deny.md` — added ASK as third distinct outcome (provisional, not terminal); updated See also reference from 5-path to 6-path
+- Updated `wiki/index.md` — added [[ask-approval]] concept page row; updated Decision enum description to include ASK; added approval_store and execution_mode source page rows
+- Updated `wiki/src/safe_mcp_proxy/decision.md` — "four values" → "five values"; added ASK row; corrected SIMULATE description (implemented, not reserved)
+- Updated `wiki/src/safe_mcp_proxy/executor.md` — added approval_store to __init__; added execute_approved and reject_approval methods; added ASK execution paths; added approval_store and execution_mode to Depends on
+- Updated `wiki/src/safe_mcp_proxy/index.md` — added approval_store and execution_mode module rows; 5-path → 6-path; added [[ask-approval]] to See also
+- Created `wiki/ask-approval.md` — new concept page: what ASK is, how it differs from DENY, trigger, execution modes, lifecycle, API endpoints, audit entries, replay semantics
+- Created `wiki/src/safe_mcp_proxy/approval_store.md` — new source page: PendingApproval fields, ApprovalStore methods, status state machine
+- Created `wiki/src/safe_mcp_proxy/execution_mode.md` — new source page: INTERACTIVE vs BACKGROUND values, effect on ASK, CLI usage
+
+---
+
 ## 2026-04-24 — Publishing infrastructure + Claude Code wiki integration
 
 - Created `mkdocs.yml` — mkdocs-material static site built from `wiki/` directory

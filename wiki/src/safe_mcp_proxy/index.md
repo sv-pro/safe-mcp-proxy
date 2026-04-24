@@ -9,7 +9,7 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | [[src/safe_mcp_proxy/main]] | CLI entrypoint; `build_executor()` assembly function |
 | [[src/safe_mcp_proxy/executor]] | Pipeline orchestrator; audit log writer |
 | [[src/safe_mcp_proxy/registry]] | Tool definitions and allowlist-filtered dispatch |
-| [[src/safe_mcp_proxy/policy_engine]] | Pure Python 5-path decision logic |
+| [[src/safe_mcp_proxy/policy_engine]] | Pure Python 6-path decision logic |
 | [[src/safe_mcp_proxy/opa_engine]] | OPA/Rego drop-in for `PolicyEngine` |
 | [[src/safe_mcp_proxy/provenance]] | `Provenance` dataclass; taint tracking |
 | [[src/safe_mcp_proxy/descriptor]] | SHA256 schema normalization and validation |
@@ -18,6 +18,8 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | [[src/safe_mcp_proxy/simulate]] | Mock external action for tests/demos |
 | [[src/safe_mcp_proxy/trace_store]] | Read-only streaming view of audit JSONL |
 | [[src/safe_mcp_proxy/bundle_replay]] | Offline bundle replayer |
+| [[src/safe_mcp_proxy/approval_store]] | In-memory approval token store — pending/approved/rejected/executed |
+| [[src/safe_mcp_proxy/execution_mode]] | `ExecutionMode` enum: INTERACTIVE vs BACKGROUND |
 
 ## Sub-packages
 
@@ -36,8 +38,9 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 
 - [[absent-deny]] — the core semantic distinction this package enforces
 - [[world-manifest]] — the static policy surface consumed by this package
-- [[policy-engine]] — the 5-path decision logic at the heart of the package
+- [[policy-engine]] — the 6-path decision logic at the heart of the package
 - [[provenance-taint]] — taint tracking implemented in this package
 - [[descriptor-drift]] — schema integrity checking implemented in this package
+- [[ask-approval]] — ASK decision lifecycle and approval workflow
 - [[audit-replay]] — audit log format and replay semantics
 - [[architecture]] — how these modules wire together
