@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 import safe_mcp_proxy.scenarios as _scenarios
+from safe_mcp_proxy.compiler import compile_world_manifest
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.main import build_executor
@@ -31,6 +32,17 @@ def _build_trace_store(base_dir: Path) -> TraceStore:
     return TraceStore(str(audit_log_path))
 
 
+def _seed_if_empty(base_dir: Path) -> None:
+    audit_path = base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"
+    seed_path = base_dir / "seeds" / "demo.jsonl"
+    if not seed_path.exists():
+        return
+    if audit_path.exists() and audit_path.stat().st_size > 0:
+        return
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    audit_path.write_text(seed_path.read_text(encoding="utf-8"), encoding="utf-8")
+
+
 def _find_trace(trace_store: TraceStore, trace_id: int):
     for trace in trace_store.all():
         if trace.id == trace_id:
@@ -50,6 +62,7 @@ def _trace_to_audit_entry(trace) -> dict:
 
 def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = None) -> FastAPI:
     resolved_base_dir = base_dir or _default_base_dir()
+    _seed_if_empty(resolved_base_dir)
     app = FastAPI(title="safe-mcp-proxy API")
     app.state.trace_store = _build_trace_store(resolved_base_dir)
     app.state.executor = executor or build_executor(resolved_base_dir)
@@ -126,6 +139,44 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             }
 
         return {"scenario": req.scenario, "worlds": results}
+
+    @app.get("/export/bundle")
+    async def export_bundle(
+        scenario: str = Query(...),
+        trace_id: Optional[int] = Query(default=None),
+    ) -> dict:
+        try:
+            scn = _scenarios.get(scenario)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+
+        manifest = compile_world_manifest(
+            str(resolved_base_dir / "world_manifest.yaml")
+        )
+
+        if trace_id is not None:
+            trace = _find_trace(app.state.trace_store, trace_id)
+            trace_dicts = [trace.as_dict()]
+        else:
+            recent = app.state.trace_store.last(1)
+            trace_dicts = [recent[0].as_dict()] if recent else []
+
+        from datetime import datetime, timezone
+        return {
+            "schema_version": 1,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "scenario": {
+                "name": scn.name,
+                "description": scn.description,
+                "tool": scn.tool,
+                "payload": scn.payload,
+                "source_channel": scn.source_channel,
+                "expected_decision": scn.expected_decision,
+                "expected_rule": scn.expected_rule,
+            },
+            "manifest": manifest,
+            "traces": trace_dicts,
+        }
 
     @app.get("/stats")
     async def get_stats() -> dict:

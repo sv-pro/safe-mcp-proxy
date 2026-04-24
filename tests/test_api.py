@@ -232,5 +232,144 @@ class FastAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class TestExportBundle(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "world_manifest.yaml").write_text(textwrap.dedent("""\
+            world_id: default
+            allowed_tools: [read_file, list_repo, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: true}
+              send_email: {allowed: true}
+              dangerous_exec: {allowed: false}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        config_dir = self.tmp / "safe_mcp_proxy" / "config"
+        config_dir.mkdir(parents=True)
+        (config_dir / "policy.yaml").write_text(
+            "simulation:\n  external_side_effects: true\n", encoding="utf-8"
+        )
+        logs_dir = self.tmp / "safe_mcp_proxy" / "logs"
+        logs_dir.mkdir(parents=True)
+        (logs_dir / "audit.jsonl").write_text("", encoding="utf-8")
+        self.app = create_app(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _request(self, method, path, **kwargs):
+        async def _run():
+            transport = httpx.ASGITransport(app=self.app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                return await client.request(method, path, **kwargs)
+        return asyncio.run(_run())
+
+    def test_export_bundle_returns_valid_structure(self):
+        response = self._request("GET", "/export/bundle?scenario=benign_flow")
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["schema_version"], 1)
+        self.assertIn("generated_at", body)
+        self.assertIn("scenario", body)
+        self.assertIn("manifest", body)
+        self.assertIn("traces", body)
+        self.assertEqual(body["scenario"]["name"], "benign_flow")
+        self.assertIn("allowlist", body["manifest"])
+        self.assertIn("capability_map", body["manifest"])
+
+    def test_export_bundle_unknown_scenario_returns_404(self):
+        response = self._request("GET", "/export/bundle?scenario=no_such_scenario")
+        self.assertEqual(response.status_code, 404)
+
+    def test_export_bundle_with_trace_id(self):
+        # First run a scenario to generate a trace
+        run_response = self._request("POST", "/scenarios/benign_flow/run")
+        self.assertEqual(run_response.status_code, 200)
+        trace_id = run_response.json()["trace_id"]
+        self.assertIsNotNone(trace_id)
+
+        response = self._request(
+            "GET", f"/export/bundle?scenario=benign_flow&trace_id={trace_id}"
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(len(body["traces"]), 1)
+        self.assertEqual(body["traces"][0]["id"], trace_id)
+
+
+class TestSeedDemoData(unittest.TestCase):
+    SEED_CONTENT = (
+        '{"decision": "ALLOW", "descriptor_hash": "aaa", "rule": "default_allow", '
+        '"source_channel": "cli", "taint": false, "timestamp": "2026-01-01T00:00:00+00:00", "tool": "read_file"}\n'
+        '{"decision": "DENY", "descriptor_hash": "bbb", "rule": "tainted_external_side_effect", '
+        '"source_channel": "web", "taint": true, "timestamp": "2026-01-01T00:01:00+00:00", "tool": "send_email"}\n'
+        '{"decision": "ABSENT", "descriptor_hash": "", "rule": "tool_not_allowlisted", '
+        '"source_channel": "cli", "taint": false, "timestamp": "2026-01-01T00:02:00+00:00", "tool": "dangerous_exec"}\n'
+        '{"decision": "SIMULATE", "descriptor_hash": "ccc", "rule": "simulate_external_action", '
+        '"source_channel": "cli", "taint": false, "timestamp": "2026-01-01T00:03:00+00:00", "tool": "send_email"}\n'
+    )
+
+    def _make_base_dir(self, with_audit_content=""):
+        tmp = Path(tempfile.mkdtemp())
+        (tmp / "world_manifest.yaml").write_text(textwrap.dedent("""\
+            world_id: default
+            allowed_tools: [read_file, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              send_email: {allowed: true}
+            taint_rules: []
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        config_dir = tmp / "safe_mcp_proxy" / "config"
+        config_dir.mkdir(parents=True)
+        (config_dir / "policy.yaml").write_text(
+            "simulation:\n  external_side_effects: true\n", encoding="utf-8"
+        )
+        logs_dir = tmp / "safe_mcp_proxy" / "logs"
+        logs_dir.mkdir(parents=True)
+        (logs_dir / "audit.jsonl").write_text(with_audit_content, encoding="utf-8")
+        seeds_dir = tmp / "seeds"
+        seeds_dir.mkdir()
+        (seeds_dir / "demo.jsonl").write_text(self.SEED_CONTENT, encoding="utf-8")
+        return tmp
+
+    def _request(self, app, method, path, **kwargs):
+        async def _run():
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                return await client.request(method, path, **kwargs)
+        return asyncio.run(_run())
+
+    def test_seeds_loaded_when_audit_is_empty(self):
+        tmp = self._make_base_dir(with_audit_content="")
+        try:
+            app = create_app(tmp)
+            response = self._request(app, "GET", "/traces?limit=10")
+            self.assertEqual(response.status_code, 200)
+            traces = response.json()["traces"]
+            decisions = {t["decision"] for t in traces}
+            self.assertEqual(decisions, {"ALLOW", "DENY", "ABSENT", "SIMULATE"})
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_seeds_not_loaded_when_audit_has_data(self):
+        existing = (
+            '{"decision": "ALLOW", "descriptor_hash": "x", "rule": "default_allow", '
+            '"source_channel": "cli", "taint": false, "timestamp": "2026-01-01T00:00:00+00:00", "tool": "read_file"}\n'
+        )
+        tmp = self._make_base_dir(with_audit_content=existing)
+        try:
+            app = create_app(tmp)
+            response = self._request(app, "GET", "/traces?limit=10")
+            self.assertEqual(response.status_code, 200)
+            traces = response.json()["traces"]
+            self.assertEqual(len(traces), 1)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()
