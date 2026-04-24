@@ -63,3 +63,4 @@ Content-oriented catalog of all pages in this wiki.
 | `schema.md` | Wiki conventions, page types, update workflow |
 | `index.md` | This file |
 | `log.md` | Append-only ingest/query/lint history |
+| `publishing.md` | How to build and deploy the wiki as a static site (Vercel, GitHub Pages) |

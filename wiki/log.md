@@ -4,6 +4,17 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-24 — Publishing infrastructure + Claude Code wiki integration
+
+- Created `mkdocs.yml` — mkdocs-material static site built from `wiki/` directory
+- Created `vercel.json` — Vercel build config (`buildCommand: mkdocs build`, `outputDirectory: site`)
+- Created `requirements-docs.txt` — doc-only dependencies (`mkdocs`, `mkdocs-material`), separate from runtime
+- Created `wiki/publishing.md` — deployment guide (Vercel, GitHub Pages, local preview, wikilinks caveat)
+- Updated `wiki/index.md` — added `publishing.md` to Meta Pages table
+- Updated `CLAUDE.md` — added `## Wiki` section directing Claude to read relevant pages before and after non-trivial tasks
+
+---
+
 ## 2026-04-24 — Initial seed ingest
 
 - Ingested full codebase: `safe_mcp_proxy/`, `api/`, `tests/`, `worlds/`, `seeds/`

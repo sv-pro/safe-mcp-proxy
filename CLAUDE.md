@@ -87,6 +87,23 @@ Every decision is appended to `safe_mcp_proxy/logs/audit.jsonl` in JSON lines fo
 2. Add the tool name to `allowed_tools` and the capability under `capabilities` in `world_manifest.yaml`.
 3. Add a test in `tests/test_proxy.py` using a temp audit file and `simulate_external=True`.
 
+## Wiki
+
+`wiki/` is a persistent AI-maintained knowledge base (LLM Wiki pattern). Use it as a primary reference for architecture, design decisions, and module behavior — synthesized wiki pages are faster to consume than raw source files.
+
+**When starting work on any non-trivial task**, read `wiki/index.md` first to locate relevant pages, then read those pages before writing code or making design decisions.
+
+**Concept pages by topic:**
+- `wiki/absent-deny.md` — before any policy or decision logic changes
+- `wiki/architecture.md` — before any pipeline changes
+- `wiki/policy-engine.md` — before modifying `policy_engine.py` or `opa_engine.py`
+- `wiki/provenance-taint.md` — before modifying `provenance.py`
+- `wiki/descriptor-drift.md` — before modifying `descriptor.py`
+- `wiki/world-manifest.md` — before modifying world manifests or `compiler.py`
+- `wiki/audit-replay.md` — before modifying `executor.py` or `trace_store.py`
+
+**After making significant changes** (new module, changed behavior, new policy path): update affected wiki pages following `wiki/schema.md` conventions and append an entry to `wiki/log.md`.
+
 ## Roadmap & "What's next?"
 
 When asked **"what's next?"**, **"что дальше?"**, **"next issue"**, **"next task"**, or similar:
