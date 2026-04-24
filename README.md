@@ -121,6 +121,19 @@ side_effects:
 
 Multiple worlds are supported via `safe_mcp_proxy/config/worlds/` (with legacy fallback to `worlds/`). Pass `--world <world_id>` to load `safe_mcp_proxy/config/worlds/<world_id>.yaml` instead of the default manifest.
 
+## Demo
+
+**Prompt injection → DENY** — a request arriving from a tainted channel (`web`) that targets a tool with an external side effect is blocked before execution:
+
+![injection → DENY](docs/demo/injection.gif)
+
+**Absent tool → "does not exist"** — a tool not listed in the world manifest is invisible; the agent receives no denial, just absence:
+
+![absent tool](docs/demo/absent.gif)
+
+> GIFs are generated from VHS tape files in `docs/demo/`.
+> To regenerate: install [VHS](https://github.com/charmbracelet/vhs) and run `bash docs/demo/generate_gifs.sh`.
+
 ## Quick start
 
 No build step. The CLI/demo path depends on PyYAML. The optional HTTP API uses FastAPI + Uvicorn.
