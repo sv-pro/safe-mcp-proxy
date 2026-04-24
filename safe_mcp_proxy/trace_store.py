@@ -1,18 +1,3 @@
-"""TraceStore — read-only, queryable view over the append-only audit JSONL log.
-
-Stable record format (schema_version=1):
-    id              — 1-based line number within the file
-    schema_version  — int, always 1 for this format
-    timestamp       — ISO-8601 UTC string (from audit entry)
-    tool_requested  — tool name (audit field: "tool")
-    decision        — ALLOW | DENY | ABSENT | SIMULATE
-    rule_hit        — rule name (audit field: "rule")
-    source_channel  — cli | web | email | tool_output
-    taint           — bool
-    descriptor_hash — SHA-256 hex string (empty string when absent)
-    input           — dict | None  (not yet captured by executor; reserved)
-"""
-
 from __future__ import annotations
 
 import json
@@ -55,7 +40,6 @@ class TraceRecord:
 
     @staticmethod
     def from_raw(line_number: int, raw: dict) -> "TraceRecord":
-        """Normalize one raw audit-log dict into a TraceRecord."""
         return TraceRecord(
             id=line_number,
             schema_version=SCHEMA_VERSION,
@@ -71,7 +55,6 @@ class TraceRecord:
 
 
 def _parse_timestamp(ts: str) -> Optional[datetime]:
-    """Parse an ISO-8601 timestamp into an aware UTC datetime, or None on failure."""
     if not ts:
         return None
     try:
@@ -89,16 +72,10 @@ class TraceStore:
     def __init__(self, audit_log_path: str) -> None:
         self._path = Path(audit_log_path)
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
     def all(self) -> List[TraceRecord]:
-        """Return every record in chronological order."""
         return list(self._iter_records())
 
     def last(self, n: int) -> List[TraceRecord]:
-        """Return the last *n* records (most-recent last)."""
         if n <= 0:
             return []
         records = self.all()
@@ -112,14 +89,7 @@ class TraceStore:
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
     ) -> List[TraceRecord]:
-        """Return records matching every supplied criterion.
-
-        Args:
-            decision: exact match on the ``decision`` field (ALLOW/DENY/ABSENT/SIMULATE).
-            tool:     exact match on ``tool_requested``.
-            since:    include only records with timestamp >= since (tz-aware datetime).
-            until:    include only records with timestamp <= until (tz-aware datetime).
-        """
+        """Return records matching every supplied criterion (keyword-only)."""
         results = []
         expected_decision = Decision.parse(decision) if isinstance(decision, str) else decision
         for rec in self._iter_records():
@@ -138,12 +108,7 @@ class TraceStore:
             results.append(rec)
         return results
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
     def _iter_records(self):
-        """Yield TraceRecord objects line by line from the JSONL file."""
         if not self._path.exists():
             return
         with self._path.open(encoding="utf-8") as fh:

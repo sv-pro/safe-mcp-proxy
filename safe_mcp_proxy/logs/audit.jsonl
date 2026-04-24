@@ -19,3 +19,4 @@
 {"decision": "ABSENT", "descriptor_hash": "", "rule": "tool_not_allowlisted", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T15:47:40.038909+00:00", "tool": "dangerous_exec"}
 {"decision": "ALLOW", "descriptor_hash": "53582d9d7229826e75097ac478787ca403c94ce74e4611571be1b03c706952cc", "rule": "default_allow", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T15:50:44.186168+00:00", "tool": "read_file"}
 {"decision": "ABSENT", "descriptor_hash": "", "rule": "tool_not_allowlisted", "source_channel": "cli", "taint": false, "timestamp": "2026-04-22T15:51:50.464486+00:00", "tool": "dangerous_exec"}
+{"decision": "ALLOW", "descriptor_hash": "53582d9d7229826e75097ac478787ca403c94ce74e4611571be1b03c706952cc", "rule": "default_allow", "source_channel": "cli", "taint": false, "timestamp": "2026-04-24T04:06:42.616482+00:00", "tool": "read_file"}
