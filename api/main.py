@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from collections import Counter
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
@@ -89,6 +89,14 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     @app.get("/traces/{trace_id}")
     async def get_trace(trace_id: int) -> dict:
         return _find_trace(app.state.trace_store, trace_id).as_dict()
+
+    @app.post("/replay/bundle")
+    async def replay_bundle_endpoint(bundle: Any = Body(...)) -> dict:
+        from safe_mcp_proxy.bundle_replay import replay_bundle
+        try:
+            return replay_bundle(bundle)
+        except (KeyError, TypeError) as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid bundle: {exc}")
 
     @app.post("/replay/{trace_id}")
     async def replay_trace(trace_id: int) -> dict:

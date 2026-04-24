@@ -300,6 +300,79 @@ class TestExportBundle(unittest.TestCase):
         self.assertEqual(body["traces"][0]["id"], trace_id)
 
 
+class TestBundleReplay(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "world_manifest.yaml").write_text(textwrap.dedent("""\
+            world_id: default
+            allowed_tools: [read_file, list_repo, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: true}
+              send_email: {allowed: true}
+              dangerous_exec: {allowed: false}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        config_dir = self.tmp / "safe_mcp_proxy" / "config"
+        config_dir.mkdir(parents=True)
+        (config_dir / "policy.yaml").write_text(
+            "simulation:\n  external_side_effects: true\n", encoding="utf-8"
+        )
+        logs_dir = self.tmp / "safe_mcp_proxy" / "logs"
+        logs_dir.mkdir(parents=True)
+        (logs_dir / "audit.jsonl").write_text("", encoding="utf-8")
+        self.app = create_app(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _request(self, method, path, **kwargs):
+        async def _run():
+            transport = httpx.ASGITransport(app=self.app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                return await client.request(method, path, **kwargs)
+        return asyncio.run(_run())
+
+    def _export_bundle(self, scenario="benign_flow"):
+        self._request("POST", f"/scenarios/{scenario}/run")
+        resp = self._request("GET", f"/export/bundle?scenario={scenario}")
+        self.assertEqual(resp.status_code, 200)
+        return resp.json()
+
+    def test_replay_bundle_returns_summary_structure(self):
+        bundle = self._export_bundle()
+        resp = self._request("POST", "/replay/bundle", json=bundle)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertIn("total", body)
+        self.assertIn("matched", body)
+        self.assertIn("diverged", body)
+        self.assertIn("results", body)
+        self.assertEqual(body["total"], body["matched"] + body["diverged"])
+
+    def test_replay_bundle_all_match_unchanged_manifest(self):
+        bundle = self._export_bundle()
+        resp = self._request("POST", "/replay/bundle", json=bundle)
+        body = resp.json()
+        self.assertEqual(body["diverged"], 0)
+        self.assertEqual(body["matched"], body["total"])
+
+    def test_replay_bundle_empty_traces(self):
+        bundle = self._export_bundle()
+        bundle["traces"] = []
+        resp = self._request("POST", "/replay/bundle", json=bundle)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertEqual(body["total"], 0)
+        self.assertEqual(body["diverged"], 0)
+
+    def test_replay_bundle_invalid_missing_key_returns_422(self):
+        resp = self._request("POST", "/replay/bundle", json={"bad": "bundle"})
+        self.assertEqual(resp.status_code, 422)
+
+
 class TestSeedDemoData(unittest.TestCase):
     SEED_CONTENT = (
         '{"decision": "ALLOW", "descriptor_hash": "aaa", "rule": "default_allow", '
