@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterable, List
 
 import yaml
 
@@ -11,6 +11,7 @@ def build_opa_input(
     descriptor_hash_valid: bool,
     allowlist: Iterable[str],
     capability_map: Dict[str, bool],
+    approval_required: Iterable[str] = (),
 ) -> Dict[str, Any]:
     """Assemble the OPA input object from Python domain types.
 
@@ -26,6 +27,7 @@ def build_opa_input(
         "descriptor_hash_valid": descriptor_hash_valid,
         "allowlist": list(allowlist),
         "capability_map": dict(capability_map),
+        "approval_required": list(approval_required),
     }
 
 
@@ -35,10 +37,16 @@ def compile_world_manifest(path: str) -> Dict[str, Any]:
 
     allowed_tools = raw.get("allowed_tools", [])
     capabilities = raw.get("capabilities", {})
-    capability_map = {
-        capability: bool(config.get("allowed", False)) if isinstance(config, dict) else bool(config)
-        for capability, config in capabilities.items()
-    }
+
+    capability_map: Dict[str, bool] = {}
+    approval_required: List[str] = []
+    for capability, config in capabilities.items():
+        if isinstance(config, dict):
+            capability_map[capability] = bool(config.get("allowed", False))
+            if bool(config.get("requires_approval", False)):
+                approval_required.append(capability)
+        else:
+            capability_map[capability] = bool(config)
 
     taint_rules = raw.get("taint_rules", [])
     side_effects = raw.get("side_effects", {})
@@ -47,6 +55,7 @@ def compile_world_manifest(path: str) -> Dict[str, Any]:
         "world_id": raw.get("world_id", ""),
         "allowlist": allowed_tools,
         "capability_map": capability_map,
+        "approval_required": approval_required,
         "taint_rules": taint_rules,
         "side_effect_policy": side_effects,
         "policy_engine": raw.get("policy_engine", "python"),

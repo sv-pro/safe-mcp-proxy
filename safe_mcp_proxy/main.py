@@ -5,7 +5,9 @@ from typing import Optional, Union
 
 import yaml
 
+from safe_mcp_proxy.approval_store import ApprovalStore
 from safe_mcp_proxy.compiler import compile_world_manifest
+from safe_mcp_proxy.execution_mode import ExecutionMode
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.opa_engine import OPAPolicyEngine
 from safe_mcp_proxy.policy_engine import PolicyEngine
@@ -40,26 +42,19 @@ def _build_policy_engine(
     engine: str,
     base_dir: Path,
 ) -> Union[PolicyEngine, OPAPolicyEngine]:
-    """Instantiate the correct policy engine based on *engine* selection.
-
-    Args:
-        manifest_tables: Compiled world manifest (output of compile_world_manifest).
-        engine: ``"python"`` or ``"opa"``.
-        base_dir: Repository root used to locate the default Rego policy file.
-
-    Returns:
-        A :class:`PolicyEngine` or :class:`OPAPolicyEngine` instance.
-    """
+    approval_required = manifest_tables.get("approval_required", [])
     if engine == "opa":
         policy_path = str(base_dir / "safe_mcp_proxy" / "policies" / "proxy.rego")
         return OPAPolicyEngine(
             policy_path=policy_path,
             allowlist=manifest_tables["allowlist"],
             capability_map=manifest_tables["capability_map"],
+            approval_required=approval_required,
         )
     return PolicyEngine(
         allowlist=manifest_tables["allowlist"],
         capability_map=manifest_tables["capability_map"],
+        approval_required=approval_required,
     )
 
 
@@ -80,6 +75,7 @@ def build_executor(
         policy_engine=policy_engine,
         audit_log_path=str(base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"),
         simulate_external=simulate_external,
+        approval_store=ApprovalStore(),
     )
 
 
@@ -90,11 +86,13 @@ def main() -> None:
     parser.add_argument("--payload", default="{}", help="JSON payload")
     parser.add_argument("--world", default=None, help="World ID (loads safe_mcp_proxy/config/worlds/<world_id>.yaml, falls back to worlds/<world_id>.yaml)")
     parser.add_argument("--engine", default=None, choices=["python", "opa"], help="Policy engine to use: 'python' (default) or 'opa'. Overrides the manifest's policy_engine key.")
+    parser.add_argument("--mode", default="interactive", choices=["interactive", "background"], help="Execution mode: 'interactive' (default) allows ASK; 'background' converts ASK to DENY.")
     args = parser.parse_args()
 
     base_dir = Path(__file__).resolve().parents[1]
     executor = build_executor(base_dir, world_id=args.world, engine=args.engine)
-    provenance = Provenance.from_source(args.source)
+    mode = ExecutionMode(args.mode.upper())
+    provenance = Provenance.from_source(args.source, execution_mode=mode)
     payload = json.loads(args.payload)
     result = executor.execute(args.tool, payload, provenance)
     print(json.dumps(result, indent=2, sort_keys=True))

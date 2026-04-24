@@ -11,9 +11,15 @@ class PolicyResult:
 
 
 class PolicyEngine:
-    def __init__(self, allowlist: Iterable[str], capability_map: Dict[str, bool]):
+    def __init__(
+        self,
+        allowlist: Iterable[str],
+        capability_map: Dict[str, bool],
+        approval_required: Iterable[str] = (),
+    ):
         self.allowlist: Set[str] = set(allowlist)
         self.capability_map = dict(capability_map)
+        self.approval_required: Set[str] = set(approval_required)
 
     def decide(
         self,
@@ -31,4 +37,6 @@ class PolicyEngine:
             return PolicyResult(decision=Decision.DENY, rule_hit="descriptor_drift")
         if taint and side_effect_type == "external":
             return PolicyResult(decision=Decision.DENY, rule_hit="tainted_external_side_effect")
+        if capability in self.approval_required:
+            return PolicyResult(decision=Decision.ASK, rule_hit="approval_required")
         return PolicyResult(decision=Decision.ALLOW, rule_hit="default_allow")
