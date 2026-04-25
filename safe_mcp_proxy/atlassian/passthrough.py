@@ -38,6 +38,9 @@ class MCPPassthrough:
             except (urllib.error.URLError, OSError) as exc:
                 response = _error_response(request.get("id"), -32603, str(exc))
 
+        if request.get("method") == "tools/list" and "result" in response:
+            response = self._config.capability_filter().apply_to_list_response(response)
+
         self._log({"direction": "response", "payload": response})
         return response
 
