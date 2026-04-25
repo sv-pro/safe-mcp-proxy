@@ -16,9 +16,10 @@ Holds tool definitions and enforces the allowlist boundary. The only source of t
 | `Tool.side_effect_type` | field | `"read"`, `"internal"`, or `"external"` |
 | `Tool.handler` | field | `Callable[[dict], dict]` — the tool's implementation |
 | `ToolRegistry` | class | Manages upstream tools and allowlist-filtered view |
-| `ToolRegistry.with_mock_tools` | classmethod | Factory that creates 4 mock tools: `read_file`, `list_repo`, `send_email`, `dangerous_exec` |
+| `ToolRegistry.with_mock_tools` | classmethod | Factory: creates 4 mock tools + any scoped tools from `capability_defs` |
 | `ToolRegistry.get_tool` | method | Returns `Tool` if in allowlist, else `None` |
 | `ToolRegistry.execute_tool` | method | Calls `tool.handler(payload)`; raises `KeyError` if not exposed |
+| `_build_scoped_tool` | function | Builds a synthetic `Tool` from a `CapabilityDef` with literal injection |
 
 ## Mock tools (from `with_mock_tools()`)
 
@@ -31,6 +32,8 @@ Holds tool definitions and enforces the allowlist boundary. The only source of t
 
 `descriptor_hash` is computed via `compute_descriptor_hash(schema)` at registration time.
 
+`with_mock_tools(allowlist, capability_defs=None)` accepts an optional `capability_defs` dict. For each `CapabilityDef`, `_build_scoped_tool()` creates a synthetic `Tool` backed by the matching base tool handler with literal args injected and actor-visible schema restricted to `actor_input` params only. Scoped tools are appended to the tool list before the allowlist filter is applied.
+
 ## Two tool dicts
 
 - `_all_tools` — all upstream tools (used internally)
@@ -41,6 +44,7 @@ A tool in `_all_tools` but not in `_exposed_tools` is invisible to the executor 
 ## Depends on
 
 - [[src/safe_mcp_proxy/descriptor]] — `compute_descriptor_hash()`
+- [[src/safe_mcp_proxy/capability_dsl]] — `CapabilityDef` and source types consumed by `_build_scoped_tool()`
 
 ## Used by
 

@@ -252,6 +252,9 @@ Every decision is appended to `safe_mcp_proxy/logs/audit.jsonl` in JSON lines fo
 
 `executor.replay(audit_entry)` reconstructs the same decision deterministically from any audit record — every policy decision is reproducible for forensic verification.
 
+> **Note:** `safe_mcp_proxy/logs/` is gitignored — the live log is a runtime artifact, not source.
+> The API seeds it automatically from `seeds/demo.jsonl` on first start when the file is absent or empty.
+
 ## Adding a new tool
 
 1. Add a `ToolRecord` entry to `TOOLS` in `registry.py` — set `name`, `capability`, `schema`, `descriptor_hash` (compute via `descriptor.hash_schema()`), `side_effect_type`, and `handler`.
@@ -269,6 +272,7 @@ safe_mcp_proxy/
   provenance.py     Taint tracking and propagation
   descriptor.py     SHA256 schema hashing
   compiler.py       world_manifest.yaml → typed runtime config
+  capability_dsl.py Parameterized capability definitions — LiteralSource, ActorInputSource
   simulate.py       External call stub for tests and demos
   config/
     policy.yaml     Simulation flag (external_side_effects: true/false)
@@ -277,8 +281,10 @@ safe_mcp_proxy/
     prompt_injection.py
     poisoned_descriptor.py
     absent_tool_case.py
-  logs/
-    audit.jsonl
+  logs/             gitignored — runtime output only
+    audit.jsonl     (created on first run; seeded from seeds/demo.jsonl by the API)
+seeds/
+  demo.jsonl        Curated demo audit entries (committed; used as API seed data)
 worlds/
   repo_assistant.yaml
   read_only.yaml

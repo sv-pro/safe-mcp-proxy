@@ -15,16 +15,20 @@ Parses a world manifest YAML file into a typed runtime config dict. Also provide
 
 ```python
 {
-    "world_id":         str,              # from world_id
-    "allowlist":        list[str],        # from allowed_tools
-    "capability_map":   dict[str, bool],  # from capabilities[*].allowed
-    "taint_rules":      list,             # from taint_rules
-    "side_effect_policy": dict,           # from side_effects
-    "policy_engine":    str,              # from policy_engine (default "python")
+    "world_id":              str,                    # from world_id
+    "allowlist":             list[str],              # from allowed_tools
+    "capability_map":        dict[str, bool],        # from capabilities[*].allowed
+    "approval_required":     list[str],              # from capabilities[*].requires_approval
+    "taint_rules":           list,                   # from taint_rules
+    "side_effect_policy":    dict,                   # from side_effects
+    "policy_engine":         str,                    # from policy_engine (default "python")
+    "capability_definitions": dict[str, CapabilityDef],  # from capability_definitions section
 }
 ```
 
 `capability_map` handles both dict (`{allowed: true}`) and bare bool values in the YAML.
+
+`capability_definitions` is parsed via `parse_capability_definitions()` from [[src/safe_mcp_proxy/capability_dsl]]. An empty dict is returned when the section is absent.
 
 ## `build_opa_input()` purpose
 
@@ -33,6 +37,7 @@ Single authoritative mapping from Python domain types to the OPA `input` documen
 ## Depends on
 
 - `yaml` (PyYAML)
+- [[src/safe_mcp_proxy/capability_dsl]] — `parse_capability_definitions()`
 
 ## Used by
 

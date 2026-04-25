@@ -48,9 +48,39 @@ The manifest is loaded and compiled by [[src/safe_mcp_proxy/compiler]] via `comp
 | `world_id` | `str` | `world_id` |
 | `allowlist` | `list[str]` | `allowed_tools` |
 | `capability_map` | `dict[str, bool]` | `capabilities[*].allowed` |
+| `approval_required` | `list[str]` | `capabilities[*].requires_approval` |
 | `taint_rules` | `list` | `taint_rules` |
 | `side_effect_policy` | `dict` | `side_effects` |
 | `policy_engine` | `str` | `policy_engine` |
+| `capability_definitions` | `dict[str, CapabilityDef]` | `capability_definitions` |
+
+## Parameterized capability definitions
+
+The optional `capability_definitions` section defines constrained forms over base tools. Each entry maps a capability name to a `base_tool` plus per-argument value sources.
+
+```yaml
+capability_definitions:
+  send_me_email:
+    base_tool: send_email
+    args:
+      to:
+        valueFrom:
+          literal:
+            value: "owner@example.com"   # locked — actor cannot see or override
+      body:
+        valueFrom:
+          actor_input: {}                # free — actor supplies at call time
+```
+
+Value sources:
+
+| Source | Actor-visible | Overridable |
+|--------|--------------|-------------|
+| `literal` | No | No — injected after payload stripping |
+| `actor_input` | Yes — in scoped schema | Yes |
+| `context_ref` | No | No — not yet wired (raises `NotImplementedError`) |
+
+A scoped capability (e.g. `send_me_email`) must also be listed in `allowed_tools` and have a matching `capabilities` entry — it follows the same policy flow as any raw tool. The `base_tool` (e.g. `send_email`) does not need to be in `allowed_tools` for the scoped form to work.
 
 `build_executor()` in [[src/safe_mcp_proxy/main]] passes `allowlist` and `capability_map` to both the [[src/safe_mcp_proxy/registry]] (for tool filtering) and the [[src/safe_mcp_proxy/policy_engine]] (for decisions).
 

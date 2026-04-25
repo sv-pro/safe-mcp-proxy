@@ -4,7 +4,9 @@ Every policy decision is recorded in an append-only JSONL log. The log supports 
 
 ## Audit log
 
-**Location**: `safe_mcp_proxy/logs/audit.jsonl`
+**Location**: `safe_mcp_proxy/logs/audit.jsonl` — **gitignored**, runtime artifact only.
+
+**Demo seeding**: The API calls `_seed_if_empty()` on startup. If the file is absent or empty, it is populated from `seeds/demo.jsonl` (the committed curated dataset). This keeps demo data separate from live run output while ensuring the API always has traces to display.
 
 **Format**: one JSON object per line, written by `executor._audit()` after every `execute()` call.
 

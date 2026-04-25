@@ -4,6 +4,20 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-25 — Parameterized capability DSL + audit log gitignore (Issue #112)
+
+- Created `wiki/src/safe_mcp_proxy/capability_dsl.md` — new source page: value sources (LiteralSource, ActorInputSource, ContextRefSource), CapabilityDef, parse_capability_definitions(), how _build_scoped_tool() uses them, security invariant (literals always win)
+- Updated `wiki/src/safe_mcp_proxy/registry.md` — added _build_scoped_tool entry to key symbols; documented with_mock_tools capability_defs param; added capability_dsl to Depends on
+- Updated `wiki/src/safe_mcp_proxy/compiler.md` — added capability_definitions and approval_required to compile_world_manifest() output table; added capability_dsl to Depends on
+- Updated `wiki/src/safe_mcp_proxy/main.md` — build_executor() step 3 now shows capability_defs passed to with_mock_tools
+- Updated `wiki/world-manifest.md` — added capability_definitions to compiled output table; added new "Parameterized capability definitions" section with YAML syntax, value source table, and allowlist requirement note
+- Updated `wiki/architecture.md` — Registry lookup section notes scoped tools are indistinguishable from raw tools at executor level
+- Updated `wiki/index.md` — added capability_dsl source page row
+- Updated `wiki/src/safe_mcp_proxy/index.md` — added capability_dsl module row
+- Updated `wiki/audit-replay.md` — Audit log section notes logs/ is gitignored; documents _seed_if_empty() pattern (seeds/demo.jsonl → logs/audit.jsonl on first API start)
+
+---
+
 ## 2026-04-24 — DS7.2: Execution modes (INTERACTIVE and BACKGROUND) (Issue #78)
 
 - Updated `wiki/architecture.md` — pipeline description updated to include `execution_mode` in Provenance stage; PolicyEngine "5 rules" → "6 rules"; Executor dispatch expanded to include ASK/INTERACTIVE and ASK/BACKGROUND paths; added `ExecutionMode` and `ApprovalStore` to component map; added `[[ask-approval]]` and `[[src/safe_mcp_proxy/execution_mode]]` to See also

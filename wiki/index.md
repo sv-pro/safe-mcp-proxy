@@ -42,6 +42,7 @@ Content-oriented catalog of all pages in this wiki.
 | [[src/safe_mcp_proxy/opa_engine]] | OPA/Rego drop-in replacement for `PolicyEngine` |
 | [[src/safe_mcp_proxy/approval_store]] | In-memory approval token store — pending/approved/rejected/executed lifecycle |
 | [[src/safe_mcp_proxy/execution_mode]] | `ExecutionMode` enum: INTERACTIVE vs BACKGROUND — controls ASK behavior |
+| [[src/safe_mcp_proxy/capability_dsl]] | Parameterized capability DSL — value sources, `CapabilityDef`, manifest parser |
 
 ### Sub-packages
 

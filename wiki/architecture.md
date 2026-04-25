@@ -28,6 +28,8 @@ Every stage feeds into the next. The pipeline is synchronous and has no side eff
 ### 2. Registry lookup
 `executor._tool_context(tool_name)` calls `registry.get_tool(tool_name)`. If the tool is not in the allowlist, `None` is returned. The side-effect type defaults to `"unknown"` and the hash check is skipped (hash_ok=True) — absence is handled by the PolicyEngine, not here.
 
+The registry also holds scoped tools built from `capability_definitions` in the manifest. These synthetic tools expose only `actor_input` args in their schema and inject `literal` args automatically. They are indistinguishable from raw tools at the executor level — the same lookup, the same dispatch path.
+
 ### 3. PolicyEngine decision
 `policy_engine.decide(...)` evaluates 6 rules in order and returns `PolicyResult(decision, rule_hit)`. See [[policy-engine]] for the full rule set.
 

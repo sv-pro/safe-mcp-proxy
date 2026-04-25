@@ -18,8 +18,8 @@ CLI entrypoint and `build_executor()` assembly function. Wires all components to
 
 ```
 1. _resolve_manifest_path(base_dir, world_id)
-2. compile_world_manifest(manifest_path)
-3. ToolRegistry.with_mock_tools(allowlist)
+2. compile_world_manifest(manifest_path)  → includes capability_definitions
+3. ToolRegistry.with_mock_tools(allowlist, capability_defs)
 4. _build_policy_engine(manifest_tables, resolved_engine, base_dir)
 5. _load_simulation_flag(config/policy.yaml)
 6. return Executor(registry, policy_engine, audit_log_path, simulate_external)

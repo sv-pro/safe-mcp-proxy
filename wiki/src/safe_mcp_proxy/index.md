@@ -20,6 +20,7 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | [[src/safe_mcp_proxy/bundle_replay]] | Offline bundle replayer |
 | [[src/safe_mcp_proxy/approval_store]] | In-memory approval token store — pending/approved/rejected/executed |
 | [[src/safe_mcp_proxy/execution_mode]] | `ExecutionMode` enum: INTERACTIVE vs BACKGROUND |
+| [[src/safe_mcp_proxy/capability_dsl]] | Parameterized capability DSL — `LiteralSource`, `ActorInputSource`, `CapabilityDef`, parser |
 
 ## Sub-packages
 
