@@ -1,0 +1,30 @@
+world_id: atlassian_mvp
+
+# Tools visible to the MCP client — everything else is ABSENT.
+allowed_tools:
+  - jira_read_issue
+  - jira_create_issue
+  - jira_get_transitions
+  - jira_transition_issue
+  - jira_search_issues
+  - confluence_read_page
+  - confluence_search_pages
+
+# Which tools write to external systems (taint + external_write → DENY).
+external_write_tools:
+  - jira_create_issue
+  - jira_transition_issue
+
+# Argument-based rules: per-tool checks on specific argument values.
+# All listed arg_rules for a tool are evaluated in order; first failure → DENY.
+arg_rules:
+  jira_create_issue:
+    - arg: project_key
+      allowed_values: [SAFE, TEST, DEMO]
+      rule: jira_create_restricted_projects
+
+# Simple source → sink flow rules (evaluated via taint flag on source_channel).
+# Tainted source + external_write tool → DENY (unsafe_data_flow).
+# Full provenance propagation is implemented in M5.
+flow_rules:
+  tainted_source_blocks_external_write: true

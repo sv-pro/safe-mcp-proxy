@@ -239,6 +239,7 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
 
     from safe_mcp_proxy.atlassian.config import AtlassianProxyConfig
     from safe_mcp_proxy.atlassian.passthrough import MCPPassthrough
+    from safe_mcp_proxy.atlassian.policy import ManifestPolicyEngine
 
     _atlassian_log = resolved_base_dir / "safe_mcp_proxy" / "logs" / "atlassian_requests.jsonl"
 
@@ -246,7 +247,8 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     async def atlassian_mcp(request: Any = Body(...)) -> dict:
         """MCP JSON-RPC passthrough to Atlassian MCP (list_tools / call_tool)."""
         config = AtlassianProxyConfig.from_env()
-        return MCPPassthrough(config, _atlassian_log).forward(request)
+        policy = ManifestPolicyEngine.from_yaml(config.manifest_path) if config.manifest_path else None
+        return MCPPassthrough(config, _atlassian_log, policy).forward(request)
 
     @app.get("/atlassian/config")
     async def atlassian_config() -> dict:
@@ -256,6 +258,8 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "mode": cfg.mode,
             "upstream_configured": bool(cfg.upstream_url),
             "timeout": cfg.timeout,
+            "manifest_configured": cfg.manifest_path is not None,
+            "source_channel": cfg.source_channel,
         }
 
     return app
