@@ -233,6 +233,31 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             raise HTTPException(status_code=409, detail=f"Token is already {entry.status}")
         return app.state.executor.reject_approval(token)
 
+    # ------------------------------------------------------------------
+    # Atlassian MCP passthrough (EPIC 9 / M1)
+    # ------------------------------------------------------------------
+
+    from safe_mcp_proxy.atlassian.config import AtlassianProxyConfig
+    from safe_mcp_proxy.atlassian.passthrough import MCPPassthrough
+
+    _atlassian_log = resolved_base_dir / "safe_mcp_proxy" / "logs" / "atlassian_requests.jsonl"
+
+    @app.post("/atlassian/mcp")
+    async def atlassian_mcp(request: Any = Body(...)) -> dict:
+        """MCP JSON-RPC passthrough to Atlassian MCP (list_tools / call_tool)."""
+        config = AtlassianProxyConfig.from_env()
+        return MCPPassthrough(config, _atlassian_log).forward(request)
+
+    @app.get("/atlassian/config")
+    async def atlassian_config() -> dict:
+        """Show active Atlassian proxy config (no secrets)."""
+        cfg = AtlassianProxyConfig.from_env()
+        return {
+            "mode": cfg.mode,
+            "upstream_configured": bool(cfg.upstream_url),
+            "timeout": cfg.timeout,
+        }
+
     return app
 
 
