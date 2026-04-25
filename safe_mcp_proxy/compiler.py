@@ -2,6 +2,8 @@ from typing import Any, Dict, Iterable, List
 
 import yaml
 
+from safe_mcp_proxy.capability_dsl import parse_capability_definitions
+
 
 def build_opa_input(
     tool_name: str,
@@ -50,6 +52,7 @@ def compile_world_manifest(path: str) -> Dict[str, Any]:
 
     taint_rules = raw.get("taint_rules", [])
     side_effects = raw.get("side_effects", {})
+    capability_definitions = parse_capability_definitions(raw.get("capability_definitions", {}))
 
     return {
         "world_id": raw.get("world_id", ""),
@@ -59,4 +62,5 @@ def compile_world_manifest(path: str) -> Dict[str, Any]:
         "taint_rules": taint_rules,
         "side_effect_policy": side_effects,
         "policy_engine": raw.get("policy_engine", "python"),
+        "capability_definitions": capability_definitions,
     }

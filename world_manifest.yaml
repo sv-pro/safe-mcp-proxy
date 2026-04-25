@@ -6,6 +6,7 @@ allowed_tools:
   - read_file
   - list_repo
   - send_email
+  - send_me_email  # scoped form: "to" is locked; actor provides only "body"
 
 capabilities:
   read_file:
@@ -14,9 +15,28 @@ capabilities:
     allowed: true
   send_email:
     allowed: true
-    requires_approval: true  # send_email requires explicit user approval (ASK)
+    requires_approval: true  # raw send_email requires explicit user approval (ASK)
+  send_me_email:
+    allowed: true            # scoped capability — no approval needed, "to" is manifest-locked
   dangerous_exec:
     allowed: false
+
+# Parameterized capability definitions.
+# Each entry derives from a base tool with args bound to value sources:
+#   literal    — fixed value baked in; actor cannot see or override it
+#   actor_input — supplied by the actor at call time
+#   context_ref — resolved from a runtime context key (not yet wired)
+capability_definitions:
+  send_me_email:
+    base_tool: send_email
+    args:
+      to:
+        valueFrom:
+          literal:
+            value: "owner@example.com"  # always sent to the manifest owner; actor cannot change this
+      body:
+        valueFrom:
+          actor_input: {}               # actor supplies the body freely
 
 taint_rules:
   - tainted_external: deny

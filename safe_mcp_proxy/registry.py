@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, Optional
 
+from safe_mcp_proxy.capability_dsl import ActorInputSource, CapabilityDef, ContextRefSource, LiteralSource
 from safe_mcp_proxy.descriptor import compute_descriptor_hash
 
 
@@ -14,6 +15,71 @@ class Tool:
     handler: Callable[[Dict[str, Any]], Dict[str, Any]]
 
 
+def _build_scoped_tool(cap_def: CapabilityDef, base_tools: Dict[str, "Tool"]) -> "Tool":
+    """Build a synthetic Tool from a CapabilityDef.
+
+    The returned tool's schema exposes only actor_input args.
+    Literal args are silently injected into every call; the actor cannot see or
+    override them even if they include the key in their payload.
+    """
+    base = base_tools.get(cap_def.base_tool)
+    if base is None:
+        raise ValueError(
+            f"Capability {cap_def.name!r}: base tool {cap_def.base_tool!r} not found in registry"
+        )
+
+    base_props = base.schema.get("properties", {})
+
+    # Actor-visible schema: only actor_input args, types inherited from base schema.
+    scoped_props = {
+        arg_name: base_props.get(arg_name, {"type": "string"})
+        for arg_name, arg_def in cap_def.args.items()
+        if isinstance(arg_def.value_source, ActorInputSource)
+    }
+    scoped_schema = {"type": "object", "properties": scoped_props}
+
+    # Literal injection map — these values are always applied, overriding any actor-supplied key.
+    literals: Dict[str, str] = {
+        arg_name: arg_def.value_source.value
+        for arg_name, arg_def in cap_def.args.items()
+        if isinstance(arg_def.value_source, LiteralSource)
+    }
+
+    # Validate no context_ref args (not yet wired).
+    for arg_name, arg_def in cap_def.args.items():
+        if isinstance(arg_def.value_source, ContextRefSource):
+            raise NotImplementedError(
+                f"Capability {cap_def.name!r}, arg {arg_name!r}: "
+                f"ContextRefSource is not yet supported in safe-mcp-proxy"
+            )
+
+    actor_args = frozenset(
+        arg_name for arg_name, arg_def in cap_def.args.items()
+        if isinstance(arg_def.value_source, ActorInputSource)
+    )
+    base_handler = base.handler
+
+    def scoped_handler(
+        payload: Dict[str, Any],
+        _actor_args: frozenset = actor_args,
+        _literals: Dict[str, str] = literals,
+        _base: Callable = base_handler,
+    ) -> Dict[str, Any]:
+        # Only pass through declared actor_input args, then inject literals.
+        # This prevents the actor from sneaking locked args into the base call.
+        filtered = {k: v for k, v in payload.items() if k in _actor_args}
+        return _base({**filtered, **_literals})
+
+    return Tool(
+        name=cap_def.name,
+        capability=cap_def.name,
+        schema=scoped_schema,
+        descriptor_hash=compute_descriptor_hash(scoped_schema),
+        side_effect_type=base.side_effect_type,
+        handler=scoped_handler,
+    )
+
+
 class ToolRegistry:
     def __init__(self, upstream_tools: Iterable[Tool], allowlist: Iterable[str]):
         self._allowlist = set(allowlist)
@@ -23,7 +89,11 @@ class ToolRegistry:
         }
 
     @classmethod
-    def with_mock_tools(cls, allowlist: Iterable[str]) -> "ToolRegistry":
+    def with_mock_tools(
+        cls,
+        allowlist: Iterable[str],
+        capability_defs: Optional[Dict[str, CapabilityDef]] = None,
+    ) -> "ToolRegistry":
         def _read_file(payload: Dict[str, Any]) -> Dict[str, Any]:
             return {"ok": True, "content": f"mock-read:{payload.get('path', '')}"}
 
@@ -67,6 +137,12 @@ class ToolRegistry:
             )
             for name, capability, schema, side_effect_type, handler in tool_defs
         ]
+
+        if capability_defs:
+            base_by_name = {t.name: t for t in tools}
+            for cap_def in capability_defs.values():
+                tools.append(_build_scoped_tool(cap_def, base_by_name))
+
         return cls(upstream_tools=tools, allowlist=allowlist)
 
     def get_tool(self, tool_name: str) -> Optional[Tool]:

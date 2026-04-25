@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from safe_mcp_proxy.approval_store import ApprovalStore
+from safe_mcp_proxy.capability_dsl import CapabilityArgDef, CapabilityDef, LiteralSource, ActorInputSource, parse_capability_definitions
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.execution_mode import ExecutionMode
 from safe_mcp_proxy.executor import ABSENT_MESSAGE, Executor
@@ -199,6 +200,108 @@ class TestASKDecision(unittest.TestCase):
             entry = json.loads(f.readlines()[-1])
         self.assertEqual(entry["decision"], "DENY")
         self.assertEqual(entry["rule"], "ask_unavailable_in_background")
+
+
+class TestScopedCapabilities(unittest.TestCase):
+    """Parameterized capability definitions — locked args, actor-visible schema."""
+
+    def _make_executor(self, cap_defs=None, allowlist=None, capability_map=None, simulate_external=True):
+        allowlist = allowlist or ["send_me_email"]
+        capability_map = capability_map or {"send_me_email": True}
+        registry = ToolRegistry.with_mock_tools(allowlist, capability_defs=cap_defs)
+        policy = PolicyEngine(allowlist=allowlist, capability_map=capability_map)
+        audit_file = Path(tempfile.gettempdir()) / "safe_mcp_proxy_scoped_test_audit.jsonl"
+        if audit_file.exists():
+            audit_file.unlink()
+        return Executor(registry, policy, str(audit_file), simulate_external=simulate_external)
+
+    def _send_me_email_def(self):
+        return {
+            "send_me_email": CapabilityDef(
+                name="send_me_email",
+                base_tool="send_email",
+                args={
+                    "to": CapabilityArgDef(value_source=LiteralSource(value="owner@example.com")),
+                    "body": CapabilityArgDef(value_source=ActorInputSource()),
+                },
+            )
+        }
+
+    def test_scoped_tool_allows_and_injects_literal(self):
+        # simulate_external=False so the real mock handler runs and we can inspect sent_to
+        executor = self._make_executor(cap_defs=self._send_me_email_def(), simulate_external=False)
+        result = executor.execute("send_me_email", {"body": "hello"}, Provenance.from_source("cli"))
+        self.assertEqual(result["decision"], "ALLOW")
+        # Base handler returns sent_to — must be the locked literal, not anything actor supplied
+        self.assertEqual(result["result"]["sent_to"], "owner@example.com")
+
+    def test_actor_cannot_override_literal_arg(self):
+        # simulate_external=False so the real mock handler runs and we can verify the lock holds
+        executor = self._make_executor(cap_defs=self._send_me_email_def(), simulate_external=False)
+        # Actor tries to inject a different "to"
+        result = executor.execute(
+            "send_me_email",
+            {"body": "hi", "to": "attacker@evil.com"},
+            Provenance.from_source("cli"),
+        )
+        self.assertEqual(result["decision"], "ALLOW")
+        self.assertEqual(result["result"]["sent_to"], "owner@example.com")
+
+    def test_scoped_schema_excludes_literal_args(self):
+        cap_defs = self._send_me_email_def()
+        registry = ToolRegistry.with_mock_tools(["send_me_email"], capability_defs=cap_defs)
+        tool = registry.get_tool("send_me_email")
+        self.assertIsNotNone(tool)
+        props = tool.schema.get("properties", {})
+        self.assertIn("body", props)
+        self.assertNotIn("to", props)   # literal — must not be exposed
+
+    def test_scoped_tool_is_absent_when_not_allowlisted(self):
+        cap_defs = self._send_me_email_def()
+        # send_me_email defined but NOT in allowlist
+        executor = self._make_executor(cap_defs=cap_defs, allowlist=["read_file"],
+                                       capability_map={"read_file": True})
+        result = executor.execute("send_me_email", {"body": "x"}, Provenance.from_source("cli"))
+        self.assertEqual(result["decision"], "ABSENT")
+
+    def test_tainted_source_still_denied_for_scoped_tool(self):
+        executor = self._make_executor(cap_defs=self._send_me_email_def())
+        result = executor.execute("send_me_email", {"body": "injected"}, Provenance.from_source("web"))
+        self.assertEqual(result["decision"], "DENY")
+        self.assertEqual(result["rule"], "tainted_external_side_effect")
+
+    def test_parse_capability_definitions_literal(self):
+        raw = {
+            "send_me_email": {
+                "base_tool": "send_email",
+                "args": {
+                    "to": {"valueFrom": {"literal": {"value": "owner@example.com"}}},
+                    "body": {"valueFrom": {"actor_input": {}}},
+                },
+            }
+        }
+        defs = parse_capability_definitions(raw)
+        self.assertIn("send_me_email", defs)
+        cap = defs["send_me_email"]
+        self.assertEqual(cap.base_tool, "send_email")
+        self.assertIsInstance(cap.args["to"].value_source, LiteralSource)
+        self.assertEqual(cap.args["to"].value_source.value, "owner@example.com")
+        self.assertIsInstance(cap.args["body"].value_source, ActorInputSource)
+
+    def test_parse_capability_definitions_rejects_unknown_source(self):
+        raw = {
+            "bad_cap": {
+                "base_tool": "send_email",
+                "args": {"to": {"valueFrom": {"magic": {}}}},
+            }
+        }
+        with self.assertRaises(ValueError):
+            parse_capability_definitions(raw)
+
+    def test_parse_capability_definitions_requires_base_tool(self):
+        raw = {"bad_cap": {"args": {}}}
+        with self.assertRaises(ValueError):
+            parse_capability_definitions(raw)
 
 
 class TestMultipleWorlds(unittest.TestCase):

@@ -65,7 +65,10 @@ def build_executor(
 ) -> Executor:
     manifest_path = _resolve_manifest_path(base_dir, world_id)
     manifest_tables = compile_world_manifest(str(manifest_path))
-    registry = ToolRegistry.with_mock_tools(allowlist=manifest_tables["allowlist"])
+    registry = ToolRegistry.with_mock_tools(
+        allowlist=manifest_tables["allowlist"],
+        capability_defs=manifest_tables.get("capability_definitions"),
+    )
     # CLI --engine flag overrides the manifest's policy_engine key; default is "python"
     resolved_engine = engine if engine is not None else manifest_tables.get("policy_engine", "python")
     policy_engine = _build_policy_engine(manifest_tables, resolved_engine, base_dir)
