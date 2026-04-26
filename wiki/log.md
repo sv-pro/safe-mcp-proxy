@@ -4,6 +4,18 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — Wiki audit: EPIC 11 full coverage
+
+- Updated `wiki/src/attacks/index.md` — added `tool_chain.yaml` and `mcp_poison.json` to layout table
+- Updated `wiki/src/attacks/loader.md` — added `poison_tool` field to AttackScenario table; documented JSON support in `load()` and `load_all()`; updated "Used by" to reflect actual callers
+- Created `wiki/src/mcpzero/agent.md` — `BaselineAgent`: step result dict schema, ALLOW/ABSENT logic, no-policy invariant
+- Created `wiki/src/mcpzero/runner.md` — `ScenarioRunner`, `RunResult`, mode switch semantics, observer wiring, `load_scenario()`
+- Created `wiki/src/mcpzero/generator.md` — `generate()`, tool graph strategy, output format, future CI use
+- Created `wiki/src/mcpzero/observer.md` — `ExecutionObserver`, trace entry schema, wiring pattern, gitignore note
+- Updated `wiki/src/mcpzero/index.md` — layout table now links to all submodule pages; See also expanded
+
+---
+
 ## 2026-04-26 — EPIC 11 / I3–I15: full MCPZero demo pipeline
 
 - Updated `wiki/src/attacks/index.md` and `wiki/src/attacks/loader.md` — added tool_chain + mcp_poison scenarios; JSON loader support; poison_tool field

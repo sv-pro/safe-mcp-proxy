@@ -20,15 +20,15 @@ python -m mcpzero.demo --output results/
 | Module / directory | Description |
 |--------------------|-------------|
 | `demo.py` | CLI entry point — runs all scenarios in both modes, prints comparison |
-| `agent/runner.py` | `BaselineAgent` — executes steps directly without policy enforcement |
-| `runner/interface.py` | `ScenarioRunner` — mode switch (baseline/protected), observer wiring |
-| `proxy/proxy.py` | `SafeMCPProxy` — wraps `safe_mcp_proxy` executor with mcpzero_demo world |
-| `tools/tool_graph.yaml` | Static tool surface inventory: schemas, side_effect_type |
-| `generator/attack_gen.py` | Generates read→external attack chains from the tool graph |
-| `observer/observer.py` | `ExecutionObserver` — appends per-step JSONL traces to `mcpzero/traces/` |
-| `verdict/engine.py` | `Verdict`, `compare()`, `save()` — compares baseline vs protected outcomes |
-| `metrics/reporter.py` | ASR, block_rate, `print_summary()`, `save()` |
-| `traces/` | Runtime trace files (gitignored, `.gitkeep` holds the directory) |
+| `agent/runner.py` | [[src/mcpzero/agent]] — `BaselineAgent`, direct tool execution, no policy |
+| `runner/interface.py` | [[src/mcpzero/runner]] — `ScenarioRunner`, mode switch, observer wiring |
+| `proxy/proxy.py` | [[src/mcpzero/proxy]] — `SafeMCPProxy`, wraps executor with mcpzero_demo world |
+| `tools/tool_graph.yaml` | Static tool surface inventory: schemas, `side_effect_type` |
+| `generator/attack_gen.py` | [[src/mcpzero/generator]] — generates read→external chains from tool graph |
+| `observer/observer.py` | [[src/mcpzero/observer]] — `ExecutionObserver`, JSONL traces to `mcpzero/traces/` |
+| `verdict/engine.py` | [[src/mcpzero/verdict]] — `Verdict`, `compare()`, `save()` |
+| `metrics/reporter.py` | [[src/mcpzero/verdict]] — ASR, block_rate, `print_summary()`, `save()` |
+| `traces/` | Runtime trace files (gitignored; `.gitkeep` holds the directory) |
 
 ## World manifest
 
@@ -58,7 +58,11 @@ attacks/            →  ScenarioRunner
 ## See also
 
 - [[src/attacks/index]] — attack corpus loaded by the runner
-- [[src/mcpzero/proxy]] — proxy wrapper detail
-- [[src/mcpzero/verdict]] — verdict + metrics detail
+- [[src/mcpzero/agent]] — BaselineAgent detail
+- [[src/mcpzero/runner]] — ScenarioRunner and mode switch
+- [[src/mcpzero/proxy]] — SafeMCPProxy detail
+- [[src/mcpzero/generator]] — attack scenario generator
+- [[src/mcpzero/observer]] — trace logger
+- [[src/mcpzero/verdict]] — verdict and metrics detail
 - [[provenance-taint]] — taint mechanism the proxy enforces
 - [[absent-deny]] — DENY vs ABSENT outcomes shown in demo output

@@ -13,8 +13,10 @@ parses and validates them.
 | `schema.yaml` | Canonical field definitions for structured YAML/JSON scenarios |
 | `example.yaml` | Minimal working scenario (`example_exfil`) — used in tests |
 | `email_injection.md` | Adversarial business document with a hidden prompt injection instruction |
-| `email_injection.yaml` | Structured scenario config for the email injection attack |
-| `loader.py` | Parses, validates, and exposes attack scenarios as Python dataclasses |
+| `email_injection.yaml` | Scenario config: web channel, read_file → send_email chain |
+| `tool_chain.yaml` | Multi-step taint chain: tool_output channel, list_repo → read_file → send_email |
+| `mcp_poison.json` | JSON scenario: tampered read_file descriptor triggers descriptor drift |
+| `loader.py` | Parses and validates YAML and JSON attack scenarios as Python dataclasses |
 | `__init__.py` | Re-exports the public loader API |
 
 ## Scenario formats
