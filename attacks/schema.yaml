@@ -1,0 +1,30 @@
+# Attack Corpus — Scenario Format
+#
+# Every structured attack scenario (YAML or JSON) must conform to this schema.
+# Markdown files (.md) are treated as raw documents fed to the agent as content,
+# not as structured scenarios.
+#
+# Fields:
+#
+#   name         Unique identifier (snake_case).
+#   description  Human-readable summary of the attack.
+#   type         One of: email_injection | tool_chain | mcp_poison
+#   source_channel  Provenance channel the agent receives input from.
+#                   One of: cli | email | web | tool_output
+#   steps        Ordered list of tool invocations the attack relies on.
+#     - tool     Tool name as registered in the proxy registry.
+#       payload  Arbitrary key/value pairs forwarded to the tool.
+#   expected     Outcome assertions for comparison runs.
+#     baseline   Decision produced without proxy: ALLOW | DENY | ABSENT
+#     protected  Decision produced with proxy:    ALLOW | DENY | ABSENT
+
+name: string
+description: string
+type: string          # email_injection | tool_chain | mcp_poison
+source_channel: string
+steps:
+  - tool: string
+    payload: object
+expected:
+  baseline: string    # ALLOW | DENY | ABSENT
+  protected: string   # ALLOW | DENY | ABSENT
