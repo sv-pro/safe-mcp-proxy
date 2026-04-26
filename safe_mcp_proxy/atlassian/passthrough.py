@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -43,7 +44,8 @@ class MCPPassthrough:
 
     def forward(self, request: Dict[str, Any]) -> Dict[str, Any]:
         method = request.get("method", "")
-        self._log({"direction": "request", "payload": request})
+        trace_id = str(uuid.uuid4())
+        self._log({"direction": "request", "payload": request, "trace_id": trace_id})
 
         # ---- Policy gate (tools/call only) ----------------------------
         if method == "tools/call" and self._policy is not None:
@@ -54,10 +56,10 @@ class MCPPassthrough:
             decision = self._policy.evaluate(
                 tool_name, arguments, tainted, flow_context=self._flow
             )
-            self._log_decision(request, decision)
+            self._log_decision(request, decision, trace_id)
             if decision.decision != "ALLOW":
                 response = _blocked_response(request.get("id"), decision)
-                self._log({"direction": "response", "payload": response})
+                self._log({"direction": "response", "payload": response, "trace_id": trace_id})
                 return response
 
         # ---- Forward --------------------------------------------------
@@ -93,7 +95,7 @@ class MCPPassthrough:
             result["_debug"] = {"flow_context": self._flow.as_dict()}
             response = {**response, "result": result}
 
-        self._log({"direction": "response", "payload": response})
+        self._log({"direction": "response", "payload": response, "trace_id": trace_id})
         return response
 
     # ------------------------------------------------------------------
@@ -149,7 +151,9 @@ class MCPPassthrough:
         with self._log_path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(entry) + "\n")
 
-    def _log_decision(self, request: Dict[str, Any], decision: PolicyDecision) -> None:
+    def _log_decision(
+        self, request: Dict[str, Any], decision: PolicyDecision, trace_id: str
+    ) -> None:
         self._log({
             "direction": "decision",
             "tool": decision.tool,
@@ -158,6 +162,7 @@ class MCPPassthrough:
             "tainted": decision.tainted,
             "request_id": request.get("id"),
             "flow_labels": sorted(self._flow.active_labels()) if self._flow else [],
+            "trace_id": trace_id,
         })
 
 
