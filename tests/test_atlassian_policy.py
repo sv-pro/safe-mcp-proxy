@@ -127,7 +127,7 @@ class TestManifestPolicyEngine(unittest.TestCase):
         manifest_path = Path(__file__).resolve().parents[1] / "manifests" / "atlassian_mvp.yaml"
         engine = ManifestPolicyEngine.from_yaml(manifest_path)
         self.assertEqual(
-            engine.evaluate("jira_read_issue", {}, tainted=False).decision, "ALLOW"
+            engine.evaluate("jira_get_issue", {}, tainted=False).decision, "ALLOW"
         )
         self.assertEqual(
             engine.evaluate("jira_bulk_delete", {}, tainted=False).decision, "ABSENT"

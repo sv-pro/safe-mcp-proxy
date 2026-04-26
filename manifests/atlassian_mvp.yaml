@@ -1,30 +1,49 @@
 world_id: atlassian_mvp
 
-# Tools visible to the MCP client — everything else is ABSENT.
+# Tool names sourced from Atlassian Remote MCP Server (mcp.atlassian.com).
+# Everything not listed here is ABSENT — does not exist in this world.
 allowed_tools:
-  - jira_read_issue
-  - jira_create_issue
+  # Jira — read
+  - jira_get_issue
+  - jira_search_issues_using_jql
   - jira_get_transitions
+  - jira_get_project
+  - jira_list_projects
+  # Jira — write (atomic only)
+  - jira_create_issue
+  - jira_update_issue
   - jira_transition_issue
-  - jira_search_issues
-  - confluence_read_page
+  - jira_add_comment
+  - jira_assign_issue
+  # Confluence — read
+  - confluence_get_page
   - confluence_search_pages
+  - confluence_get_space
 
-# Which tools write to external systems (taint + external_write → DENY).
+# Tools that write to external systems: tainted source + any of these → DENY.
 external_write_tools:
   - jira_create_issue
+  - jira_update_issue
   - jira_transition_issue
+  - jira_add_comment
+  - jira_assign_issue
 
-# Argument-based rules: per-tool checks on specific argument values.
-# All listed arg_rules for a tool are evaluated in order; first failure → DENY.
+# Composite / destructive tools are ABSENT (not in allowed_tools above):
+#   jira_bulk_create_issues, jira_delete_issue,
+#   confluence_create_page, confluence_update_page
+
+# Argument-based rules: first failing rule → DENY.
 arg_rules:
   jira_create_issue:
     - arg: project_key
       allowed_values: [SAFE, TEST, DEMO]
       rule: jira_create_restricted_projects
 
-# Simple source → sink flow rules (evaluated via taint flag on source_channel).
-# Tainted source + external_write tool → DENY (unsafe_data_flow).
-# Full provenance propagation is implemented in M5.
+# Flow rules: tainted source + external write → DENY.
 flow_rules:
   tainted_source_blocks_external_write: true
+
+# Safe abstractions: confluence_get_page response is truncated to 500 chars
+# (title + summary) before being returned to the client.
+safe_abstractions:
+  confluence_get_page: confluence_get_page_summary

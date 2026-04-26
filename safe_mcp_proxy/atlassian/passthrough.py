@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from .adapters import apply_safe_abstraction
 from .config import AtlassianProxyConfig
 from .policy import ManifestPolicyEngine, PolicyDecision
 from safe_mcp_proxy.provenance import TAINTED_CHANNELS
@@ -60,6 +61,11 @@ class MCPPassthrough:
         # Capability filtering for tools/list
         if method == "tools/list" and "result" in response:
             response = self._config.capability_filter().apply_to_list_response(response)
+
+        # Safe abstraction for tools/call responses
+        if method == "tools/call" and "result" in response:
+            tool_name = (request.get("params") or {}).get("name", "")
+            response = apply_safe_abstraction(tool_name, response)
 
         self._log({"direction": "response", "payload": response})
         return response
