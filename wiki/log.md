@@ -4,6 +4,15 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I5: indirect prompt injection demo (PR claude/safe-skills-epic-s5Y88)
+
+- Created `examples/safe_skills_demo/` — full CLI demo: poisoned_document.md, clean_task.md, mock_skills_repo/ (bigquery/email/gke skills), world_manifest.yaml, run_without_proxy.py, run_with_proxy.py, README.md
+- Unsafe runner: agent discovers all 3 skills freely, follows hidden instruction, executes email.send (ATTACK SUCCESS)
+- Safe runner: proxy projects only bigquery.read_dataset, email.send blocked as capability_not_allowed (ATTACK BLOCKED)
+- Both runners use identical inputs — diff is the execution world
+
+---
+
 ## 2026-04-26 — EPIC 10 / I4: execution guard for skill-backed capabilities (PR claude/safe-skills-epic-s5Y88)
 
 - Updated `wiki/src/safe_mcp_proxy/executor.md` — added execute_skill, list_tools, _validate_constraints to key symbols; added execute_skill() 7-step guard order section; added capability_projection and compiler to Depends on
