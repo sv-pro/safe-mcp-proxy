@@ -4,6 +4,12 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I2: world manifest skill capability declarations (PR claude/safe-skills-epic-s5Y88)
+
+- Updated `wiki/src/safe_mcp_proxy/compiler.md` — added SkillSourceConfig, SkillCapabilityConfig, parse_skill_sources, parse_skill_capabilities to key symbols; added skill_sources and skill_capabilities to compile_world_manifest() output table; documented skill-backed capability detection rule and validation
+
+---
+
 ## 2026-04-26 — EPIC 10 / I1: skill source registry (PR claude/safe-skills-epic-s5Y88)
 
 - Created `wiki/src/safe_mcp_proxy/skill_registry.md` — new source page: SkillSource, ImportedSkill, SkillSourceRegistry; core no-auto-exposure invariant; local vs git source types; compound key scheme; export_manifest / save_manifest
