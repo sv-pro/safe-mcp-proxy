@@ -61,6 +61,7 @@ Content-oriented catalog of all pages in this wiki.
 |------|-------------|
 | [[src/api/index]] | FastAPI HTTP layer — traces, replay, scenarios, compare, export |
 | [[src/tests/index]] | Test suite overview |
+| [[src/attacks/index]] | Attack corpus — YAML/MD scenarios and loader for the MCPZero Demo (EPIC 11) |
 
 ## Meta Pages
 

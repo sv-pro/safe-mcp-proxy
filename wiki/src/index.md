@@ -17,6 +17,7 @@ Top-level files and directories in the safe-mcp-proxy repository.
 | [[src/safe_mcp_proxy/index]] | Core enforcement package — all policy logic lives here |
 | [[src/api/index]] | FastAPI HTTP layer |
 | [[src/tests/index]] | Test suite |
+| [[src/attacks/index]] | Attack corpus for MCPZero Demo — YAML/MD scenarios and loader |
 
 ## Configuration directories
 

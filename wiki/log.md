@@ -4,6 +4,15 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 11 / I1–I2: attack corpus structure + email injection scenario
+
+- Created `wiki/src/attacks/index.md` — package overview: layout table, two scenario formats (YAML structured vs Markdown documents), cross-links
+- Created `wiki/src/attacks/loader.md` — source page: AttackStep, AttackScenario fields, load/load_document/load_all symbols, validation rules, document inlining behaviour
+- Updated `wiki/index.md` — added `[[src/attacks/index]]` row under "Other packages"
+- Updated `wiki/src/index.md` — added `[[src/attacks/index]]` row under Packages
+
+---
+
 ## 2026-04-26 — EPIC 10 / I7: positioning doc (PR claude/safe-skills-epic-s5Y88)
 
 - Created `docs/safe_skills_projection.md` — 334-line positioning doc covering: dynamic skills as capability space, supply-chain risk model, indirect prompt injection chain, closed-world assumption, LLM guardrails vs. deterministic projection, full architecture diagram, projection rules table, side-effect classification table, trace schema, demo walkthrough, world manifest example, and positioning statement
