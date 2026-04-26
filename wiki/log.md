@@ -4,6 +4,14 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I1: skill source registry (PR claude/safe-skills-epic-s5Y88)
+
+- Created `wiki/src/safe_mcp_proxy/skill_registry.md` — new source page: SkillSource, ImportedSkill, SkillSourceRegistry; core no-auto-exposure invariant; local vs git source types; compound key scheme; export_manifest / save_manifest
+- Updated `wiki/src/safe_mcp_proxy/index.md` — added skill_registry row
+- Updated `wiki/index.md` — added skill_registry source page row
+
+---
+
 ## 2026-04-25 — Parameterized capability DSL + audit log gitignore (Issue #112)
 
 - Created `wiki/src/safe_mcp_proxy/capability_dsl.md` — new source page: value sources (LiteralSource, ActorInputSource, ContextRefSource), CapabilityDef, parse_capability_definitions(), how _build_scoped_tool() uses them, security invariant (literals always win)
