@@ -4,6 +4,38 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — Wiki audit: EPIC 11 full coverage
+
+- Updated `wiki/src/attacks/index.md` — added `tool_chain.yaml` and `mcp_poison.json` to layout table
+- Updated `wiki/src/attacks/loader.md` — added `poison_tool` field to AttackScenario table; documented JSON support in `load()` and `load_all()`; updated "Used by" to reflect actual callers
+- Created `wiki/src/mcpzero/agent.md` — `BaselineAgent`: step result dict schema, ALLOW/ABSENT logic, no-policy invariant
+- Created `wiki/src/mcpzero/runner.md` — `ScenarioRunner`, `RunResult`, mode switch semantics, observer wiring, `load_scenario()`
+- Created `wiki/src/mcpzero/generator.md` — `generate()`, tool graph strategy, output format, future CI use
+- Created `wiki/src/mcpzero/observer.md` — `ExecutionObserver`, trace entry schema, wiring pattern, gitignore note
+- Updated `wiki/src/mcpzero/index.md` — layout table now links to all submodule pages; See also expanded
+
+---
+
+## 2026-04-26 — EPIC 11 / I3–I15: full MCPZero demo pipeline
+
+- Updated `wiki/src/attacks/index.md` and `wiki/src/attacks/loader.md` — added tool_chain + mcp_poison scenarios; JSON loader support; poison_tool field
+- Created `wiki/src/mcpzero/index.md` — package overview: layout, entry point, data flow diagram, world manifest note
+- Created `wiki/src/mcpzero/proxy.md` — SafeMCPProxy symbols, normalised result dict, mcp_poison handling, descriptor drift link
+- Created `wiki/src/mcpzero/verdict.md` — StepVerdict/Verdict symbols, proxy_blocked semantics (at-least-one not all), metrics reporter symbols
+- Updated `wiki/index.md` — added `[[src/mcpzero/index]]` row
+- Updated `wiki/src/index.md` — added `[[src/mcpzero/index]]` row
+
+---
+
+## 2026-04-26 — EPIC 11 / I1–I2: attack corpus structure + email injection scenario
+
+- Created `wiki/src/attacks/index.md` — package overview: layout table, two scenario formats (YAML structured vs Markdown documents), cross-links
+- Created `wiki/src/attacks/loader.md` — source page: AttackStep, AttackScenario fields, load/load_document/load_all symbols, validation rules, document inlining behaviour
+- Updated `wiki/index.md` — added `[[src/attacks/index]]` row under "Other packages"
+- Updated `wiki/src/index.md` — added `[[src/attacks/index]]` row under Packages
+
+---
+
 ## 2026-04-26 — EPIC 10 / I7: positioning doc (PR claude/safe-skills-epic-s5Y88)
 
 - Created `docs/safe_skills_projection.md` — 334-line positioning doc covering: dynamic skills as capability space, supply-chain risk model, indirect prompt injection chain, closed-world assumption, LLM guardrails vs. deterministic projection, full architecture diagram, projection rules table, side-effect classification table, trace schema, demo walkthrough, world manifest example, and positioning statement

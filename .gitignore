@@ -3,3 +3,4 @@ __pycache__/
 .codex
 site/
 safe_mcp_proxy/logs/
+mcpzero/traces/*.jsonl

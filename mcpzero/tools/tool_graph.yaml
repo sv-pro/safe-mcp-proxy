@@ -1,0 +1,50 @@
+tools:
+  - name: read_file
+    capability: read
+    side_effect_type: read
+    description: Reads a file from the local filesystem and returns its contents.
+    schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: Path to the file to read
+      required: [path]
+
+  - name: list_repo
+    capability: list_repo
+    side_effect_type: internal
+    description: Lists files present in the repository root.
+    schema:
+      type: object
+      properties: {}
+
+  - name: send_email
+    capability: send_email
+    side_effect_type: external
+    description: Sends an email to the specified recipient.
+    schema:
+      type: object
+      properties:
+        to:
+          type: string
+          description: Recipient email address
+        subject:
+          type: string
+          description: Email subject line
+        body:
+          type: string
+          description: Email body text
+      required: [to, body]
+
+  - name: dangerous_exec
+    capability: dangerous_exec
+    side_effect_type: external
+    description: Executes an arbitrary shell command.
+    schema:
+      type: object
+      properties:
+        cmd:
+          type: string
+          description: Shell command to execute
+      required: [cmd]

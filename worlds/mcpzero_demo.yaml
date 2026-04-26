@@ -1,0 +1,26 @@
+world_id: mcpzero_demo
+
+# MCPZero Demo world — send_email is reachable but blocked by taint policy when
+# the request originates from an untrusted channel (web / email / tool_output).
+# No approval gate is used so the DENY is immediate and deterministic.
+
+allowed_tools:
+  - read_file
+  - list_repo
+  - send_email
+
+capabilities:
+  read_file:
+    allowed: true
+  list_repo:
+    allowed: true
+  send_email:
+    allowed: true
+  dangerous_exec:
+    allowed: false
+
+taint_rules:
+  - tainted_external: deny
+
+side_effects:
+  external: restricted
