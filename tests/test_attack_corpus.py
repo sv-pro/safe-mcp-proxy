@@ -1,9 +1,11 @@
 import unittest
 from pathlib import Path
 
-from attacks.loader import load, load_all, AttackScenario, ATTACKS_DIR
+from attacks.loader import load, load_all, load_document, AttackScenario, ATTACKS_DIR
 
 EXAMPLE = ATTACKS_DIR / "example.yaml"
+EMAIL_INJECTION_YAML = ATTACKS_DIR / "email_injection.yaml"
+EMAIL_INJECTION_MD   = ATTACKS_DIR / "email_injection.md"
 
 
 class TestAttackLoader(unittest.TestCase):
@@ -46,6 +48,52 @@ class TestAttackLoader(unittest.TestCase):
                 load(tmp)
         finally:
             os.unlink(tmp)
+
+    def test_load_all_includes_email_injection(self):
+        scenarios = load_all(ATTACKS_DIR)
+        names = [s.name for s in scenarios]
+        self.assertIn("email_injection", names)
+
+
+class TestEmailInjectionScenario(unittest.TestCase):
+    def test_yaml_loads(self):
+        s = load(EMAIL_INJECTION_YAML)
+        self.assertIsInstance(s, AttackScenario)
+        self.assertEqual(s.name, "email_injection")
+
+    def test_type_and_channel(self):
+        s = load(EMAIL_INJECTION_YAML)
+        self.assertEqual(s.type, "email_injection")
+        self.assertEqual(s.source_channel, "web")
+
+    def test_expected_decisions(self):
+        s = load(EMAIL_INJECTION_YAML)
+        self.assertEqual(s.expected_baseline, "ALLOW")
+        self.assertEqual(s.expected_protected, "DENY")
+
+    def test_steps_include_send_email(self):
+        s = load(EMAIL_INJECTION_YAML)
+        tools = [step.tool for step in s.steps]
+        self.assertIn("send_email", tools)
+
+    def test_document_is_loaded(self):
+        s = load(EMAIL_INJECTION_YAML)
+        self.assertTrue(s.document, "document field should be non-empty")
+
+    def test_document_contains_hidden_instruction(self):
+        doc = load_document(EMAIL_INJECTION_MD)
+        self.assertIn("send_email", doc)
+        self.assertIn("SYSTEM", doc)
+
+    def test_document_looks_legitimate(self):
+        doc = load_document(EMAIL_INJECTION_MD)
+        # Should read as a normal business document on the surface
+        self.assertIn("Q1", doc)
+        self.assertIn("Operations", doc)
+
+    def test_md_file_exists(self):
+        self.assertTrue(EMAIL_INJECTION_MD.exists())
+
 
     def test_invalid_type_raises(self):
         import tempfile, yaml, os

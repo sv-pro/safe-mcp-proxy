@@ -28,6 +28,7 @@ class AttackScenario:
     steps: List[AttackStep]
     expected_baseline: str
     expected_protected: str
+    document: str = ""  # raw text of the companion .md file, if any
 
 
 def _parse(data: Dict[str, Any], path: Path) -> AttackScenario:
@@ -54,6 +55,11 @@ def _parse(data: Dict[str, Any], path: Path) -> AttackScenario:
         for s in data["steps"]
     ]
 
+    document = ""
+    if "document" in data:
+        doc_path = path.parent / data["document"]
+        document = load_document(doc_path)
+
     return AttackScenario(
         name=data["name"],
         description=data["description"].strip(),
@@ -62,7 +68,14 @@ def _parse(data: Dict[str, Any], path: Path) -> AttackScenario:
         steps=steps,
         expected_baseline=expected["baseline"],
         expected_protected=expected["protected"],
+        document=document,
     )
+
+
+def load_document(path: Path) -> str:
+    """Read a raw document file (e.g. .md) and return its text content."""
+    with open(path) as fh:
+        return fh.read()
 
 
 def load(path: Path) -> AttackScenario:
