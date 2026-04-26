@@ -4,6 +4,17 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 11 / I3–I15: full MCPZero demo pipeline
+
+- Updated `wiki/src/attacks/index.md` and `wiki/src/attacks/loader.md` — added tool_chain + mcp_poison scenarios; JSON loader support; poison_tool field
+- Created `wiki/src/mcpzero/index.md` — package overview: layout, entry point, data flow diagram, world manifest note
+- Created `wiki/src/mcpzero/proxy.md` — SafeMCPProxy symbols, normalised result dict, mcp_poison handling, descriptor drift link
+- Created `wiki/src/mcpzero/verdict.md` — StepVerdict/Verdict symbols, proxy_blocked semantics (at-least-one not all), metrics reporter symbols
+- Updated `wiki/index.md` — added `[[src/mcpzero/index]]` row
+- Updated `wiki/src/index.md` — added `[[src/mcpzero/index]]` row
+
+---
+
 ## 2026-04-26 — EPIC 11 / I1–I2: attack corpus structure + email injection scenario
 
 - Created `wiki/src/attacks/index.md` — package overview: layout table, two scenario formats (YAML structured vs Markdown documents), cross-links
