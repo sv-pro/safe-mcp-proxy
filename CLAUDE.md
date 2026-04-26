@@ -109,11 +109,11 @@ Every decision is appended to `safe_mcp_proxy/logs/audit.jsonl` in JSON lines fo
 When asked **"what's next?"**, **"что дальше?"**, **"next issue"**, **"next task"**, or similar:
 
 1. Fetch open issues: use `mcp__github__list_issues` with `owner=sv-pro`, `repo=safe-mcp-proxy`, `state=OPEN`.
-2. Pick the highest-priority open issue from the lowest EPIC number.
+2. Pick the highest-priority open issue from the highest EPIC number.
 3. Report the issue number, title, and task list before starting work.
 
 Issues live at: https://github.com/sv-pro/safe-mcp-proxy/issues
 
-- **Open** = work remaining (EPICs 5–7)
-- **Closed** = already implemented (EPICs 0–4)
+- **Open** = work remaining (EPICs 8–9)
+- **Closed** = already implemented (EPICs 0–7)
 - Labels: `epic/N-*`, `type/*`, `priority/*`

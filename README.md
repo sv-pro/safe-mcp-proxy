@@ -255,6 +255,95 @@ Every decision is appended to `safe_mcp_proxy/logs/audit.jsonl` in JSON lines fo
 > **Note:** `safe_mcp_proxy/logs/` is gitignored — the live log is a runtime artifact, not source.
 > The API seeds it automatically from `seeds/demo.jsonl` on first start when the file is absent or empty.
 
+## Atlassian MCP Proxy
+
+A policy-enforcing passthrough for the [Atlassian Remote MCP Server](https://mcp.atlassian.com). It sits between an AI agent and Atlassian tools (Jira, Confluence) and enforces four layers of control on every `tools/call`:
+
+| Layer | What it does |
+|---|---|
+| Allowlist (ABSENT) | Tools not in the manifest are invisible to the agent |
+| Taint gate (DENY) | Requests from untrusted channels cannot call write tools |
+| Data-flow rules (DENY) | Raw Confluence content cannot flow into Jira write calls |
+| Arg rules (DENY) | `jira_create_issue` is restricted to approved project keys |
+
+### Quick setup
+
+```bash
+# 1. Configure
+cp .env.example .env
+#    Set ATLASSIAN_MCP_URL, ATLASSIAN_MANIFEST_PATH, etc.
+
+# 2a. Run with Docker
+docker build -t safe-mcp-proxy .
+docker run --env-file .env -p 8000:8000 safe-mcp-proxy
+
+# 2b. Run locally
+pip install pyyaml fastapi "uvicorn[standard]"
+uvicorn api.main:app --reload
+```
+
+The proxy exposes two endpoints:
+
+```text
+POST /atlassian/mcp     — MCP JSON-RPC passthrough (policy-gated)
+GET  /atlassian/config  — Active config (no secrets)
+```
+
+### Audit log
+
+Every request, policy decision, and response is appended to
+`safe_mcp_proxy/logs/atlassian_requests.jsonl`. Each entry carries a
+`trace_id` (UUID) so request → decision → response entries can be
+correlated:
+
+```jsonl
+{"direction":"request",  "trace_id":"a1b2...", "timestamp":"...", "payload":{...}}
+{"direction":"decision", "trace_id":"a1b2...", "timestamp":"...", "tool":"jira_create_issue", "decision":"DENY", "rule":"no_raw_confluence_to_jira", "tainted":false, "flow_labels":["confluence_raw"]}
+{"direction":"response", "trace_id":"a1b2...", "timestamp":"...", "payload":{...}}
+```
+
+Inspect the audit log with the built-in CLI:
+
+```bash
+# List recent decisions
+python -m safe_mcp_proxy.atlassian.cli list --last 20
+
+# Show only blocked calls
+python -m safe_mcp_proxy.atlassian.cli list --decision DENY
+
+# Show all entries for one trace
+python -m safe_mcp_proxy.atlassian.cli trace --trace-id a1b2c3d4
+```
+
+### Policy manifest
+
+The manifest at `manifests/atlassian_mvp.yaml` is the sole policy surface.
+Set `ATLASSIAN_MANIFEST_PATH` to point to it (or a custom manifest):
+
+```yaml
+allowed_tools:
+  - jira_get_issue
+  - jira_create_issue
+  - confluence_get_page
+
+external_write_tools:
+  - jira_create_issue
+
+arg_rules:
+  jira_create_issue:
+    - arg: project_key
+      allowed_values: [SAFE, TEST, DEMO]
+      rule: jira_create_restricted_projects
+
+data_flow_rules:
+  - if_label: confluence_raw
+    deny_for: [jira_create_issue, jira_update_issue, jira_add_comment]
+    rule: no_raw_confluence_to_jira
+```
+
+See [docs/atlassian-quickstart.md](docs/atlassian-quickstart.md) for a
+guided 5-minute demo of the full attack-and-block scenario.
+
 ## Adding a new tool
 
 1. Add a `ToolRecord` entry to `TOOLS` in `registry.py` — set `name`, `capability`, `schema`, `descriptor_hash` (compute via `descriptor.hash_schema()`), `side_effect_type`, and `handler`.
