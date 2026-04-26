@@ -47,3 +47,14 @@ flow_rules:
 # (title + summary) before being returned to the client.
 safe_abstractions:
   confluence_get_page: confluence_get_page_summary
+
+# Data-flow rules (Provenance Lite / M5).
+# After a confluence_get_page call the session carries label=confluence_raw.
+# Raw Confluence content must not flow directly into Jira write tools.
+data_flow_rules:
+  - if_label: confluence_raw
+    deny_for:
+      - jira_create_issue
+      - jira_update_issue
+      - jira_add_comment
+    rule: no_raw_confluence_to_jira

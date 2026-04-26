@@ -3,7 +3,12 @@ from __future__ import annotations
 import yaml
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
+
+from .flow import DataFlowRule, parse_data_flow_rules
+
+if TYPE_CHECKING:
+    from .flow import FlowContext
 
 
 @dataclass(frozen=True)
@@ -19,9 +24,10 @@ class ManifestPolicyEngine:
 
     Decision order (first match wins):
     1. ABSENT — tool not in allowlist
-    2. DENY   — tainted source + external-write tool  (flow rule)
-    3. DENY   — argument rule violated
-    4. ALLOW  — default
+    2. DENY   — tainted source + external-write tool  (taint flow rule)
+    3. DENY   — data-flow label rule violated          (provenance lite)
+    4. DENY   — argument rule violated
+    5. ALLOW  — default
     """
 
     def __init__(self, manifest: Dict[str, Any]) -> None:
@@ -32,6 +38,9 @@ class ManifestPolicyEngine:
         self._taint_blocks_external: bool = flow.get(
             "tainted_source_blocks_external_write", True
         )
+        self._data_flow_rules: List[DataFlowRule] = parse_data_flow_rules(
+            manifest.get("data_flow_rules", [])
+        )
 
     # ------------------------------------------------------------------
 
@@ -40,6 +49,7 @@ class ManifestPolicyEngine:
         tool_name: str,
         arguments: Dict[str, Any],
         tainted: bool,
+        flow_context: Optional["FlowContext"] = None,
     ) -> PolicyDecision:
         # 1. Tool not in allowlist → ABSENT
         if self._allowlist and tool_name not in self._allowlist:
@@ -51,7 +61,13 @@ class ManifestPolicyEngine:
                 "DENY", "tainted_source_blocks_external_write", tool_name, tainted
             )
 
-        # 3. Argument-based rules
+        # 3. Data-flow label rules (provenance lite)
+        if flow_context is not None:
+            for dfr in self._data_flow_rules:
+                if flow_context.has_label(dfr.if_label) and tool_name in dfr.deny_for:
+                    return PolicyDecision("DENY", dfr.rule, tool_name, tainted)
+
+        # 4. Argument-based rules
         for rule in self._arg_rules.get(tool_name, []):
             arg_val = arguments.get(rule["arg"])
             allowed_values = rule.get("allowed_values")
@@ -59,7 +75,7 @@ class ManifestPolicyEngine:
                 rule_name = rule.get("rule", f"arg_rule:{rule['arg']}")
                 return PolicyDecision("DENY", rule_name, tool_name, tainted)
 
-        # 4. Default allow
+        # 5. Default allow
         return PolicyDecision("ALLOW", "default_allow", tool_name, tainted)
 
     # ------------------------------------------------------------------

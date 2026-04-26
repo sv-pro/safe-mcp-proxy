@@ -34,6 +34,7 @@ class AtlassianProxyConfig:
     denied_tools: Set[str] = field(default_factory=set)
     manifest_path: Optional[Path] = None
     source_channel: str = "cli"
+    debug: bool = False
 
     @classmethod
     def from_env(cls) -> "AtlassianProxyConfig":
@@ -46,6 +47,7 @@ class AtlassianProxyConfig:
             denied_tools=_parse_tool_set(os.environ.get("ATLASSIAN_DENIED_TOOLS", "")),
             manifest_path=Path(raw_manifest) if raw_manifest else None,
             source_channel=os.environ.get("ATLASSIAN_SOURCE_CHANNEL", "cli"),
+            debug=os.environ.get("ATLASSIAN_DEBUG", "").lower() in ("1", "true", "yes"),
         )
 
     @property

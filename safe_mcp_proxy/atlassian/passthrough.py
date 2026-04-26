@@ -7,49 +7,60 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from .adapters import apply_safe_abstraction
+from .adapters import apply_safe_abstraction, ATLASSIAN_TOOLS
 from .config import AtlassianProxyConfig
+from .flow import FlowContext
 from .policy import ManifestPolicyEngine, PolicyDecision
 from safe_mcp_proxy.provenance import TAINTED_CHANNELS
 
 
 class MCPPassthrough:
-    """Stateless MCP passthrough: enforce policy then forward JSON-RPC requests
-    to an upstream Atlassian MCP server; log every request/response/decision."""
+    """MCP passthrough with policy enforcement and provenance-lite flow tracking.
+
+    Pipeline for tools/call:
+      1. Policy gate  — ABSENT / DENY / ALLOW
+      2. Forward      — to upstream or stub
+      3. Safe abstraction — truncate raw confluence content
+      4. Tag output   — update FlowContext with data label
+      5. Debug info   — optionally attach flow state to response
+    """
 
     def __init__(
         self,
         config: AtlassianProxyConfig,
         log_path: Optional[Path] = None,
         policy: Optional[ManifestPolicyEngine] = None,
+        flow_context: Optional[FlowContext] = None,
     ) -> None:
         self._config = config
         self._log_path = log_path
         self._policy = policy
+        self._flow = flow_context
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
     def forward(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Enforce policy (if configured) then forward; log everything."""
         method = request.get("method", "")
         self._log({"direction": "request", "payload": request})
 
-        # Policy enforcement gate (tools/call only)
+        # ---- Policy gate (tools/call only) ----------------------------
         if method == "tools/call" and self._policy is not None:
             params = request.get("params") or {}
             tool_name = params.get("name", "")
             arguments = params.get("arguments") or {}
             tainted = self._config.source_channel in TAINTED_CHANNELS
-            decision = self._policy.evaluate(tool_name, arguments, tainted)
+            decision = self._policy.evaluate(
+                tool_name, arguments, tainted, flow_context=self._flow
+            )
             self._log_decision(request, decision)
             if decision.decision != "ALLOW":
                 response = _blocked_response(request.get("id"), decision)
                 self._log({"direction": "response", "payload": response})
                 return response
 
-        # Forward to upstream or return stub
+        # ---- Forward --------------------------------------------------
         if not self._config.upstream_url or not self._config.is_proxy_mode:
             response = self._stub_response(request)
         else:
@@ -58,14 +69,29 @@ class MCPPassthrough:
             except (urllib.error.URLError, OSError) as exc:
                 response = _error_response(request.get("id"), -32603, str(exc))
 
-        # Capability filtering for tools/list
+        # ---- Post-processing for tools/call ---------------------------
+        if method == "tools/call" and "result" in response:
+            params = request.get("params") or {}
+            tool_name = params.get("name", "")
+
+            # Safe abstraction (M4): truncate raw content
+            was_abstracted = ATLASSIAN_TOOLS.get(tool_name) is not None and \
+                ATLASSIAN_TOOLS[tool_name].safe_alias is not None
+            response = apply_safe_abstraction(tool_name, response)
+
+            # Tag output (M5): update flow context
+            if self._flow is not None:
+                self._flow.tag_output(tool_name, was_abstracted=was_abstracted)
+
+        # ---- Capability filtering for tools/list ----------------------
         if method == "tools/list" and "result" in response:
             response = self._config.capability_filter().apply_to_list_response(response)
 
-        # Safe abstraction for tools/call responses
-        if method == "tools/call" and "result" in response:
-            tool_name = (request.get("params") or {}).get("name", "")
-            response = apply_safe_abstraction(tool_name, response)
+        # ---- Debug mode -----------------------------------------------
+        if self._config.debug and self._flow is not None and "result" in response:
+            result = dict(response["result"])
+            result["_debug"] = {"flow_context": self._flow.as_dict()}
+            response = {**response, "result": result}
 
         self._log({"direction": "response", "payload": response})
         return response
@@ -86,7 +112,6 @@ class MCPPassthrough:
             return json.loads(resp.read())
 
     def _stub_response(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Return a minimal valid response when upstream is not configured."""
         method = request.get("method", "")
         req_id = request.get("id")
 
@@ -132,6 +157,7 @@ class MCPPassthrough:
             "rule": decision.rule,
             "tainted": decision.tainted,
             "request_id": request.get("id"),
+            "flow_labels": sorted(self._flow.active_labels()) if self._flow else [],
         })
 
 
