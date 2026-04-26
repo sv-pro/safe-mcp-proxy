@@ -4,6 +4,12 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I7: positioning doc (PR claude/safe-skills-epic-s5Y88)
+
+- Created `docs/safe_skills_projection.md` — 334-line positioning doc covering: dynamic skills as capability space, supply-chain risk model, indirect prompt injection chain, closed-world assumption, LLM guardrails vs. deterministic projection, full architecture diagram, projection rules table, side-effect classification table, trace schema, demo walkthrough, world manifest example, and positioning statement
+
+---
+
 ## 2026-04-26 — EPIC 10 / I6: policy trace and audit output (PR claude/safe-skills-epic-s5Y88)
 
 - Updated `wiki/src/safe_mcp_proxy/executor.md` — added world_id/policy_version to __init__; documented list_tools() audit logging; documented execute_skill() trace fields (world_id, policy_version, side_effect, source_provenance)
