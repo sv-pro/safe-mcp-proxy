@@ -1,9 +1,11 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from safe_mcp_proxy.approval_store import ApprovalStore
+from safe_mcp_proxy.capability_projection import CapabilityProjectionEngine, ProjectionContext, ProjectionResult
+from safe_mcp_proxy.compiler import SkillCapabilityConfig
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.descriptor import compute_descriptor_hash, descriptor_hash_valid
 from safe_mcp_proxy.execution_mode import ExecutionMode
@@ -23,12 +25,26 @@ class Executor:
         audit_log_path: str,
         simulate_external: bool = False,
         approval_store: Optional[ApprovalStore] = None,
+        projection_engine: Optional[CapabilityProjectionEngine] = None,
+        skill_capabilities: Optional[Dict[str, SkillCapabilityConfig]] = None,
     ):
         self.registry = registry
         self.policy_engine = policy_engine
         self.simulate_external = simulate_external
         self.audit_log_path = Path(audit_log_path)
         self.approval_store = approval_store or ApprovalStore()
+        self.projection_engine = projection_engine
+        self.skill_capabilities: Dict[str, SkillCapabilityConfig] = skill_capabilities or {}
+
+    def list_tools(self, context: ProjectionContext) -> ProjectionResult:
+        """Return projected skill capabilities for the given execution context.
+
+        Only capabilities explicitly declared in the world manifest and passing
+        all projection filters are included in the visible list.
+        """
+        if not self.projection_engine or not self.skill_capabilities:
+            return ProjectionResult(visible=[], hidden=[])
+        return self.projection_engine.project(self.skill_capabilities, context)
 
     def _tool_context(self, tool_name: str) -> Tuple[Optional[Tool], str, str, bool]:
         tool = self.registry.get_tool(tool_name)

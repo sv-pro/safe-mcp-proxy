@@ -4,6 +4,14 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I3: capability projection engine (PR claude/safe-skills-epic-s5Y88)
+
+- Created `wiki/src/safe_mcp_proxy/capability_projection.md` — new source page: ProjectionContext, ProjectionResult, CapabilityProjectionEngine; evaluation order table; side-effect sets; determinism guarantee; Executor.list_tools() integration
+- Updated `wiki/src/safe_mcp_proxy/index.md` — added capability_projection row
+- Updated `wiki/index.md` — added capability_projection source page row
+
+---
+
 ## 2026-04-26 — EPIC 10 / I2: world manifest skill capability declarations (PR claude/safe-skills-epic-s5Y88)
 
 - Updated `wiki/src/safe_mcp_proxy/compiler.md` — added SkillSourceConfig, SkillCapabilityConfig, parse_skill_sources, parse_skill_capabilities to key symbols; added skill_sources and skill_capabilities to compile_world_manifest() output table; documented skill-backed capability detection rule and validation

@@ -22,6 +22,7 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | [[src/safe_mcp_proxy/execution_mode]] | `ExecutionMode` enum: INTERACTIVE vs BACKGROUND |
 | [[src/safe_mcp_proxy/capability_dsl]] | Parameterized capability DSL — `LiteralSource`, `ActorInputSource`, `CapabilityDef`, parser |
 | [[src/safe_mcp_proxy/skill_registry]] | External skill source registry — import and catalogue skills without auto-exposing them |
+| [[src/safe_mcp_proxy/capability_projection]] | Deterministic capability projection engine — `ProjectionContext`, `ProjectionResult`, `CapabilityProjectionEngine` |
 
 ## Sub-packages
 
