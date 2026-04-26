@@ -4,6 +4,12 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I4: execution guard for skill-backed capabilities (PR claude/safe-skills-epic-s5Y88)
+
+- Updated `wiki/src/safe_mcp_proxy/executor.md` — added execute_skill, list_tools, _validate_constraints to key symbols; added execute_skill() 7-step guard order section; added capability_projection and compiler to Depends on
+
+---
+
 ## 2026-04-26 — EPIC 10 / I3: capability projection engine (PR claude/safe-skills-epic-s5Y88)
 
 - Created `wiki/src/safe_mcp_proxy/capability_projection.md` — new source page: ProjectionContext, ProjectionResult, CapabilityProjectionEngine; evaluation order table; side-effect sets; determinism guarantee; Executor.list_tools() integration

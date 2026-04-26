@@ -95,6 +95,25 @@ class CapabilityProjectionEngine:
 
         return ProjectionResult(visible=visible, hidden=hidden)
 
+    def side_effect_denial(
+        self,
+        cap: SkillCapabilityConfig,
+        context: ProjectionContext,
+    ) -> str:
+        """Return denial reason if mode/workflow side-effect rules block this capability.
+
+        Used by the execution guard to distinguish capability_not_visible from
+        other denial reasons without re-running the full projection.
+        Returns empty string when no side-effect rule fires.
+        """
+        readonly = _is_readonly_workflow(context.workflow_id)
+        background = context.mode == ExecutionMode.BACKGROUND
+        if background and cap.side_effect in _BACKGROUND_BLOCKED:
+            return "side_effect_restricted_in_background"
+        if readonly and cap.side_effect in _WRITE_SIDE_EFFECTS:
+            return "side_effect_not_allowed_in_workflow"
+        return ""
+
     def _deny_reason(
         self,
         cap: SkillCapabilityConfig,
