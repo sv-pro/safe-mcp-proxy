@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Optional, Union
@@ -65,6 +66,7 @@ def build_executor(
 ) -> Executor:
     manifest_path = _resolve_manifest_path(base_dir, world_id)
     manifest_tables = compile_world_manifest(str(manifest_path))
+    policy_version = hashlib.sha256(manifest_path.read_bytes()).hexdigest()[:8]
     registry = ToolRegistry.with_mock_tools(
         allowlist=manifest_tables["allowlist"],
         capability_defs=manifest_tables.get("capability_definitions"),
@@ -79,6 +81,8 @@ def build_executor(
         audit_log_path=str(base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"),
         simulate_external=simulate_external,
         approval_store=ApprovalStore(),
+        world_id=manifest_tables.get("world_id", ""),
+        policy_version=policy_version,
     )
 
 

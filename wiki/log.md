@@ -4,6 +4,12 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I6: policy trace and audit output (PR claude/safe-skills-epic-s5Y88)
+
+- Updated `wiki/src/safe_mcp_proxy/executor.md` — added world_id/policy_version to __init__; documented list_tools() audit logging; documented execute_skill() trace fields (world_id, policy_version, side_effect, source_provenance)
+
+---
+
 ## 2026-04-26 — EPIC 10 / I5: indirect prompt injection demo (PR claude/safe-skills-epic-s5Y88)
 
 - Created `examples/safe_skills_demo/` — full CLI demo: poisoned_document.md, clean_task.md, mock_skills_repo/ (bigquery/email/gke skills), world_manifest.yaml, run_without_proxy.py, run_with_proxy.py, README.md

@@ -7,6 +7,7 @@ the projected world — the agent's executable surface is closed.
 Run from the repo root:
     python -m examples.safe_skills_demo.run_with_proxy
 """
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -29,9 +30,10 @@ from safe_mcp_proxy.skill_registry import SkillSource, SkillSourceRegistry
 # Demo executor — wired with Safe Skills Projection
 # ---------------------------------------------------------------------------
 
-def _build_executor() -> tuple[Executor, dict]:
+def _build_executor():
     manifest_path = DEMO_DIR / "world_manifest.yaml"
     manifest = compile_world_manifest(str(manifest_path))
+    policy_version = hashlib.sha256(manifest_path.read_bytes()).hexdigest()[:8]
 
     # Import skills so we can show what is upstream vs. what is projected
     skill_reg = SkillSourceRegistry()
@@ -55,6 +57,8 @@ def _build_executor() -> tuple[Executor, dict]:
         simulate_external=True,
         projection_engine=CapabilityProjectionEngine(),
         skill_capabilities=manifest["skill_capabilities"],
+        world_id=manifest["world_id"],
+        policy_version=policy_version,
     )
     return executor, manifest, skill_reg
 
@@ -128,7 +132,10 @@ if __name__ == "__main__":
         "decision": guard_result["decision"],
         "reason": guard_result["rule"],
         "source_provenance": [provenance.source_channel],
+        "side_effect": manifest["skill_capabilities"].get("email.send", None) and
+                       manifest["skill_capabilities"]["email.send"].side_effect or "external_communication",
         "taint": provenance.tainted,
+        "policy_version": executor.policy_version,
     }
 
     print("[RESULT]")

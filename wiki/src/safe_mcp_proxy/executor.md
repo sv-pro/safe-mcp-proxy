@@ -10,7 +10,7 @@ Orchestrates the full tool invocation pipeline. Dispatches to tool handlers, man
 |------|------|-------------|
 | `ABSENT_MESSAGE` | constant | `"Action does not exist in this world"` — canonical ABSENT response string |
 | `Executor` | class | Main orchestrator |
-| `Executor.__init__` | method | Takes `registry`, `policy_engine`, `audit_log_path`, `simulate_external`, `approval_store`, optional `projection_engine`, optional `skill_capabilities` |
+| `Executor.__init__` | method | Takes `registry`, `policy_engine`, `audit_log_path`, `simulate_external`, `approval_store`, optional `projection_engine`, optional `skill_capabilities`, optional `world_id`, optional `policy_version` |
 | `Executor.execute` | method | Runs one tool invocation through the full pipeline; returns `{decision, rule, result}` |
 | `Executor.execute_skill` | method | Execution guard for skill-backed capabilities — 7-step check order, logs all decisions |
 | `Executor.list_tools` | method | Returns `ProjectionResult` for the given `ProjectionContext` |

@@ -56,6 +56,8 @@ class Executor:
         approval_store: Optional[ApprovalStore] = None,
         projection_engine: Optional[CapabilityProjectionEngine] = None,
         skill_capabilities: Optional[Dict[str, SkillCapabilityConfig]] = None,
+        world_id: str = "",
+        policy_version: str = "",
     ):
         self.registry = registry
         self.policy_engine = policy_engine
@@ -64,16 +66,36 @@ class Executor:
         self.approval_store = approval_store or ApprovalStore()
         self.projection_engine = projection_engine
         self.skill_capabilities: Dict[str, SkillCapabilityConfig] = skill_capabilities or {}
+        self.world_id = world_id
+        self.policy_version = policy_version
 
     def list_tools(self, context: ProjectionContext) -> ProjectionResult:
         """Return projected skill capabilities for the given execution context.
 
         Only capabilities explicitly declared in the world manifest and passing
         all projection filters are included in the visible list.
+        Every call is logged to the audit trail.
         """
         if not self.projection_engine or not self.skill_capabilities:
-            return ProjectionResult(visible=[], hidden=[])
-        return self.projection_engine.project(self.skill_capabilities, context)
+            result = ProjectionResult(visible=[], hidden=[])
+        else:
+            result = self.projection_engine.project(self.skill_capabilities, context)
+        self._audit(
+            tool="list_tools",
+            decision="ALLOW",
+            rule="projection",
+            taint=False,
+            descriptor_hash="",
+            source_channel="",
+            world_id=self.world_id,
+            policy_version=self.policy_version,
+            identity=context.identity,
+            workflow_id=context.workflow_id,
+            mode=context.mode.value,
+            visible_count=len(result.visible),
+            hidden_count=len(result.hidden),
+        )
+        return result
 
     def execute_skill(
         self,
@@ -93,15 +115,22 @@ class Executor:
           6. constraint_violation_*   — payload fails declared constraints
           7. ALLOW
         """
-        extra = {
+        source_provenance = [provenance.source_channel] if provenance.source_channel else []
+        extra: Dict[str, Any] = {
+            "world_id": self.world_id,
+            "policy_version": self.policy_version,
             "identity": context.identity,
             "workflow_id": context.workflow_id,
             "mode": context.mode.value,
+            "source_provenance": source_provenance,
+            "side_effect": "",
         }
 
         cap = self.skill_capabilities.get(tool_name)
         if cap is None:
             return self._skill_deny(tool_name, "capability_not_defined", provenance, **extra)
+
+        extra["side_effect"] = cap.side_effect
 
         if cap.allowed is False:
             return self._skill_deny(tool_name, "capability_not_allowed", provenance, **extra)
