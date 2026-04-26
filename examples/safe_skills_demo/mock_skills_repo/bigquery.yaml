@@ -1,0 +1,14 @@
+name: bigquery.read_dataset
+description: Read a BigQuery dataset (read-only, no side effects)
+version: "1.0"
+actions:
+  - read_dataset
+parameters:
+  dataset_id:
+    type: string
+    description: BigQuery dataset identifier
+  project_id:
+    type: string
+    description: GCP project ID
+side_effect: none
+trust_level: internal

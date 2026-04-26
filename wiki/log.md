@@ -4,6 +4,55 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-04-26 — EPIC 10 / I7: positioning doc (PR claude/safe-skills-epic-s5Y88)
+
+- Created `docs/safe_skills_projection.md` — 334-line positioning doc covering: dynamic skills as capability space, supply-chain risk model, indirect prompt injection chain, closed-world assumption, LLM guardrails vs. deterministic projection, full architecture diagram, projection rules table, side-effect classification table, trace schema, demo walkthrough, world manifest example, and positioning statement
+
+---
+
+## 2026-04-26 — EPIC 10 / I6: policy trace and audit output (PR claude/safe-skills-epic-s5Y88)
+
+- Updated `wiki/src/safe_mcp_proxy/executor.md` — added world_id/policy_version to __init__; documented list_tools() audit logging; documented execute_skill() trace fields (world_id, policy_version, side_effect, source_provenance)
+
+---
+
+## 2026-04-26 — EPIC 10 / I5: indirect prompt injection demo (PR claude/safe-skills-epic-s5Y88)
+
+- Created `examples/safe_skills_demo/` — full CLI demo: poisoned_document.md, clean_task.md, mock_skills_repo/ (bigquery/email/gke skills), world_manifest.yaml, run_without_proxy.py, run_with_proxy.py, README.md
+- Unsafe runner: agent discovers all 3 skills freely, follows hidden instruction, executes email.send (ATTACK SUCCESS)
+- Safe runner: proxy projects only bigquery.read_dataset, email.send blocked as capability_not_allowed (ATTACK BLOCKED)
+- Both runners use identical inputs — diff is the execution world
+
+---
+
+## 2026-04-26 — EPIC 10 / I4: execution guard for skill-backed capabilities (PR claude/safe-skills-epic-s5Y88)
+
+- Updated `wiki/src/safe_mcp_proxy/executor.md` — added execute_skill, list_tools, _validate_constraints to key symbols; added execute_skill() 7-step guard order section; added capability_projection and compiler to Depends on
+
+---
+
+## 2026-04-26 — EPIC 10 / I3: capability projection engine (PR claude/safe-skills-epic-s5Y88)
+
+- Created `wiki/src/safe_mcp_proxy/capability_projection.md` — new source page: ProjectionContext, ProjectionResult, CapabilityProjectionEngine; evaluation order table; side-effect sets; determinism guarantee; Executor.list_tools() integration
+- Updated `wiki/src/safe_mcp_proxy/index.md` — added capability_projection row
+- Updated `wiki/index.md` — added capability_projection source page row
+
+---
+
+## 2026-04-26 — EPIC 10 / I2: world manifest skill capability declarations (PR claude/safe-skills-epic-s5Y88)
+
+- Updated `wiki/src/safe_mcp_proxy/compiler.md` — added SkillSourceConfig, SkillCapabilityConfig, parse_skill_sources, parse_skill_capabilities to key symbols; added skill_sources and skill_capabilities to compile_world_manifest() output table; documented skill-backed capability detection rule and validation
+
+---
+
+## 2026-04-26 — EPIC 10 / I1: skill source registry (PR claude/safe-skills-epic-s5Y88)
+
+- Created `wiki/src/safe_mcp_proxy/skill_registry.md` — new source page: SkillSource, ImportedSkill, SkillSourceRegistry; core no-auto-exposure invariant; local vs git source types; compound key scheme; export_manifest / save_manifest
+- Updated `wiki/src/safe_mcp_proxy/index.md` — added skill_registry row
+- Updated `wiki/index.md` — added skill_registry source page row
+
+---
+
 ## 2026-04-25 — Parameterized capability DSL + audit log gitignore (Issue #112)
 
 - Created `wiki/src/safe_mcp_proxy/capability_dsl.md` — new source page: value sources (LiteralSource, ActorInputSource, ContextRefSource), CapabilityDef, parse_capability_definitions(), how _build_scoped_tool() uses them, security invariant (literals always win)

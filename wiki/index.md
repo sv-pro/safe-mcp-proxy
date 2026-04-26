@@ -43,6 +43,8 @@ Content-oriented catalog of all pages in this wiki.
 | [[src/safe_mcp_proxy/approval_store]] | In-memory approval token store — pending/approved/rejected/executed lifecycle |
 | [[src/safe_mcp_proxy/execution_mode]] | `ExecutionMode` enum: INTERACTIVE vs BACKGROUND — controls ASK behavior |
 | [[src/safe_mcp_proxy/capability_dsl]] | Parameterized capability DSL — value sources, `CapabilityDef`, manifest parser |
+| [[src/safe_mcp_proxy/skill_registry]] | External skill source registry — import and catalogue skills without auto-exposing them |
+| [[src/safe_mcp_proxy/capability_projection]] | Deterministic capability projection engine — `ProjectionContext`, `ProjectionResult`, `CapabilityProjectionEngine` |
 
 ### Sub-packages
 

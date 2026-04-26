@@ -10,13 +10,16 @@ Orchestrates the full tool invocation pipeline. Dispatches to tool handlers, man
 |------|------|-------------|
 | `ABSENT_MESSAGE` | constant | `"Action does not exist in this world"` — canonical ABSENT response string |
 | `Executor` | class | Main orchestrator |
-| `Executor.__init__` | method | Takes `registry`, `policy_engine`, `audit_log_path`, `simulate_external`, `approval_store` |
+| `Executor.__init__` | method | Takes `registry`, `policy_engine`, `audit_log_path`, `simulate_external`, `approval_store`, optional `projection_engine`, optional `skill_capabilities`, optional `world_id`, optional `policy_version` |
 | `Executor.execute` | method | Runs one tool invocation through the full pipeline; returns `{decision, rule, result}` |
+| `Executor.execute_skill` | method | Execution guard for skill-backed capabilities — 7-step check order, logs all decisions |
+| `Executor.list_tools` | method | Returns `ProjectionResult` for the given `ProjectionContext` |
 | `Executor.execute_approved` | method | Executes a previously ASK'd tool after its approval token is approved |
 | `Executor.reject_approval` | method | Records a rejection for a pending approval token; logs as DENY / `approval_rejected` |
 | `Executor.replay` | method | Re-evaluates a recorded audit entry; returns `{recorded_*, replayed_*, matches}` |
 | `Executor._tool_context` | method | Looks up tool; returns `(tool, capability, side_effect_type, hash_ok)` |
-| `Executor._audit` | method | Appends one JSON line to `audit_log_path` |
+| `Executor._audit` | method | Appends one JSON line to `audit_log_path`; accepts `**extra` for skill context fields |
+| `_validate_constraints` | function | Validates payload against `max_bytes_billed`, `deny_patterns`, `allowed_domains` |
 
 ## Execution paths in `execute()`
 
@@ -40,6 +43,20 @@ After `execute()` returns ASK:
 If rejected:
 - `reject_approval(token)` — logs as DENY / `approval_rejected`
 
+## `execute_skill()` guard order
+
+```
+1. skill_capabilities[tool_name] missing  → DENY: capability_not_defined
+2. cap.allowed is False                   → DENY: capability_not_allowed
+3. mode/workflow side-effect filter       → DENY: capability_not_visible
+4. tainted + provenance_required          → DENY: provenance_violation
+5. requires_approval + not approved       → ASK:  approval_required
+6. constraint validation fails            → DENY: constraint_violation_*
+7. (all pass)                             → ALLOW: default_allow
+```
+
+Denied calls never reach any adapter — the guard returns before any execution. Every decision is logged to audit JSONL with `identity`, `workflow_id`, `mode` fields.
+
 ## Depends on
 
 - [[src/safe_mcp_proxy/registry]] — `get_tool()`, `execute_tool()`
@@ -50,6 +67,8 @@ If rejected:
 - [[src/safe_mcp_proxy/decision]] — `Decision` enum
 - [[src/safe_mcp_proxy/approval_store]] — `ApprovalStore` for ASK token lifecycle
 - [[src/safe_mcp_proxy/execution_mode]] — `ExecutionMode` controls INTERACTIVE vs BACKGROUND behavior
+- [[src/safe_mcp_proxy/capability_projection]] — `CapabilityProjectionEngine`, `ProjectionContext`, `ProjectionResult`
+- [[src/safe_mcp_proxy/compiler]] — `SkillCapabilityConfig` (skill_capabilities dict)
 
 ## Used by
 

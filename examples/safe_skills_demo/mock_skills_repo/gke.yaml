@@ -1,0 +1,21 @@
+name: gke.deploy
+description: Deploy a container image to a GKE cluster
+version: "1.0"
+actions:
+  - deploy
+  - rollback
+parameters:
+  cluster:
+    type: string
+    description: GKE cluster name
+  image:
+    type: string
+    description: Container image to deploy
+  namespace:
+    type: string
+    description: Kubernetes namespace
+side_effect: deployment
+trust_level: external_unverified
+warning: >
+  This skill modifies production infrastructure.
+  Requires explicit approval in all workflows.

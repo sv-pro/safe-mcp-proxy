@@ -1,0 +1,48 @@
+# World manifest for the Safe Skills demo.
+#
+# This world exposes a single read-only BigQuery skill.
+# email.send and gke.deploy exist in the upstream skills repository
+# but are NOT declared here — they do not exist in this world.
+
+world_id: safe-skills-demo
+
+skill_sources:
+  mock_skills:
+    type: local
+    path: examples/safe_skills_demo/mock_skills_repo
+    trust_level: internal_mock
+    import_mode: explicit_only
+
+allowed_tools: []
+
+capabilities:
+  # Only read-only BigQuery access is declared for this workflow.
+  bigquery.read_dataset:
+    source_skill: mock_skills:bigquery
+    exposed_as: bigquery.read_dataset
+    allowed: true
+    side_effect: none
+    provenance_required: trusted_or_user_confirmed
+
+  # email.send is explicitly excluded — not in projected world.
+  # Presence in the skills repo does NOT make it executable here.
+  email.send:
+    source_skill: mock_skills:email
+    exposed_as: email.send
+    allowed: false
+    side_effect: external_communication
+    reason: "Email exfiltration is not permitted in any research workflow."
+
+  # gke.deploy also excluded.
+  gke.deploy:
+    source_skill: mock_skills:gke
+    exposed_as: gke.deploy
+    allowed: false
+    side_effect: deployment
+    reason: "Deployment actions are outside this workflow scope."
+
+taint_rules:
+  - tainted_external: deny
+
+side_effects:
+  external: restricted

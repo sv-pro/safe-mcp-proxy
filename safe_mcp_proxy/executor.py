@@ -1,9 +1,11 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from safe_mcp_proxy.approval_store import ApprovalStore
+from safe_mcp_proxy.capability_projection import CapabilityProjectionEngine, ProjectionContext, ProjectionResult
+from safe_mcp_proxy.compiler import SkillCapabilityConfig
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.descriptor import compute_descriptor_hash, descriptor_hash_valid
 from safe_mcp_proxy.execution_mode import ExecutionMode
@@ -15,6 +17,35 @@ from safe_mcp_proxy.simulate import simulate_external_action
 ABSENT_MESSAGE = "Action does not exist in this world"
 
 
+def _validate_constraints(constraints: Dict[str, Any], payload: Dict[str, Any]) -> Tuple[bool, str]:
+    """Validate payload against declared capability constraints.
+
+    Returns (True, "") when all constraints pass, (False, reason_code) on first violation.
+    """
+    if not constraints:
+        return True, ""
+
+    max_bytes = constraints.get("max_bytes_billed")
+    if max_bytes is not None:
+        if payload.get("bytes_billed", 0) > max_bytes:
+            return False, "constraint_violation_bytes_billed"
+
+    for pattern in constraints.get("deny_patterns", []):
+        for v in payload.values():
+            if isinstance(v, str) and pattern in v:
+                return False, "constraint_violation_deny_pattern"
+
+    allowed_domains = constraints.get("allowed_domains", [])
+    if allowed_domains:
+        email_val = str(payload.get("to") or payload.get("email") or "")
+        if email_val:
+            domain = email_val.split("@")[-1] if "@" in email_val else ""
+            if not any(domain == d or email_val.endswith("@" + d) for d in allowed_domains):
+                return False, "constraint_violation_domain"
+
+    return True, ""
+
+
 class Executor:
     def __init__(
         self,
@@ -23,12 +54,147 @@ class Executor:
         audit_log_path: str,
         simulate_external: bool = False,
         approval_store: Optional[ApprovalStore] = None,
+        projection_engine: Optional[CapabilityProjectionEngine] = None,
+        skill_capabilities: Optional[Dict[str, SkillCapabilityConfig]] = None,
+        world_id: str = "",
+        policy_version: str = "",
     ):
         self.registry = registry
         self.policy_engine = policy_engine
         self.simulate_external = simulate_external
         self.audit_log_path = Path(audit_log_path)
         self.approval_store = approval_store or ApprovalStore()
+        self.projection_engine = projection_engine
+        self.skill_capabilities: Dict[str, SkillCapabilityConfig] = skill_capabilities or {}
+        self.world_id = world_id
+        self.policy_version = policy_version
+
+    def list_tools(self, context: ProjectionContext) -> ProjectionResult:
+        """Return projected skill capabilities for the given execution context.
+
+        Only capabilities explicitly declared in the world manifest and passing
+        all projection filters are included in the visible list.
+        Every call is logged to the audit trail.
+        """
+        if not self.projection_engine or not self.skill_capabilities:
+            result = ProjectionResult(visible=[], hidden=[])
+        else:
+            result = self.projection_engine.project(self.skill_capabilities, context)
+        self._audit(
+            tool="list_tools",
+            decision="ALLOW",
+            rule="projection",
+            taint=False,
+            descriptor_hash="",
+            source_channel="",
+            world_id=self.world_id,
+            policy_version=self.policy_version,
+            identity=context.identity,
+            workflow_id=context.workflow_id,
+            mode=context.mode.value,
+            visible_count=len(result.visible),
+            hidden_count=len(result.hidden),
+        )
+        return result
+
+    def execute_skill(
+        self,
+        tool_name: str,
+        payload: Dict[str, Any],
+        context: ProjectionContext,
+        provenance: Provenance,
+    ) -> Dict[str, Any]:
+        """Execution guard for skill-backed capabilities.
+
+        Check order (first failure is terminal):
+          1. capability_not_defined   — tool absent from skill_capabilities
+          2. capability_not_allowed   — manifest declares allowed: false
+          3. capability_not_visible   — mode/workflow side-effect filter
+          4. provenance_violation     — tainted source + provenance_required
+          5. approval_required        — requires_approval and not yet approved
+          6. constraint_violation_*   — payload fails declared constraints
+          7. ALLOW
+        """
+        source_provenance = [provenance.source_channel] if provenance.source_channel else []
+        extra: Dict[str, Any] = {
+            "world_id": self.world_id,
+            "policy_version": self.policy_version,
+            "identity": context.identity,
+            "workflow_id": context.workflow_id,
+            "mode": context.mode.value,
+            "source_provenance": source_provenance,
+            "side_effect": "",
+        }
+
+        cap = self.skill_capabilities.get(tool_name)
+        if cap is None:
+            return self._skill_deny(tool_name, "capability_not_defined", provenance, **extra)
+
+        extra["side_effect"] = cap.side_effect
+
+        if cap.allowed is False:
+            return self._skill_deny(tool_name, "capability_not_allowed", provenance, **extra)
+
+        if self.projection_engine:
+            side_effect_reason = self.projection_engine.side_effect_denial(cap, context)
+            if side_effect_reason:
+                return self._skill_deny(tool_name, "capability_not_visible", provenance,
+                                        detail=side_effect_reason, **extra)
+
+        if cap.provenance_required and provenance.tainted:
+            return self._skill_deny(tool_name, "provenance_violation", provenance, **extra)
+
+        if cap.requires_approval and tool_name not in context.approved_capabilities:
+            self._audit(
+                tool=tool_name,
+                decision="ASK",
+                rule="approval_required",
+                taint=provenance.tainted,
+                descriptor_hash="",
+                source_channel=provenance.source_channel,
+                **extra,
+            )
+            return {"decision": "ASK", "rule": "approval_required", "result": None}
+
+        valid, constraint_reason = _validate_constraints(cap.constraints, payload)
+        if not valid:
+            return self._skill_deny(tool_name, constraint_reason, provenance, **extra)
+
+        result = (
+            simulate_external_action()
+            if self.simulate_external and cap.side_effect not in ("none", "read")
+            else {"ok": True, "skill": tool_name}
+        )
+        self._audit(
+            tool=tool_name,
+            decision="ALLOW",
+            rule="default_allow",
+            taint=provenance.tainted,
+            descriptor_hash="",
+            source_channel=provenance.source_channel,
+            **extra,
+        )
+        return {"decision": "ALLOW", "rule": "default_allow", "result": result}
+
+    def _skill_deny(
+        self,
+        tool_name: str,
+        reason: str,
+        provenance: Provenance,
+        detail: str = "",
+        **extra: Any,
+    ) -> Dict[str, Any]:
+        self._audit(
+            tool=tool_name,
+            decision="DENY",
+            rule=reason,
+            taint=provenance.tainted,
+            descriptor_hash="",
+            source_channel=provenance.source_channel,
+            **extra,
+        )
+        msg = f"Denied: {reason}" + (f" ({detail})" if detail else "")
+        return {"decision": "DENY", "rule": reason, "result": {"error": msg}}
 
     def _tool_context(self, tool_name: str) -> Tuple[Optional[Tool], str, str, bool]:
         tool = self.registry.get_tool(tool_name)
@@ -222,9 +388,10 @@ class Executor:
         taint: bool,
         descriptor_hash: str,
         source_channel: str,
+        **extra: Any,
     ) -> None:
         self.audit_log_path.parent.mkdir(parents=True, exist_ok=True)
-        entry = {
+        entry: Dict[str, Any] = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "tool": tool,
             "decision": decision,
@@ -233,5 +400,6 @@ class Executor:
             "descriptor_hash": descriptor_hash,
             "source_channel": source_channel,
         }
+        entry.update(extra)
         with self.audit_log_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(entry, sort_keys=True) + "\n")
