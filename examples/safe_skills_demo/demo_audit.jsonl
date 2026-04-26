@@ -1,0 +1,2 @@
+{"decision": "DENY", "descriptor_hash": "", "identity": "demo-agent", "mode": "INTERACTIVE", "rule": "capability_not_allowed", "source_channel": "tool_output", "taint": true, "timestamp": "2026-04-26T13:56:54.881684+00:00", "tool": "email.send", "workflow_id": "read_only_research"}
+{"decision": "DENY", "descriptor_hash": "", "identity": "demo-agent", "mode": "INTERACTIVE", "rule": "capability_not_allowed", "source_channel": "tool_output", "taint": true, "timestamp": "2026-04-26T13:57:33.418275+00:00", "tool": "email.send", "workflow_id": "read_only_research"}

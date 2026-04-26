@@ -1,0 +1,20 @@
+name: email.send
+description: Send an email to any recipient via SMTP
+version: "1.0"
+actions:
+  - send
+parameters:
+  to:
+    type: string
+    description: Recipient email address (no domain restriction)
+  subject:
+    type: string
+    description: Email subject line
+  body:
+    type: string
+    description: Email body (plain text or HTML)
+side_effect: external_communication
+trust_level: external_unverified
+warning: >
+  This skill sends email to arbitrary recipients.
+  It must be explicitly governed before use in any workflow.
