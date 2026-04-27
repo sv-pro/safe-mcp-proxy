@@ -1,0 +1,45 @@
+id: S1
+name: "Tool Reality"
+tagline: "From input filtering to controlling what the agent can see"
+
+purpose: |
+  Shift the reader's mental model: the attack surface for a prompt-injected agent
+  is not the prompt — it is the tool list. An agent can only be tricked into calling
+  tools that exist in its world. Controlling the world is a stronger defense than
+  filtering inputs.
+
+entry_point: |
+  Reader has an AI agent connected to one or more MCP servers. They are worried about
+  prompt injection or malicious tools, and their instinct is "I need better filters."
+  This series redirects that instinct: the filter belongs at the world boundary, not
+  the input boundary.
+
+reader_transformation: '"block bad inputs" → "control what exists"'
+
+posts:
+  - slug: virtualize-tool-reality
+    type: foundational
+    position: 1
+    one_liner: "The attack surface is the tool list, not the prompt."
+  - slug: absent-deny
+    type: foundational
+    position: 2
+    one_liner: "Not existing is a stronger security property than being blocked."
+  - slug: world-manifest
+    type: foundational
+    position: 3
+    one_liner: "Your agent's reality is a YAML file compiled once at startup."
+
+key_concepts:
+  - ABSENT vs DENY distinction
+  - allowlist as world boundary
+  - static world model (compiled once, never mutated)
+  - closed-world assumption
+
+output_artifacts:
+  - examples/absent_tool_case.py
+  - world_manifest.yaml (annotated)
+  - wiki/absent-deny.md
+  - wiki/world-manifest.md
+
+pillars: [P1, P2]

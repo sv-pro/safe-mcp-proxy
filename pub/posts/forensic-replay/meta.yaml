@@ -1,0 +1,25 @@
+title: "Forensic Replay: Deterministic Verification of Past Decisions"
+series: S4
+wave: 4
+type: advanced
+position: 2
+status: scaffold
+published_date: ""
+links:
+  github: ""
+  linkedin: ""
+  x-twitter: ""
+repository_url: "https://github.com/sv-pro/safe-mcp-proxy"
+tags:
+  - security
+  - mcp
+  - ai-agents
+  - forensics
+  - audit
+  - replay
+draws_from:
+  - wiki/audit-replay.md
+  - safe_mcp_proxy/bundle_replay.py
+  - safe_mcp_proxy/trace_store.py
+produces:
+  - demo: safe_mcp_proxy/bundle_replay.py
