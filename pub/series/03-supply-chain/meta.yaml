@@ -1,0 +1,47 @@
+id: S3
+name: "Supply-Chain Attack Surface"
+tagline: "From static tool risks to dynamic capability surface"
+
+purpose: |
+  Shift the reader from thinking about a fixed tool registry to recognizing that
+  skills repositories make the agent capability surface dynamic, external, and
+  supply-chain-controlled — exactly the risk class of npm and PyPI, applied to
+  agent behavior. Then show how capability projection restores the closed world.
+
+entry_point: |
+  Reader is adopting a skills repository (Google Skills, LangChain tools, or similar)
+  and sees it as a convenient way to add capabilities. They don't yet see why a dynamic,
+  externally-controlled capability surface is a different threat model than a static
+  manifest.
+
+reader_transformation: '"adding a skills repo is just adding more tools" → "a skills repo is a supply-chain dependency that must be governed, not trusted"'
+
+posts:
+  - slug: skills-supply-chain
+    type: advanced
+    position: 1
+    one_liner: "Skills repositories are the npm of agent capabilities — and npm gets compromised."
+  - slug: capability-projection
+    type: advanced
+    position: 2
+    one_liner: "Capability projection enforces a closed world against a dynamic capability space."
+  - slug: mcpzero-demo
+    type: advanced
+    position: 3
+    one_liner: "MCPZero measures the attack delta across baseline and protected pipelines."
+
+key_concepts:
+  - static vs dynamic capability surfaces
+  - indirect prompt injection through external content
+  - capability projection pipeline
+  - side-effect classification (none/bounded/write/external/deployment)
+  - closed-world assumption applied to external skill sources
+
+output_artifacts:
+  - docs/safe_skills_projection.md
+  - examples/safe_skills_demo/run_with_proxy.py vs run_without_proxy.py
+  - examples/safe_skills_demo/world_manifest.yaml
+  - mcpzero/ full pipeline
+  - attacks/mcpzero_demo.yaml
+
+pillars: [P5, P1, P2]

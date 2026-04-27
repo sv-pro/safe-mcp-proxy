@@ -1,0 +1,23 @@
+title: "The Deterministic Policy Pipeline: Five Rules, Evaluated in Order"
+series: S2
+wave: 2
+type: bridge
+position: 2
+status: scaffold
+published_date: ""
+links:
+  github: ""
+  linkedin: ""
+  x-twitter: ""
+repository_url: "https://github.com/sv-pro/safe-mcp-proxy"
+tags:
+  - security
+  - mcp
+  - ai-agents
+  - policy
+  - determinism
+draws_from:
+  - wiki/policy-engine.md
+  - safe_mcp_proxy/policy_engine.py
+produces:
+  - wiki: wiki/policy-engine.md

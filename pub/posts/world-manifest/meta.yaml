@@ -1,0 +1,24 @@
+title: "The World Manifest: Your Agent's Reality Is a YAML File"
+series: S1
+wave: 1
+type: foundational
+position: 3
+status: scaffold
+published_date: ""
+links:
+  github: ""
+  linkedin: ""
+  x-twitter: ""
+repository_url: "https://github.com/sv-pro/safe-mcp-proxy"
+tags:
+  - security
+  - mcp
+  - ai-agents
+  - policy
+  - configuration
+draws_from:
+  - wiki/world-manifest.md
+  - world_manifest.yaml
+  - safe_mcp_proxy/compiler.py
+produces:
+  - wiki: wiki/world-manifest.md
