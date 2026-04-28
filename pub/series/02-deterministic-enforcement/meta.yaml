@@ -1,0 +1,49 @@
+id: S2
+name: "Deterministic Enforcement"
+tagline: "From probabilistic guardrails to provable policy"
+
+purpose: |
+  Shift the reader from trusting model-level alignment to requiring a deterministic
+  control plane in the execution layer. LLM guardrails are probabilistic — the same
+  input can produce different outputs. Policy engines are deterministic — same inputs,
+  same decision, always. Security properties require the second, not the first.
+
+entry_point: |
+  Reader has seen prompt injection bypass an LLM's safety training, or has been asked
+  "how do you know the model will refuse?" This series answers: you don't know — unless
+  the enforcement happens outside the model.
+
+reader_transformation: '"LLM guardrails will protect me" → "deterministic policy enforced before the model can act"'
+
+posts:
+  - slug: lm-guardrails-not-security
+    type: bridge
+    position: 1
+    one_liner: "A model that usually refuses is not a security primitive."
+  - slug: deterministic-policy-pipeline
+    type: bridge
+    position: 2
+    one_liner: "Five rules evaluated in fixed order — same inputs, same decision, always."
+  - slug: taint-propagation
+    type: bridge
+    position: 3
+    one_liner: "Data origin is execution context. Taint propagates monotonically."
+  - slug: descriptor-drift
+    type: bridge
+    position: 4
+    one_liner: "A tool's schema can be mutated at runtime. We detect that with a SHA256."
+
+key_concepts:
+  - probabilistic vs deterministic enforcement
+  - policy decision ordering (ABSENT before DENY before ASK)
+  - tainted channels and monotonic propagation
+  - descriptor hashing for supply-chain integrity
+
+output_artifacts:
+  - examples/prompt_injection.py
+  - examples/poisoned_descriptor.py
+  - safe_mcp_proxy/policy_engine.py (annotated walkthrough)
+  - safe_mcp_proxy/provenance.py (annotated walkthrough)
+  - safe_mcp_proxy/descriptor.py (annotated walkthrough)
+
+pillars: [P3, P4]

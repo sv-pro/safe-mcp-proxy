@@ -1,0 +1,42 @@
+id: S4
+name: "Forensics & Auditability"
+tagline: "From event logs to deterministic replay"
+
+purpose: |
+  Shift the reader from "I can log what happened" to "I can prove that my policy at
+  time T would produce the same decision under today's configuration." The audit log
+  is not just observability — it is a security primitive that enables forensic
+  verification of policy consistency over time.
+
+entry_point: |
+  Reader has experienced an incident and is trying to reconstruct what happened, or
+  is facing a compliance question: "could this have been prevented by your policy?"
+  Standard logs answer "what happened." The replay mechanism answers "was the policy
+  consistent then and now?"
+
+reader_transformation: '"I can see what happened" → "I can prove the policy was consistent across time"'
+
+posts:
+  - slug: audit-log-primitive
+    type: advanced
+    position: 1
+    one_liner: "The audit log is not observability — it is a verifiable forensic record."
+  - slug: forensic-replay
+    type: advanced
+    position: 2
+    one_liner: "Replay a past decision against today's policy. matches: false means the world changed."
+
+key_concepts:
+  - append-only JSONL as a security property
+  - descriptor_hash and source_channel as forensic anchors
+  - deterministic replay via executor.replay()
+  - policy version pinning (SHA256 of world manifest)
+  - matches: false as a configuration-drift signal
+
+output_artifacts:
+  - safe_mcp_proxy/logs/audit.jsonl (schema walkthrough)
+  - safe_mcp_proxy/trace_store.py (annotated)
+  - safe_mcp_proxy/bundle_replay.py (demo)
+  - wiki/audit-replay.md
+
+pillars: [P3]

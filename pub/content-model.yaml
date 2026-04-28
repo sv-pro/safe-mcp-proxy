@@ -1,0 +1,336 @@
+version: 1
+
+# Machine-readable content registry for safe-mcp-proxy publication system.
+# Use pub/validate.py to check consistency between this file and disk.
+
+pillars:
+  - id: P1
+    name: "Tool Reality"
+    one_liner: "An agent can only be tricked into calling tools it can see."
+    primary_code:
+      - safe_mcp_proxy/registry.py
+      - world_manifest.yaml
+      - safe_mcp_proxy/examples/absent_tool_case.py
+
+  - id: P2
+    name: "Absence Over Denial"
+    one_liner: "Not existing is a stronger security property than being blocked."
+    primary_code:
+      - safe_mcp_proxy/policy_engine.py
+      - wiki/absent-deny.md
+
+  - id: P3
+    name: "Determinism as Security"
+    one_liner: "A control plane that does not use LLM reasoning has provable properties."
+    primary_code:
+      - safe_mcp_proxy/policy_engine.py
+      - safe_mcp_proxy/descriptor.py
+      - wiki/audit-replay.md
+
+  - id: P4
+    name: "Taint & Provenance"
+    one_liner: "Data origin is execution context. Taint propagates monotonically."
+    primary_code:
+      - safe_mcp_proxy/provenance.py
+      - wiki/provenance-taint.md
+      - safe_mcp_proxy/examples/prompt_injection.py
+
+  - id: P5
+    name: "Supply-Chain for Capabilities"
+    one_liner: "The npm/PyPI risk class now applies to MCP tool registries."
+    primary_code:
+      - docs/safe_skills_projection.md
+      - safe_mcp_proxy/skill_registry.py
+      - mcpzero/
+
+series:
+  - id: S1
+    name: "Tool Reality"
+    meta: pub/series/01-tool-reality/meta.yaml
+    posts:
+      - virtualize-tool-reality
+      - absent-deny
+      - world-manifest
+
+  - id: S2
+    name: "Deterministic Enforcement"
+    meta: pub/series/02-deterministic-enforcement/meta.yaml
+    posts:
+      - lm-guardrails-not-security
+      - deterministic-policy-pipeline
+      - taint-propagation
+      - descriptor-drift
+
+  - id: S3
+    name: "Supply-Chain Attack Surface"
+    meta: pub/series/03-supply-chain/meta.yaml
+    posts:
+      - skills-supply-chain
+      - capability-projection
+      - mcpzero-demo
+
+  - id: S4
+    name: "Forensics & Auditability"
+    meta: pub/series/04-forensics/meta.yaml
+    posts:
+      - audit-log-primitive
+      - forensic-replay
+
+posts:
+  # Wave 1 — Foundational (S1)
+  - slug: virtualize-tool-reality
+    series: S1
+    wave: 1
+    type: foundational
+    status: draft
+    pillars: [P1, P2]
+    draws_from:
+      - pub/posts/virtualize-tool-reality/master.md
+    produces:
+      - demo: safe_mcp_proxy/examples/absent_tool_case.py
+
+  - slug: absent-deny
+    series: S1
+    wave: 1
+    type: foundational
+    status: scaffold
+    pillars: [P2]
+    draws_from:
+      - wiki/absent-deny.md
+      - safe_mcp_proxy/policy_engine.py
+    produces:
+      - demo: safe_mcp_proxy/examples/absent_tool_case.py
+      - wiki: wiki/absent-deny.md
+
+  - slug: world-manifest
+    series: S1
+    wave: 1
+    type: foundational
+    status: scaffold
+    pillars: [P1, P2]
+    draws_from:
+      - wiki/world-manifest.md
+      - world_manifest.yaml
+      - safe_mcp_proxy/compiler.py
+    produces:
+      - wiki: wiki/world-manifest.md
+
+  # Wave 2 — Bridge (S2)
+  - slug: lm-guardrails-not-security
+    series: S2
+    wave: 2
+    type: bridge
+    status: scaffold
+    pillars: [P3]
+    draws_from:
+      - docs/safe_skills_projection.md
+    produces: []
+
+  - slug: deterministic-policy-pipeline
+    series: S2
+    wave: 2
+    type: bridge
+    status: scaffold
+    pillars: [P3]
+    draws_from:
+      - wiki/policy-engine.md
+      - safe_mcp_proxy/policy_engine.py
+    produces:
+      - wiki: wiki/policy-engine.md
+
+  - slug: taint-propagation
+    series: S2
+    wave: 2
+    type: bridge
+    status: scaffold
+    pillars: [P4]
+    draws_from:
+      - wiki/provenance-taint.md
+      - safe_mcp_proxy/provenance.py
+      - safe_mcp_proxy/examples/prompt_injection.py
+      - attacks/email_injection.yaml
+    produces:
+      - demo: safe_mcp_proxy/examples/prompt_injection.py
+      - attack: attacks/email_injection.yaml
+
+  - slug: descriptor-drift
+    series: S2
+    wave: 2
+    type: bridge
+    status: scaffold
+    pillars: [P3]
+    draws_from:
+      - wiki/descriptor-drift.md
+      - safe_mcp_proxy/descriptor.py
+      - safe_mcp_proxy/examples/poisoned_descriptor.py
+      - attacks/tool_chain.yaml
+    produces:
+      - demo: safe_mcp_proxy/examples/poisoned_descriptor.py
+      - attack: attacks/tool_chain.yaml
+      - attack_narrative: attacks/tool_chain.md
+
+  # Wave 3 — Advanced (S3)
+  - slug: skills-supply-chain
+    series: S3
+    wave: 3
+    type: advanced
+    status: scaffold
+    pillars: [P5, P1]
+    draws_from:
+      - docs/safe_skills_projection.md
+    produces: []
+
+  - slug: capability-projection
+    series: S3
+    wave: 3
+    type: advanced
+    status: scaffold
+    pillars: [P5, P2]
+    draws_from:
+      - docs/safe_skills_projection.md
+      - safe_mcp_proxy/capability_projection.py
+      - examples/safe_skills_demo/run_with_proxy.py
+      - examples/safe_skills_demo/run_without_proxy.py
+      - examples/safe_skills_demo/world_manifest.yaml
+    produces:
+      - demo: examples/safe_skills_demo/
+
+  - slug: mcpzero-demo
+    series: S3
+    wave: 3
+    type: advanced
+    status: scaffold
+    pillars: [P5, P3]
+    draws_from:
+      - mcpzero/
+      - attacks/schema.yaml
+    produces:
+      - demo: mcpzero/
+
+  # Wave 4 — Advanced (S4)
+  - slug: audit-log-primitive
+    series: S4
+    wave: 4
+    type: advanced
+    status: scaffold
+    pillars: [P3]
+    draws_from:
+      - wiki/audit-replay.md
+      - safe_mcp_proxy/executor.py
+      - safe_mcp_proxy/trace_store.py
+    produces:
+      - wiki: wiki/audit-replay.md
+
+  - slug: forensic-replay
+    series: S4
+    wave: 4
+    type: advanced
+    status: scaffold
+    pillars: [P3]
+    draws_from:
+      - wiki/audit-replay.md
+      - safe_mcp_proxy/bundle_replay.py
+      - safe_mcp_proxy/trace_store.py
+    produces:
+      - demo: safe_mcp_proxy/bundle_replay.py
+
+content_graph:
+  clusters:
+    - id: A
+      name: Philosophy
+      nodes: [P2, absent-deny, world-manifest, virtualize-tool-reality]
+      code_anchors:
+        - wiki/absent-deny.md
+        - wiki/world-manifest.md
+        - safe_mcp_proxy/policy_engine.py  # rules 1-2
+        - safe_mcp_proxy/registry.py
+
+    - id: B
+      name: Threat Model
+      nodes: [P4, taint-propagation, descriptor-drift]
+      code_anchors:
+        - safe_mcp_proxy/provenance.py
+        - safe_mcp_proxy/descriptor.py
+        - wiki/provenance-taint.md
+        - wiki/descriptor-drift.md
+        - safe_mcp_proxy/examples/prompt_injection.py
+        - safe_mcp_proxy/examples/poisoned_descriptor.py
+
+    - id: C
+      name: Architecture
+      nodes: [P3, deterministic-policy-pipeline, lm-guardrails-not-security]
+      code_anchors:
+        - safe_mcp_proxy/executor.py
+        - safe_mcp_proxy/policy_engine.py
+        - safe_mcp_proxy/compiler.py
+        - wiki/architecture.md
+        - wiki/policy-engine.md
+
+    - id: D
+      name: Dynamic Surface
+      nodes: [P5, skills-supply-chain, capability-projection, mcpzero-demo]
+      code_anchors:
+        - docs/safe_skills_projection.md
+        - safe_mcp_proxy/skill_registry.py
+        - safe_mcp_proxy/capability_projection.py
+        - mcpzero/
+
+    - id: E
+      name: Forensics
+      nodes: [audit-log-primitive, forensic-replay]
+      code_anchors:
+        - safe_mcp_proxy/executor.py  # _audit()
+        - safe_mcp_proxy/trace_store.py
+        - safe_mcp_proxy/bundle_replay.py
+        - wiki/audit-replay.md
+
+  bridge_edges:
+    - from: lm-guardrails-not-security
+      to_clusters: [A, C]
+      description: "Bridges philosophy (A) into architecture (C)"
+    - from: skills-supply-chain
+      to_clusters: [B, D]
+      description: "Bridges threat model (B) into dynamic surface (D)"
+    - from: audit-log-primitive
+      to_clusters: [C, E]
+      description: "Bridges architecture (C) into forensics (E)"
+
+reuse_matrix:
+  # For each idea type, the five formats it can become
+  formats:
+    - id: demo
+      location_pattern: "examples/*.py or scenarios/*.py"
+      purpose: "Executable proof of the concept"
+    - id: attack_yaml
+      location_pattern: "attacks/*.yaml + attacks/*.md"
+      purpose: "Formalized threat scenario for testing and citation"
+    - id: world_manifest
+      location_pattern: "worlds/*.yaml"
+      purpose: "Declarative config example readers can copy"
+    - id: blog_bundle
+      location_pattern: "pub/posts/<slug>/"
+      purpose: "Four-platform text artifacts (master, github, linkedin, x-twitter)"
+    - id: talk_sketch
+      location_pattern: "Mermaid block + one-liner inside master.md"
+      purpose: "Single diagram + one-sentence insight for talk slides"
+
+  platform_variants:
+    - id: master
+      filename: master.md
+      format: "Full prose — canonical source of truth"
+      length: "1000-1500 words"
+    - id: github
+      filename: github.md
+      format: "Markdown headers + code blocks; links to wiki"
+      length: "800-1200 words"
+      style: "Code-first; inline diffs; links to wiki pages"
+    - id: linkedin
+      filename: linkedin.md
+      format: "Short paragraphs; no headers"
+      length: "300-500 words"
+      style: "Insight-first; one concrete example; CTA to repo"
+    - id: x_twitter
+      filename: x-twitter.md
+      format: "Thread (numbered tweets, 280 chars each)"
+      length: "6-10 tweets"
+      style: "Hook → concept → proof → CTA"
