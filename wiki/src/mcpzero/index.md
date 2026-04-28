@@ -15,6 +15,12 @@ python -m mcpzero.demo --scenario email_injection
 python -m mcpzero.demo --output results/
 ```
 
+Interactive walkthrough:
+
+```
+jupyter notebook docs/notebooks/mcpzero-demo-walkthrough.ipynb
+```
+
 ## Layout
 
 | Module / directory | Description |
@@ -35,6 +41,9 @@ python -m mcpzero.demo --output results/
 `worlds/mcpzero_demo.yaml` — dedicated world for the demo. `send_email` is in
 the allowlist but carries no approval gate; the taint rule (`tainted_external: deny`)
 blocks it whenever the source channel is `web`, `email`, or `tool_output`.
+The same world also exposes `send_email_to_self`, a scoped capability backed by
+`send_email` where the recipient is locked in the manifest and only `subject`
+and `body` are actor-supplied.
 
 ## Data flow
 

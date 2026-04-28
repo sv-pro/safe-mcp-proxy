@@ -136,10 +136,11 @@ Multiple worlds are supported via `safe_mcp_proxy/config/worlds/` (with legacy f
 
 ## Quick start
 
-No build step. The CLI/demo path depends on PyYAML. The optional HTTP API uses FastAPI + Uvicorn.
+No build step. Runtime dependencies for the CLI, demos, and optional HTTP API
+are listed in `requirements.txt`.
 
 ```bash
-pip install pyyaml
+pip install -r requirements.txt
 ```
 
 Run the four demo scenarios:
@@ -160,7 +161,6 @@ python -m safe_mcp_proxy.main --tool read_file --source cli --payload '{"path":"
 Run the HTTP API locally:
 
 ```bash
-pip install fastapi uvicorn
 uvicorn api.main:app --reload
 ```
 

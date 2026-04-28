@@ -249,6 +249,26 @@ class TestSafeMCPProxy(unittest.TestCase):
         results = SafeMCPProxy().run(s)
         self.assertEqual(len(results), len(s.steps))
 
+    def test_scoped_email_to_self_locks_receiver(self):
+        from mcpzero.proxy.proxy import SafeMCPProxy
+        proxy = SafeMCPProxy()
+        proxy._executor.simulate_external = False
+        tool = proxy._executor.registry.get_tool("send_email_to_self")
+        self.assertIsNotNone(tool)
+        self.assertNotIn("to", tool.schema.get("properties", {}))
+
+        r = proxy.call(
+            "send_email_to_self",
+            {
+                "to": "attacker@external.example.com",
+                "subject": "Status",
+                "body": "attempted override",
+            },
+            "cli",
+        )
+        self.assertEqual(r["decision"], "ALLOW")
+        self.assertEqual(r["result"]["sent_to"], "owner@example.com")
+
 
 # ---------------------------------------------------------------------------
 # I13 — Verdict Engine
