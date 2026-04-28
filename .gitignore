@@ -4,3 +4,5 @@ __pycache__/
 site/
 safe_mcp_proxy/logs/
 mcpzero/traces/*.jsonl
+docs/**/*-Copy*.ipynb
+.python-version
