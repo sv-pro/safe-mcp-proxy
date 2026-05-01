@@ -32,6 +32,8 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | [[src/safe_mcp_proxy/examples/index]] | Standalone demo scripts |
 | [[src/safe_mcp_proxy/scenarios/index]] | Registered, runnable test scenarios |
 | [[src/safe_mcp_proxy/policies/index]] | OPA Rego policy files |
+| [[src/safe_mcp_proxy/atlassian/index]] | Atlassian MCP passthrough — policy, filter, flow, adapters, trace reader, CLI |
+| [[src/safe_mcp_proxy/integrations/index]] | External LLM runtime adapters (Gemini function-call format) |
 
 ## Logs
 
