@@ -4,6 +4,34 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-05-01 — Full wiki sync against HEAD (6e82b9c); metadata file added
+
+Audited the entire wiki against the current codebase. Added `wiki/meta.yaml` to track commit hash and timestamp of each sync so future updates can use `git log <commit>..HEAD` to scope the diff.
+
+**New pages created (11):**
+- `wiki/src/safe_mcp_proxy/atlassian/index.md` — subpackage overview and pipeline diagram
+- `wiki/src/safe_mcp_proxy/atlassian/passthrough.md` — `MCPPassthrough` pipeline orchestrator
+- `wiki/src/safe_mcp_proxy/atlassian/policy.md` — `ManifestPolicyEngine` five-rule decision engine
+- `wiki/src/safe_mcp_proxy/atlassian/filter.md` — `CapabilityFilter` allowlist/denylist for `tools/list`
+- `wiki/src/safe_mcp_proxy/atlassian/flow.md` — `FlowContext`, `DataFlowRule`, data-label tracking
+- `wiki/src/safe_mcp_proxy/atlassian/adapters.md` — `ATLASSIAN_TOOLS` registry + `apply_safe_abstraction`
+- `wiki/src/safe_mcp_proxy/atlassian/config.md` — `AtlassianProxyConfig` and env-var loading
+- `wiki/src/safe_mcp_proxy/atlassian/trace_reader.md` — `AtlassianTraceReader`, `TraceEntry`
+- `wiki/src/safe_mcp_proxy/atlassian/cli.md` — trace log CLI inspector
+- `wiki/src/safe_mcp_proxy/integrations/index.md` — integrations subpackage overview
+- `wiki/src/safe_mcp_proxy/integrations/gemini_adapter.md` — `GeminiAdapter`, `ToolCall`
+
+**Pages updated:**
+- `wiki/src/safe_mcp_proxy/policy_engine.md` — corrected "5 rules" → "6 rules"; added `approval_required` to `__init__` symbol table; added rule 5 (ASK / approval_required) to evaluation order
+- `wiki/src/safe_mcp_proxy/index.md` — added atlassian and integrations sub-package rows
+- `wiki/index.md` — added atlassian and integrations source page rows
+- `wiki/src/tests/index.md` — expanded file table to include all 21 test files (was 6); fixed "5 decision paths" → "6 decision paths"
+
+**New file:**
+- `wiki/meta.yaml` — tracks commit hash, timestamp, branch, updated_by, coverage_note for each sync
+
+---
+
 ## 2026-04-26 — Wiki audit: EPIC 11 full coverage
 
 - Updated `wiki/src/attacks/index.md` — added `tool_chain.yaml` and `mcp_poison.json` to layout table

@@ -54,6 +54,8 @@ Content-oriented catalog of all pages in this wiki.
 | [[src/safe_mcp_proxy/examples/index]] | `examples/` — standalone demo scripts |
 | [[src/safe_mcp_proxy/scenarios/index]] | `scenarios/` — registered, runnable test scenarios |
 | [[src/safe_mcp_proxy/policies/index]] | `policies/` — OPA Rego policy and tests |
+| [[src/safe_mcp_proxy/atlassian/index]] | `atlassian/` — Atlassian MCP passthrough subpackage |
+| [[src/safe_mcp_proxy/integrations/index]] | `integrations/` — external LLM runtime adapters |
 
 ### Other packages
 

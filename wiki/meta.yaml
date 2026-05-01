@@ -1,0 +1,24 @@
+# Wiki metadata — tracks the last full synchronization of wiki content against source code.
+#
+# Fields:
+#   commit        — full SHA of the HEAD commit at time of update
+#   timestamp     — ISO-8601 UTC timestamp of the update
+#   branch        — branch from which HEAD was read
+#   updated_by    — model or author that performed the update
+#   coverage_note — brief summary of what was audited
+#
+# Usage:
+#   Next time a wiki update is requested, run `git log <commit>..HEAD --oneline`
+#   to see every commit that landed since the last sync, then update affected pages.
+
+last_update:
+  commit: "6e82b9c5cc9a383c3aa65b69fabee9614fe677bf"
+  timestamp: "2026-05-01T00:00:00Z"
+  branch: "main"
+  updated_by: "claude-sonnet-4-6"
+  coverage_note: >
+    Full audit against HEAD. Added wiki pages for safe_mcp_proxy/atlassian/ (9 pages),
+    safe_mcp_proxy/integrations/ (2 pages). Fixed policy_engine source page (5→6 rules,
+    approval_required constructor arg). Updated index.md, src/index.md,
+    src/safe_mcp_proxy/index.md, src/tests/index.md to reflect all modules present
+    in the codebase.
