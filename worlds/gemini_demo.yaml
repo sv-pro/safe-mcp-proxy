@@ -1,0 +1,25 @@
+world_id: gemini_demo
+
+# Gemini demo world — safe read/investigate tools only.
+# send_email and dangerous_exec are outside this world (ABSENT, not DENY).
+# An agent that attempts exfiltration receives "Action does not exist in this world".
+
+allowed_tools:
+  - read_logs
+  - investigate_incident
+
+capabilities:
+  read_logs:
+    allowed: true
+  investigate_incident:
+    allowed: true
+  send_email:
+    allowed: false
+  dangerous_exec:
+    allowed: false
+
+taint_rules:
+  - tainted_external: deny
+
+side_effects:
+  external: restricted

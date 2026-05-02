@@ -124,6 +124,18 @@ class ToolRegistry:
                 {"type": "object", "properties": {"cmd": {"type": "string"}}},
                 "external", lambda payload: {"ok": True, "cmd": payload.get("cmd")},
             ),
+            (
+                "read_logs", "read_logs",
+                {"type": "object", "properties": {"service": {"type": "string"}}},
+                "read",
+                lambda payload: {"ok": True, "logs": f"mock-logs:{payload.get('service', 'app')}"},
+            ),
+            (
+                "investigate_incident", "investigate_incident",
+                {"type": "object", "properties": {"incident_id": {"type": "string"}}},
+                "internal",
+                lambda payload: {"ok": True, "analysis": f"mock-analysis:{payload.get('incident_id', '0')}"},
+            ),
         ]
 
         tools = [
