@@ -149,6 +149,14 @@ class ToolRegistry:
         """Return all tools visible in this world (allowlist-filtered)."""
         return list(self._exposed_tools.values())
 
+    def get_any_tool(self, tool_name: str) -> Optional[Tool]:
+        """Look up a tool from the full catalog regardless of allowlist.
+
+        Used by IntentMapper to distinguish 'not in ontology' (unknown tool)
+        from 'in ontology but absent in this world' (policy decision).
+        """
+        return self._all_tools.get(tool_name)
+
     def get_tool(self, tool_name: str) -> Optional[Tool]:
         return self._exposed_tools.get(tool_name)
 
