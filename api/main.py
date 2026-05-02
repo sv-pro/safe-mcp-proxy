@@ -13,6 +13,8 @@ import safe_mcp_proxy.scenarios as _scenarios
 from safe_mcp_proxy.compiler import compile_world_manifest
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
+from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter, GeminiAdapterError
+from safe_mcp_proxy.integrations.gemini_proxy import GeminiProxy
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.trace_store import TraceStore
@@ -66,6 +68,7 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     app = FastAPI(title="safe-mcp-proxy API")
     app.state.trace_store = _build_trace_store(resolved_base_dir)
     app.state.executor = executor or build_executor(resolved_base_dir)
+    app.state.gemini_proxy = GeminiProxy(app.state.executor)
 
     app.add_middleware(
         CORSMiddleware,
@@ -261,6 +264,23 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "manifest_configured": cfg.manifest_path is not None,
             "source_channel": cfg.source_channel,
         }
+
+    # ------------------------------------------------------------------
+    # Gemini integration (EPIC 8 / Phase 1 passthrough)
+    # ------------------------------------------------------------------
+
+    @app.get("/integrations/gemini/tools/list")
+    async def gemini_list_tools() -> dict:
+        """Return the manifest-filtered tool surface in Gemini function-declaration format."""
+        return app.state.gemini_proxy.list_tools()
+
+    @app.post("/integrations/gemini/tools/execute")
+    async def gemini_execute(request: Any = Body(...)) -> dict:
+        """Accept a Gemini functionCall request and route it through the proxy."""
+        try:
+            return app.state.gemini_proxy.execute(request)
+        except GeminiAdapterError as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
 
     return app
 
