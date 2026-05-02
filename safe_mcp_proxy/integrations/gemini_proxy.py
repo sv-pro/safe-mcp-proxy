@@ -24,3 +24,17 @@ class GeminiProxy:
             tool_call.tool_name, tool_call.arguments, provenance
         )
         return GeminiAdapter.format_response(tool_call.tool_name, result)
+
+    def list_tools(self) -> dict:
+        """Return the manifest-filtered tool surface in Gemini function-declaration format.
+
+        Only tools in the world allowlist are visible — absent tools are not
+        mentioned, consistent with the ABSENT principle.
+        """
+        tools = self._executor.registry.list_exposed()
+        return {
+            "tools": [
+                {"name": tool.name, "parameters": tool.schema}
+                for tool in tools
+            ]
+        }

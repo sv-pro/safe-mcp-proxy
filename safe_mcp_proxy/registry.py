@@ -145,6 +145,10 @@ class ToolRegistry:
 
         return cls(upstream_tools=tools, allowlist=allowlist)
 
+    def list_exposed(self) -> list[Tool]:
+        """Return all tools visible in this world (allowlist-filtered)."""
+        return list(self._exposed_tools.values())
+
     def get_tool(self, tool_name: str) -> Optional[Tool]:
         return self._exposed_tools.get(tool_name)
 

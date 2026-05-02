@@ -269,6 +269,11 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     # Gemini integration (EPIC 8 / Phase 1 passthrough)
     # ------------------------------------------------------------------
 
+    @app.get("/integrations/gemini/tools/list")
+    async def gemini_list_tools() -> dict:
+        """Return the manifest-filtered tool surface in Gemini function-declaration format."""
+        return app.state.gemini_proxy.list_tools()
+
     @app.post("/integrations/gemini/tools/execute")
     async def gemini_execute(request: Any = Body(...)) -> dict:
         """Accept a Gemini functionCall request and route it through the proxy."""

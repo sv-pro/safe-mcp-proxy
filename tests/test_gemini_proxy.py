@@ -147,5 +147,70 @@ class GeminiProxyEndpointTests(unittest.TestCase):
         self.assertIn("ALLOW", audit)
 
 
+class GeminiToolsListEndpointTests(unittest.TestCase):
+    """Tests for GET /integrations/gemini/tools/list (Issue #89)."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        # Only read_file and list_repo allowed — send_email is absent
+        (self.tmp / "world_manifest.yaml").write_text(textwrap.dedent("""\
+            world_id: default
+            allowed_tools: [read_file, list_repo]
+            capabilities:
+              read_file: {allowed: true}
+              list_repo: {allowed: true}
+              send_email: {allowed: false}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        config_dir = self.tmp / "safe_mcp_proxy" / "config"
+        config_dir.mkdir(parents=True)
+        (config_dir / "policy.yaml").write_text(_POLICY, encoding="utf-8")
+        logs_dir = self.tmp / "safe_mcp_proxy" / "logs"
+        logs_dir.mkdir(parents=True)
+        (logs_dir / "audit.jsonl").write_text("", encoding="utf-8")
+        self.app = create_app(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _get(self) -> httpx.Response:
+        async def _run():
+            transport = httpx.ASGITransport(app=self.app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                return await client.get("/integrations/gemini/tools/list")
+        return asyncio.run(_run())
+
+    def test_returns_200(self):
+        self.assertEqual(self._get().status_code, 200)
+
+    def test_response_has_tools_key(self):
+        body = self._get().json()
+        self.assertIn("tools", body)
+        self.assertIsInstance(body["tools"], list)
+
+    def test_only_allowlisted_tools_are_returned(self):
+        names = {t["name"] for t in self._get().json()["tools"]}
+        self.assertIn("read_file", names)
+        self.assertIn("list_repo", names)
+
+    def test_absent_tool_is_not_in_list(self):
+        names = {t["name"] for t in self._get().json()["tools"]}
+        self.assertNotIn("send_email", names)
+        self.assertNotIn("dangerous_exec", names)
+
+    def test_each_tool_has_name_and_parameters(self):
+        for tool in self._get().json()["tools"]:
+            self.assertIn("name", tool)
+            self.assertIn("parameters", tool)
+
+    def test_parameters_is_json_schema_object(self):
+        for tool in self._get().json()["tools"]:
+            params = tool["parameters"]
+            self.assertEqual(params.get("type"), "object")
+            self.assertIn("properties", params)
+
+
 if __name__ == "__main__":
     unittest.main()
