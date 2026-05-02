@@ -397,6 +397,23 @@ class Executor:
             source_channel=source_channel,
         )
 
+    def record_denial(
+        self,
+        tool_name: str,
+        rule: str,
+        source_channel: str,
+        taint: bool = False,
+    ) -> None:
+        """Log a DENY decision to the audit trail without executing anything."""
+        self._audit(
+            tool=tool_name,
+            decision="DENY",
+            rule=rule,
+            taint=taint,
+            descriptor_hash="",
+            source_channel=source_channel,
+        )
+
     def _audit(
         self,
         tool: str,
