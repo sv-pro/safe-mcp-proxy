@@ -39,6 +39,7 @@ class GeminiProxy:
         tool_call = GeminiAdapter.parse(request)
         source = tool_call.metadata.get("source_channel", "web")
         provenance = Provenance.from_source(source)
+        world_id = self._executor.world_id
 
         if self._trace:
             self._trace.record(
@@ -46,6 +47,9 @@ class GeminiProxy:
                 tool=tool_call.tool_name,
                 taint=provenance.tainted,
                 source_channel=source,
+                world_id=world_id,
+                agent_id=tool_call.agent_id,
+                session_id=tool_call.session_id,
                 raw=request,
             )
             self._trace.record(
@@ -53,6 +57,9 @@ class GeminiProxy:
                 tool=tool_call.tool_name,
                 taint=provenance.tainted,
                 source_channel=source,
+                world_id=world_id,
+                agent_id=tool_call.agent_id,
+                session_id=tool_call.session_id,
                 arguments=tool_call.arguments,
             )
 
@@ -66,6 +73,9 @@ class GeminiProxy:
                     tool=tool_call.tool_name,
                     taint=provenance.tainted,
                     source_channel=source,
+                    world_id=world_id,
+                    agent_id=tool_call.agent_id,
+                    session_id=tool_call.session_id,
                     rule="action_not_in_ontology",
                 )
             self._executor.record_absence(
@@ -88,6 +98,7 @@ class GeminiProxy:
                 tool=intent.action,
                 taint=provenance.tainted,
                 source_channel=source,
+                world_id=world_id,
                 side_effect_type=intent.side_effect_type,
                 required_capabilities=intent.required_capabilities,
             )
@@ -100,6 +111,7 @@ class GeminiProxy:
                 tool=intent.action,
                 taint=provenance.tainted,
                 source_channel=source,
+                world_id=world_id,
                 decision=spec.decision.value,
                 rule=spec.rule,
             )
@@ -129,6 +141,7 @@ class GeminiProxy:
                 tool=intent.action,
                 taint=provenance.tainted,
                 source_channel=source,
+                world_id=world_id,
                 decision=result.get("decision"),
                 rule=result.get("rule"),
             )
