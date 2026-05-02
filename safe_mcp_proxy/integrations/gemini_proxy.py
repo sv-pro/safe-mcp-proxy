@@ -7,15 +7,19 @@ from safe_mcp_proxy.integrations.gemini_policy_gate import GeminiPolicyGate
 from safe_mcp_proxy.integrations.intent_ir import IntentIRError, IntentMapper
 from safe_mcp_proxy.provenance import Provenance
 
+_ABSENCE_MESSAGE = "Action does not exist in this world"
+
 
 class GeminiProxy:
     """Routes a Gemini function-call request through the executor pipeline.
 
     Request flow:
-        GeminiAdapter.parse()      →  ToolCall
-        IntentMapper.map()         →  IntentIR   (IntentIRError if unknown)
-        GeminiPolicyGate.evaluate()→  ExecutionSpec
-        executor.execute()         →  result + audit log  (ALLOW / ASK only)
+        GeminiAdapter.parse()       →  ToolCall
+        IntentMapper.map()          →  IntentIR   (IntentIRError → ontological absence)
+        GeminiPolicyGate.evaluate() →  ExecutionSpec
+        executor.execute()          →  result + audit log  (ALLOW / ASK)
+        executor.execute()          →  ABSENT result + audit log  (allowlist miss)
+        short-circuit               →  DENY response (no execution, logged separately)
     """
 
     def __init__(self, executor: Executor) -> None:
@@ -31,19 +35,37 @@ class GeminiProxy:
         try:
             intent = self._mapper.map(tool_call)
         except IntentIRError:
-            # Action is not registered anywhere in the system.
-            result = {"decision": "ABSENT", "rule": "action_not_in_ontology", "result": None}
+            # Action is completely unknown — not in any world's catalog.
+            # Log the absence and return the canonical response.
+            self._executor.record_absence(
+                tool_name=tool_call.tool_name,
+                rule="action_not_in_ontology",
+                source_channel=provenance.source_channel,
+                taint=provenance.tainted,
+            )
+            result = {
+                "decision": "ABSENT",
+                "rule": "action_not_in_ontology",
+                "message": _ABSENCE_MESSAGE,
+                "result": None,
+            }
             return GeminiAdapter.format_response(tool_call.tool_name, result)
 
         spec = self._policy_gate.evaluate(intent, provenance)
 
-        if spec.decision in (Decision.DENY, Decision.ABSENT):
-            # Short-circuit: no execution, no audit (policy gate made the call).
-            result = {"decision": spec.decision.value, "rule": spec.rule, "result": None}
+        if spec.decision == Decision.DENY:
+            # Policy violation: short-circuit without execution.
+            # Audit logging for deny is handled in issue #95 (provenance & trace).
+            result = {
+                "decision": spec.decision.value,
+                "rule": spec.rule,
+                "message": f"Action blocked by policy: {spec.rule}",
+                "result": None,
+            }
             return GeminiAdapter.format_response(tool_call.tool_name, result)
 
-        # ALLOW / ASK: delegate to executor which handles execution, ASK token
-        # creation, and audit logging.
+        # ABSENT (allowlist miss), ALLOW, ASK: delegate to executor.
+        # The executor handles execution, ASK token creation, and audit logging.
         result = self._executor.execute(intent.action, intent.parameters, provenance)
         return GeminiAdapter.format_response(tool_call.tool_name, result)
 

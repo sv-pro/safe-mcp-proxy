@@ -380,6 +380,23 @@ class Executor:
             "matches": matches,
         }
 
+    def record_absence(
+        self,
+        tool_name: str,
+        rule: str,
+        source_channel: str,
+        taint: bool = False,
+    ) -> None:
+        """Log an ABSENT decision to the audit trail without executing anything."""
+        self._audit(
+            tool=tool_name,
+            decision="ABSENT",
+            rule=rule,
+            taint=taint,
+            descriptor_hash="",
+            source_channel=source_channel,
+        )
+
     def _audit(
         self,
         tool: str,
