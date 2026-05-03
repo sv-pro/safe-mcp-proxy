@@ -321,14 +321,17 @@ All tests use temp audit files and `simulate_external=True` to avoid side effect
 
 ## Roadmap & "What's next?"
 
+**At the start of every non-trivial session**, read `docs/roadmap.md` — it is the authoritative list of proposed directions and open ideas.
+
 When asked **"what's next?"**, **"что дальше?"**, **"next issue"**, **"next task"**, or similar:
 
-1. Fetch open issues: use `mcp__github__list_issues` with `owner=sv-pro`, `repo=safe-mcp-proxy`, `state=OPEN`.
-2. Pick the highest-priority open issue from the highest EPIC number.
-3. Report the issue number, title, and task list before starting work.
+1. Read `docs/roadmap.md` for proposed directions.
+2. Fetch open issues: use `mcp__github__list_issues` with `owner=sv-pro`, `repo=safe-mcp-proxy`, `state=OPEN`.
+3. If open issues exist — pick the highest-priority one from the highest EPIC number; report the issue number, title, and task list before starting work.
+4. If no open issues exist — propose ideas from `docs/roadmap.md` and ask the user which direction to pursue.
 
 Issues live at: https://github.com/sv-pro/safe-mcp-proxy/issues
 
-- **Open** = work remaining (EPICs 8–11)
-- **Closed** = already implemented (EPICs 0–7)
+- **Open** = work remaining
+- **Closed** = already implemented (EPICs 0–11)
 - Labels: `epic/N-*`, `type/*`, `priority/*`
