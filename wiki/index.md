@@ -6,7 +6,8 @@ Content-oriented catalog of all pages in this wiki.
 
 | Page | Description |
 |------|-------------|
-| [[absent-deny]] | The two distinct failure modes: ABSENT (tool hidden) vs DENY (action blocked) |
+| [[absent-deny]] | Ontology (Layer 1) vs Policy (Layer 2): ABSENT (does not exist) vs DENY (action blocked) |
+| [[effect-virtualization]] | Layer 3: effect modes (EXECUTE / SIMULATE / PROXY / SANITIZE / TRUNCATE / DEFER); why SIMULATE is not a policy decision |
 | [[ask-approval]] | ASK decision — provisional approval gate, lifecycle, execution modes, API endpoints |
 | [[world-manifest]] | `world_manifest.yaml` as the sole policy surface — allowlist, capabilities, taint rules |
 | [[policy-engine]] | Six deterministic decision paths evaluated in fixed order |

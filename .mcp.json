@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "safe-mcp-proxy": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "safe_mcp_proxy.mcp_server", "--world", "default"],
+      "env": {}
+    },
+    "safe-mcp-proxy-with-upstream": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m", "safe_mcp_proxy.mcp_server",
+        "--world", "default",
+        "--upstream", "python", "-m", "safe_mcp_proxy.mcp_test_server"
+      ],
+      "env": {}
+    }
+  }
+}

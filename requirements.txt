@@ -2,3 +2,4 @@ PyYAML>=6.0
 fastapi>=0.110
 uvicorn[standard]>=0.27
 jupyter>=1.0
+mcp>=1.0
