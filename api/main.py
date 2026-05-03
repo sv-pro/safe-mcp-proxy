@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 from collections import Counter
 from pathlib import Path
 from typing import Any, List, Optional
 
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import safe_mcp_proxy.scenarios as _scenarios
@@ -60,6 +61,271 @@ def _trace_to_audit_entry(trace) -> dict:
         "decision": decision,
         "rule": trace.rule_hit,
     }
+
+
+async def _sse_stream(audit_path: Path):
+    """Async generator: tails audit_path, yields SSE-formatted lines."""
+    offset = audit_path.stat().st_size if audit_path.exists() else 0
+    idle_ticks = 0
+    while True:
+        await asyncio.sleep(0.5)
+        if not audit_path.exists():
+            idle_ticks += 1
+            if idle_ticks % 30 == 0:
+                yield ": keepalive\n\n"
+            continue
+        size = audit_path.stat().st_size
+        if size > offset:
+            with open(audit_path, encoding="utf-8") as f:
+                f.seek(offset)
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        yield f"data: {line}\n\n"
+            offset = size
+            idle_ticks = 0
+        else:
+            idle_ticks += 1
+            if idle_ticks % 30 == 0:
+                yield ": keepalive\n\n"
+
+
+_DASHBOARD_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>safe-mcp-proxy — dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body   { font-family: monospace; background: #0d0d0d; color: #c8c8c8;
+           margin: 0; padding: 16px 20px; font-size: 13px; }
+  header { display: flex; align-items: center; gap: 14px;
+           margin-bottom: 12px; flex-wrap: wrap; }
+  h1     { font-size: 0.85rem; color: #555; margin: 0;
+           letter-spacing: 0.08em; flex-shrink: 0; }
+  #status      { font-size: 0.75rem; color: #444; }
+  #status.ok   { color: #4caf50; }
+  #status.err  { color: #bb4444; }
+  select { margin-left: auto; background: #161616; color: #777;
+           border: 1px solid #2e2e2e; font-family: monospace; font-size: 0.75rem;
+           padding: 3px 8px; cursor: pointer; border-radius: 3px; }
+  /* ── stats bar ─────────────────────────────────────── */
+  #stats-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+               padding: 6px 6px 10px; border-bottom: 1px solid #1a1a1a;
+               margin-bottom: 10px; }
+  .stat-item { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; }
+  .stat-dec  { padding: 1px 6px; border-radius: 3px; font-weight: bold;
+               font-size: 0.7rem; white-space: nowrap; }
+  .stat-cnt  { color: #888; min-width: 18px; }
+  .stat-alert { color: #e07050 !important; font-weight: bold; }
+  .stat-total { margin-left: auto; font-size: 0.75rem; color: #555; }
+  /* ── tool surface ──────────────────────────────────── */
+  details#surface { margin-bottom: 10px; }
+  details#surface > summary { font-size: 0.78rem; color: #555; cursor: pointer;
+    padding: 3px 6px; user-select: none; list-style: none; }
+  details#surface > summary::-webkit-details-marker { display: none; }
+  details#surface > summary::before { content: '▶  '; }
+  details#surface[open] > summary::before { content: '▼  '; }
+  #surface-tools { display: flex; flex-wrap: wrap; gap: 6px;
+                   padding: 6px 6px 4px; }
+  .tool-tag { font-size: 0.75rem; padding: 1px 8px; border: 1px solid #333;
+              border-left-width: 3px; border-radius: 3px; color: #888; }
+  /* ── feed ──────────────────────────────────────────── */
+  #feed { list-style: none; padding: 0; margin: 0; }
+  #feed li { display: grid;
+             grid-template-columns: 76px 84px minmax(80px,1fr) minmax(120px,2fr) 72px 18px;
+             gap: 8px; align-items: center; padding: 3px 6px; margin-bottom: 2px;
+             border-left: 3px solid var(--row-accent, #222); }
+  #feed li:hover { background: #111; }
+  .chip  { display: inline-block; padding: 1px 6px; border-radius: 3px;
+           font-size: 0.7rem; font-weight: bold; text-align: center; white-space: nowrap; }
+  .ts    { color: #555; font-size: 0.72rem; }
+  .tool  { color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rule  { color: #666; font-size: 0.75rem; overflow: hidden;
+           text-overflow: ellipsis; white-space: nowrap; }
+  .src   { color: #555; font-size: 0.72rem; }
+  .taint { font-size: 0.85rem; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>safe-mcp-proxy / audit dashboard</h1>
+  <span id="status">connecting…</span>
+  <select id="pal" title="Color palette" aria-label="Color palette">
+    <option value="traffic">palette: traffic</option>
+    <option value="accessible">palette: accessible</option>
+  </select>
+</header>
+<div id="stats-bar"></div>
+<details id="surface">
+  <summary id="surface-title">world: — — tools</summary>
+  <div id="surface-tools"></div>
+</details>
+<ul id="feed"></ul>
+<script>
+const PALETTES = {
+  traffic: {
+    ALLOW:    { bg: '#388e3c', fg: '#fff' },
+    DENY:     { bg: '#c62828', fg: '#fff' },
+    ABSENT:   { bg: '#424242', fg: '#aaa' },
+    ASK:      { bg: '#e65100', fg: '#fff' },
+    SIMULATE: { bg: '#1565c0', fg: '#fff' },
+  },
+  accessible: {
+    ALLOW:    { bg: '#0077bb', fg: '#fff' },
+    DENY:     { bg: '#ee7733', fg: '#000' },
+    ABSENT:   { bg: '#555555', fg: '#ccc' },
+    ASK:      { bg: '#aa3377', fg: '#fff' },
+    SIMULATE: { bg: '#009988', fg: '#000' },
+  },
+};
+const DECISIONS = ['ALLOW', 'DENY', 'ABSENT', 'ASK', 'SIMULATE'];
+const SE_COLORS = { read: '#1565c0', internal: '#555', external: '#e65100' };
+const MAX = 200;
+let palette = localStorage.getItem('smp-palette') || 'traffic';
+
+const statusEl = document.getElementById('status');
+const feed     = document.getElementById('feed');
+const palSel   = document.getElementById('pal');
+palSel.value   = palette;
+
+function colors(decision) {
+  return (PALETTES[palette] || PALETTES.traffic)[decision] || { bg: '#333', fg: '#aaa' };
+}
+
+function applyChip(chip) {
+  const c = colors(chip.dataset.decision);
+  chip.style.background = c.bg;
+  chip.style.color = c.fg;
+}
+
+function repaintChips() {
+  feed.querySelectorAll('.chip').forEach(applyChip);
+  feed.querySelectorAll('li').forEach(li => {
+    const c = colors(li.dataset.decision);
+    li.style.setProperty('--row-accent', c.bg + '66');
+  });
+  document.querySelectorAll('.stat-dec').forEach(dec => {
+    const item = dec.closest('.stat-item');
+    if (!item) return;
+    const c = colors(item.dataset.decision);
+    dec.style.background = c.bg;
+    dec.style.color = c.fg;
+  });
+}
+
+palSel.addEventListener('change', () => {
+  palette = palSel.value;
+  localStorage.setItem('smp-palette', palette);
+  repaintChips();
+});
+
+// ── Stats bar ──────────────────────────────────────────────────────────
+function buildStatsBar() {
+  const bar = document.getElementById('stats-bar');
+  bar.innerHTML = '';
+  DECISIONS.forEach(d => {
+    const item = document.createElement('span');
+    item.className = 'stat-item';
+    item.dataset.decision = d;
+    const c = colors(d);
+    const dec = document.createElement('span');
+    dec.className = 'stat-dec';
+    dec.dataset.decision = d;
+    dec.style.background = c.bg;
+    dec.style.color = c.fg;
+    dec.textContent = d;
+    const cnt = document.createElement('span');
+    cnt.className = 'stat-cnt';
+    cnt.id = 'cnt-' + d;
+    cnt.textContent = '—';
+    item.append(dec, cnt);
+    bar.appendChild(item);
+  });
+  const tot = document.createElement('span');
+  tot.className = 'stat-total';
+  tot.innerHTML = 'total <b id="cnt-total">—</b>';
+  bar.appendChild(tot);
+}
+
+async function refreshStats() {
+  const data = await fetch('/stats').then(r => r.json()).catch(() => null);
+  if (!data) return;
+  DECISIONS.forEach(d => {
+    const el = document.getElementById('cnt-' + d);
+    if (!el) return;
+    el.textContent = data.counts[d] ?? 0;
+    el.className = (d === 'DENY' && (data.counts[d] ?? 0) > 0)
+      ? 'stat-cnt stat-alert' : 'stat-cnt';
+  });
+  const tot = document.getElementById('cnt-total');
+  if (tot) tot.textContent = data.total;
+}
+
+// ── Tool surface ───────────────────────────────────────────────────────
+async function loadSurface() {
+  const data = await fetch('/worlds/current').then(r => r.json()).catch(() => null);
+  if (!data) return;
+  document.getElementById('surface-title').textContent =
+    'world: ' + (data.world_id || '?') + ' — ' + data.tools.length + ' tools';
+  const toolsDiv = document.getElementById('surface-tools');
+  toolsDiv.innerHTML = '';
+  data.tools.forEach(t => {
+    const span = document.createElement('span');
+    span.className = 'tool-tag';
+    span.title = 'side_effect: ' + t.side_effect_type;
+    span.style.borderLeftColor = SE_COLORS[t.side_effect_type] || '#444';
+    span.textContent = t.name;
+    toolsDiv.appendChild(span);
+  });
+}
+
+// ── Feed rows ──────────────────────────────────────────────────────────
+function fmtTs(iso) {
+  try { return new Date(iso).toLocaleTimeString(); } catch { return iso || ''; }
+}
+
+function addRow(e) {
+  const dec = e.decision || 'UNKNOWN';
+  const c   = colors(dec);
+  const li  = document.createElement('li');
+  li.dataset.decision = dec;
+  li.style.setProperty('--row-accent', c.bg + '66');
+
+  const ts   = Object.assign(document.createElement('span'), { className: 'ts',   textContent: fmtTs(e.timestamp) });
+  const chip = Object.assign(document.createElement('span'), { className: 'chip', textContent: dec });
+  chip.dataset.decision = dec;
+  chip.style.background = c.bg;
+  chip.style.color      = c.fg;
+  const tool  = Object.assign(document.createElement('span'), { className: 'tool',  textContent: e.tool  || '—', title: e.tool  || '' });
+  const rule  = Object.assign(document.createElement('span'), { className: 'rule',  textContent: e.rule  || '',       title: e.rule  || '' });
+  const src   = Object.assign(document.createElement('span'), { className: 'src',   textContent: e.source_channel || '' });
+  const taint = Object.assign(document.createElement('span'), { className: 'taint', textContent: e.taint ? '⚠' : '' });
+  if (e.taint) taint.style.color = c.bg;
+
+  li.append(ts, chip, tool, rule, src, taint);
+  feed.prepend(li);
+  if (feed.children.length > MAX) feed.lastElementChild.remove();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+buildStatsBar();
+refreshStats();
+setInterval(refreshStats, 5000);
+loadSurface();
+
+const es = new EventSource('/events');
+es.onopen    = () => { statusEl.textContent = 'live'; statusEl.className = 'ok'; };
+es.onerror   = () => { statusEl.textContent = 'disconnected'; statusEl.className = 'err'; };
+es.onmessage = (ev) => {
+  try { addRow(JSON.parse(ev.data)); }
+  catch { console.warn('bad SSE payload:', ev.data); }
+};
+</script>
+</body>
+</html>
+"""
 
 
 def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = None) -> FastAPI:
@@ -200,6 +466,39 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "total": sum(decision_counts.values()),
             "counts": decision_counts,
         }
+
+    # ------------------------------------------------------------------
+    # Dashboard (EPIC 14)
+    # ------------------------------------------------------------------
+
+    @app.get("/events")
+    async def sse_events():
+        """Server-Sent Events stream: tails audit.jsonl, emits each new entry."""
+        audit_path = resolved_base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"
+
+        return StreamingResponse(
+            _sse_stream(audit_path),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    @app.get("/dashboard", response_class=HTMLResponse)
+    async def dashboard():
+        """Minimal audit dashboard — live decision feed via SSE."""
+        return HTMLResponse(content=_DASHBOARD_HTML)
+
+    @app.get("/worlds/current")
+    async def worlds_current() -> dict:
+        """Return active world_id and its exposed tool surface."""
+        tools = [
+            {
+                "name": t.name,
+                "capability": t.capability,
+                "side_effect_type": t.side_effect_type,
+            }
+            for t in app.state.executor.registry.list_exposed()
+        ]
+        return {"world_id": app.state.executor.world_id, "tools": tools}
 
     # ------------------------------------------------------------------
     # Approval endpoints (DS7.1)

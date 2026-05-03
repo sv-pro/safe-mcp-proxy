@@ -16,6 +16,9 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | [[src/safe_mcp_proxy/compiler]] | World manifest YAML parser |
 | [[src/safe_mcp_proxy/decision]] | `Decision` enum |
 | [[src/safe_mcp_proxy/simulate]] | Mock external action for tests/demos |
+| [[src/safe_mcp_proxy/mcp_server]] | Policy-enforced MCP server — `tools/list` and `tools/call` routing |
+| [[src/safe_mcp_proxy/mcp_test_server]] | Minimal upstream MCP server for integration tests |
+| [[src/safe_mcp_proxy/mcp_upstream]] | `UpstreamConnector` — MCP client for forwarding ALLOW'd calls |
 | [[src/safe_mcp_proxy/trace_store]] | Read-only streaming view of audit JSONL |
 | [[src/safe_mcp_proxy/bundle_replay]] | Offline bundle replayer |
 | [[src/safe_mcp_proxy/approval_store]] | In-memory approval token store — pending/approved/rejected/executed |
