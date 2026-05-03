@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 from collections import Counter
 from pathlib import Path
 from typing import Any, List, Optional
 
 from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import safe_mcp_proxy.scenarios as _scenarios
@@ -60,6 +61,81 @@ def _trace_to_audit_entry(trace) -> dict:
         "decision": decision,
         "rule": trace.rule_hit,
     }
+
+
+async def _sse_stream(audit_path: Path):
+    """Async generator: tails audit_path, yields SSE-formatted lines."""
+    offset = audit_path.stat().st_size if audit_path.exists() else 0
+    idle_ticks = 0
+    while True:
+        await asyncio.sleep(0.5)
+        if not audit_path.exists():
+            idle_ticks += 1
+            if idle_ticks % 30 == 0:
+                yield ": keepalive\n\n"
+            continue
+        size = audit_path.stat().st_size
+        if size > offset:
+            with open(audit_path, encoding="utf-8") as f:
+                f.seek(offset)
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        yield f"data: {line}\n\n"
+            offset = size
+            idle_ticks = 0
+        else:
+            idle_ticks += 1
+            if idle_ticks % 30 == 0:
+                yield ": keepalive\n\n"
+
+
+_DASHBOARD_HTML = """\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>safe-mcp-proxy — dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: monospace; background: #0d0d0d; color: #c8c8c8;
+         margin: 0; padding: 16px 20px; font-size: 13px; }
+  header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px; }
+  h1 { font-size: 0.9rem; color: #555; margin: 0; letter-spacing: 0.08em; }
+  #status { font-size: 0.75rem; color: #444; }
+  #status.ok { color: #4caf50; }
+  #status.err { color: #e53935; }
+  #feed { list-style: none; padding: 0; margin: 0; }
+  #feed li { padding: 3px 8px; border-left: 3px solid #2a2a2a;
+             margin-bottom: 2px; color: #888; white-space: pre; overflow: hidden;
+             text-overflow: ellipsis; }
+</style>
+</head>
+<body>
+<header>
+  <h1>safe-mcp-proxy / audit dashboard</h1>
+  <span id="status">connecting…</span>
+</header>
+<ul id="feed"></ul>
+<script>
+  const status = document.getElementById('status');
+  const feed   = document.getElementById('feed');
+  const MAX    = 200;
+
+  const es = new EventSource('/events');
+  es.onopen  = () => { status.textContent = 'live'; status.className = 'ok'; };
+  es.onerror = () => { status.textContent = 'disconnected'; status.className = 'err'; };
+  es.onmessage = (e) => {
+    console.log('audit:', e.data);
+    const li = document.createElement('li');
+    li.textContent = e.data;
+    feed.prepend(li);
+    if (feed.children.length > MAX) feed.lastElementChild.remove();
+  };
+</script>
+</body>
+</html>
+"""
 
 
 def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = None) -> FastAPI:
@@ -200,6 +276,26 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
             "total": sum(decision_counts.values()),
             "counts": decision_counts,
         }
+
+    # ------------------------------------------------------------------
+    # Dashboard (EPIC 14)
+    # ------------------------------------------------------------------
+
+    @app.get("/events")
+    async def sse_events():
+        """Server-Sent Events stream: tails audit.jsonl, emits each new entry."""
+        audit_path = resolved_base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"
+
+        return StreamingResponse(
+            _sse_stream(audit_path),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    @app.get("/dashboard", response_class=HTMLResponse)
+    async def dashboard():
+        """Minimal audit dashboard — live decision feed via SSE."""
+        return HTMLResponse(content=_DASHBOARD_HTML)
 
     # ------------------------------------------------------------------
     # Approval endpoints (DS7.1)

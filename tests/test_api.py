@@ -444,5 +444,128 @@ class TestSeedDemoData(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+class TestDashboard(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "world_manifest.yaml").write_text(textwrap.dedent("""\
+            world_id: default
+            allowed_tools: [read_file, send_email]
+            capabilities:
+              read_file: {allowed: true}
+              send_email: {allowed: true}
+            taint_rules:
+              - tainted_external: deny
+            side_effects: {external: restricted}
+        """), encoding="utf-8")
+        config_dir = self.tmp / "safe_mcp_proxy" / "config"
+        config_dir.mkdir(parents=True)
+        (config_dir / "policy.yaml").write_text(
+            "simulation:\n  external_side_effects: true\n", encoding="utf-8"
+        )
+        logs_dir = self.tmp / "safe_mcp_proxy" / "logs"
+        logs_dir.mkdir(parents=True)
+        self.audit_log = logs_dir / "audit.jsonl"
+        self.audit_log.write_text("", encoding="utf-8")
+        self.app = create_app(self.tmp)
+
+    async def asyncTearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    async def _get(self, path: str, **kwargs):
+        transport = httpx.ASGITransport(app=self.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            return await client.get(path, **kwargs)
+
+    async def test_dashboard_returns_200_with_feed_element(self):
+        resp = await self._get("/dashboard")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("text/html", resp.headers["content-type"])
+        self.assertIn('id="feed"', resp.text)
+        self.assertIn("EventSource", resp.text)
+
+    async def test_dashboard_has_no_external_deps(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        self.assertNotIn("cdn.", body)
+        self.assertNotIn("unpkg.com", body)
+        self.assertNotIn("jsdelivr", body)
+
+    async def test_events_content_type_is_sse(self):
+        transport = httpx.ASGITransport(app=self.app)
+
+        async def _check():
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                async with client.stream("GET", "/events") as resp:
+                    self.assertEqual(resp.status_code, 200)
+                    self.assertIn("text/event-stream", resp.headers["content-type"])
+                    await asyncio.sleep(100)  # cancelled by wait_for
+
+        try:
+            await asyncio.wait_for(_check(), timeout=0.5)
+        except asyncio.TimeoutError:
+            pass
+
+    async def test_events_generator_emits_new_audit_entry(self):
+        """SSE generator yields a data line when audit.jsonl is appended to."""
+        from api.main import _sse_stream
+
+        async def write_after():
+            await asyncio.sleep(0.3)
+            with open(self.audit_log, "a", encoding="utf-8") as f:
+                f.write(json.dumps(SAMPLE_ENTRIES[0]) + "\n")
+
+        write_task = asyncio.create_task(write_after())
+        chunks = []
+        async for chunk in _sse_stream(self.audit_log):
+            if chunk.startswith("data:"):
+                chunks.append(json.loads(chunk[5:].strip()))
+                break
+        await write_task
+
+        self.assertEqual(len(chunks), 1)
+        self.assertEqual(chunks[0]["decision"], "ALLOW")
+        self.assertEqual(chunks[0]["tool"], "read_file")
+
+    async def test_events_generator_skips_existing_content(self):
+        """SSE generator starts at EOF — pre-existing entries are not replayed."""
+        from api.main import _sse_stream
+
+        # Pre-populate the log
+        with open(self.audit_log, "w", encoding="utf-8") as f:
+            f.write(json.dumps(SAMPLE_ENTRIES[1]) + "\n")  # DENY entry
+
+        async def write_new_after():
+            await asyncio.sleep(0.3)
+            with open(self.audit_log, "a", encoding="utf-8") as f:
+                f.write(json.dumps(SAMPLE_ENTRIES[0]) + "\n")  # new ALLOW entry
+
+        write_task = asyncio.create_task(write_new_after())
+        chunks = []
+        async for chunk in _sse_stream(self.audit_log):
+            if chunk.startswith("data:"):
+                chunks.append(json.loads(chunk[5:].strip()))
+                break
+        await write_task
+
+        self.assertEqual(len(chunks), 1)
+        self.assertEqual(chunks[0]["decision"], "ALLOW")  # only the new entry
+
+    async def test_events_missing_log_does_not_crash(self):
+        self.audit_log.unlink()
+        transport = httpx.ASGITransport(app=self.app)
+
+        async def _check():
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                async with client.stream("GET", "/events") as resp:
+                    self.assertEqual(resp.status_code, 200)
+                    await asyncio.sleep(100)
+
+        try:
+            await asyncio.wait_for(_check(), timeout=0.5)
+        except asyncio.TimeoutError:
+            pass
+
+
 if __name__ == "__main__":
     unittest.main()
