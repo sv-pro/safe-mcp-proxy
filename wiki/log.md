@@ -4,6 +4,12 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-05-03 — Conceptual note: SIMULATE as generalised meta-layer
+
+Added open-question section to `wiki/absent-deny.md`. Captures the insight that ABSENT is a special case of a broader "reality substitution" concept, with a proposed taxonomy (absence / success / failure / delay / sandbox / partial) and two architectural options (Effect modifier vs first-class Decision). Status: not yet implemented.
+
+---
+
 ## 2026-05-01 — Full wiki sync against HEAD (6e82b9c); metadata file added
 
 Audited the entire wiki against the current codebase. Added `wiki/meta.yaml` to track commit hash and timestamp of each sync so future updates can use `git log <commit>..HEAD` to scope the diff.

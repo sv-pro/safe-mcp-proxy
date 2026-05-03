@@ -54,3 +54,52 @@ The ABSENT message (`"Action does not exist in this world"`) is the canonical st
 - [[src/safe_mcp_proxy/policy_engine]] — produces ABSENT/DENY/ASK results
 - [[src/safe_mcp_proxy/registry]] — `get_tool()` returning `None` triggers ABSENT
 - [[src/safe_mcp_proxy/executor]] — dispatches on decision; defines `ABSENT_MESSAGE`
+
+---
+
+## Open question: SIMULATE as a generalised meta-layer
+
+> *Status: conceptual — not yet implemented. Captured here so it isn't lost.*
+
+`SIMULATE` currently appears in two unrelated roles:
+
+1. **Runtime flag** (`simulate_external=True`) — suppresses real external calls in tests/demos.
+2. **Decision enum value** — returned by `GeminiPolicyGate` when ALLOW + simulate flag is active.
+
+These two roles conflate a *policy decision* with a *runtime behaviour*. The deeper insight is that **ABSENT is itself a simulation** — the proxy fabricates a world in which a real tool does not exist. That makes ABSENT a special case of a broader concept: the proxy substituting a fake reality for the real one.
+
+### Proposed taxonomy
+
+| Mode | Current name | Description |
+|------|-------------|-------------|
+| `SIMULATE_ABSENCE` | `ABSENT` | Tool hidden — agent believes it doesn't exist |
+| `SIMULATE_SUCCESS` | `simulate_external` flag | Mock success result instead of real call |
+| `SIMULATE_FAILURE` | — | Mock error — deny without revealing policy reason; useful as a honeypot |
+| `SIMULATE_DELAY` | — | Artificial latency — rate limiting, tripwire, cooling-off period |
+| `SIMULATE_SANDBOX` | — | Real call executed in isolated environment |
+| `SIMULATE_PARTIAL` | Atlassian `arg_rules` truncation | Filtered/truncated result (Confluence → 500 chars already does this) |
+
+### Architectural choice
+
+Two clean options:
+
+**A. SIMULATE as an orthogonal Effect modifier (preferred)**
+
+```
+Decision = ALLOW | DENY | ABSENT | ASK          ← policy axis (unchanged)
+Effect   = Execute | Simulate(SimMode)           ← runtime axis (new)
+```
+
+`ALLOW + Simulate(success)` = current `simulate_external`. ABSENT stays a policy decision.
+Decision and Effect are separate concerns; no enum surgery required.
+
+**B. SIMULATE as a first-class Decision, subsuming ABSENT**
+
+```
+Decision = ALLOW | DENY | SIMULATE(mode) | ASK
+where ABSENT ≡ SIMULATE(absence)
+```
+
+Unifies all "reality substitution" under one concept, but breaks the clean six-rule policy engine and the "does not exist" principle.
+
+Option A preserves the existing policy invariants and audit semantics; Option B is conceptually purer but requires wider refactoring. Neither has been implemented yet.
