@@ -506,6 +506,48 @@ class TestDashboard(unittest.IsolatedAsyncioTestCase):
         except asyncio.TimeoutError:
             pass
 
+    # ── M3: stats bar + tool surface ──────────────────────────────────
+
+    async def test_worlds_current_returns_world_id_and_tools(self):
+        resp = await self._get("/worlds/current")
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertIn("world_id", body)
+        self.assertIn("tools", body)
+        self.assertIsInstance(body["tools"], list)
+        self.assertGreater(len(body["tools"]), 0)
+
+    async def test_worlds_current_tools_have_required_fields(self):
+        resp = await self._get("/worlds/current")
+        for tool in resp.json()["tools"]:
+            self.assertIn("name", tool)
+            self.assertIn("side_effect_type", tool)
+            self.assertIn(tool["side_effect_type"], ("read", "internal", "external"))
+
+    async def test_dashboard_has_stats_bar(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        self.assertIn('id="stats-bar"', body)
+        self.assertIn("refreshStats", body)
+        self.assertIn("/stats", body)
+
+    async def test_dashboard_has_tool_surface(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        self.assertIn('id="surface"', body)
+        self.assertIn("loadSurface", body)
+        self.assertIn("/worlds/current", body)
+
+    async def test_dashboard_stats_repaint_on_palette_change(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        self.assertIn("stat-dec", body)
+        self.assertIn("repaintChips", body)
+        # repaintChips must touch .stat-dec elements
+        self.assertIn(".stat-dec", body)
+
+    # ── M2: palettes ──────────────────────────────────────────────────
+
     async def test_dashboard_has_two_palettes(self):
         resp = await self._get("/dashboard")
         body = resp.text
