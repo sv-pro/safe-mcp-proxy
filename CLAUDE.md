@@ -44,6 +44,7 @@ python -m safe_mcp_proxy.examples.ask_modes
 python -m safe_mcp_proxy.examples.atlassian_demo
 python -m safe_mcp_proxy.examples.deterministic_replay
 python -m safe_mcp_proxy.examples.gemini_demo
+python -m safe_mcp_proxy.examples.dashboard_demo
 
 # Atlassian trace CLI
 python -m safe_mcp_proxy.atlassian.cli list
@@ -59,6 +60,8 @@ python -m mcpzero.demo --scenario tool_chain --output ./results/
 
 # Start FastAPI server
 uvicorn api.main:app --reload
+# Open audit dashboard (requires running server)
+# http://localhost:8000/dashboard
 ```
 
 There is no build step. Core dependencies are PyYAML and the Python standard library. The FastAPI server additionally requires `fastapi` and `uvicorn`. OPA engine mode requires the `opa` binary on PATH.
@@ -208,6 +211,9 @@ FastAPI server exposing the full proxy surface:
 | `POST /compare` | Run scenario across multiple worlds |
 | `GET /export/bundle` | Export scenario + manifest + traces for offline replay |
 | `GET /stats` | Decision counts (ALLOW/DENY/ABSENT/ASK/SIMULATE) |
+| `GET /events` | Server-Sent Events stream; tails `audit.jsonl` in real time |
+| `GET /dashboard` | Audit dashboard — live feed, stats bar, tool surface, palette switcher |
+| `GET /worlds/current` | Active world_id and exposed tool surface |
 | `GET /approvals/{token}` | Approval token status |
 | `POST /approvals/{token}/approve` | Execute approved action |
 | `POST /approvals/{token}/reject` | Reject pending action |
