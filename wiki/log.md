@@ -4,6 +4,19 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-05-03 — EPIC 12 complete: real MCP server (Claude Code integration)
+
+Three new source pages for the MCP transport layer:
+
+- `wiki/src/safe_mcp_proxy/mcp_server.md` *(new)* — `MCPProxyServer`, decision mapping (ALLOW/DENY/ABSENT/ASK → MCP response/error), CLI entry point, provenance notes
+- `wiki/src/safe_mcp_proxy/mcp_test_server.md` *(new)* — minimal upstream server with 4 mock tools; side-effect table; used by integration tests and demo
+- `wiki/src/safe_mcp_proxy/mcp_upstream.md` *(new)* — `UpstreamConnector` lifecycle, `call_tool()` forwarding, ALLOW-path-only invariant
+- `wiki/src/safe_mcp_proxy/index.md` — added three new module rows
+
+All 15 tests in `tests/test_mcp_server.py` green. Demo (`examples/claude_code_demo.py`) verified 4 guarantees: tool surface control, taint blocking, absent tools, upstream forwarding.
+
+---
+
 ## 2026-05-03 — Three-layer model: Ontology / Policy / Effect Virtualization
 
 Reformulated the architectural model from a flat decision pipeline to three independent layers. Updated four pages and created one new page:
