@@ -34,6 +34,12 @@ python -m safe_mcp_proxy.examples.absent_tool_case
 python -m safe_mcp_proxy.examples.ask_modes
 python -m safe_mcp_proxy.examples.atlassian_demo
 python -m safe_mcp_proxy.examples.deterministic_replay
+python -m safe_mcp_proxy.examples.gemini_demo
+
+# Atlassian trace CLI
+python -m safe_mcp_proxy.atlassian.cli list
+python -m safe_mcp_proxy.atlassian.cli stats
+python -m safe_mcp_proxy.atlassian.cli trace --trace-id ID
 
 # Offline bundle replay (policy drift detection)
 python -m safe_mcp_proxy.bundle_replay path/to/bundle.json
@@ -127,6 +133,35 @@ EPIC 9 adds a passthrough proxy for Atlassian Remote MCP Server (Jira/Confluence
 
 The Atlassian manifest (`manifests/atlassian_mvp.yaml`) demonstrates argument validation (`arg_rules`), safe abstractions (Confluence page truncation to 500 chars), and data-flow rules blocking raw Confluence → Jira write chains.
 
+### Gemini integration (`safe_mcp_proxy/integrations/`)
+
+EPIC 8 adds a full Gemini LLM adapter stack. The subpackage wires a stateless parsing layer, a strict intermediate representation, and a typed policy gate in front of the existing executor:
+
+| Module | Role |
+|---|---|
+| `gemini_adapter.py` | Stateless Gemini `functionCall` → `ToolCall` parser; `GeminiAdapter.parse()`, `GeminiAdapter.format_response()`; `GeminiAdapterError`; `ToolCall` dataclass (`tool_name`, `arguments`, `session_id`, `agent_id`, `metadata`, `raw_request`) |
+| `intent_ir.py` | `IntentIR` frozen dataclass (`action`, `parameters`, `required_capabilities`, `side_effect_type`, `descriptor_hash`); `IntentMapper.map()` consults the full tool catalog (not just allowlist); `IntentIRError` = action completely unknown to the system |
+| `execution_spec.py` | `ExecutionSpec` frozen dataclass (`decision`, `rule`, `intent`, `provenance`) — typed policy-evaluation result produced by `GeminiPolicyGate` |
+| `gemini_policy_gate.py` | `GeminiPolicyGate.evaluate()` — reuses executor's `PolicyEngine` and registry; returns `ExecutionSpec`; promotes ALLOW → SIMULATE when `simulate_external` is enabled |
+| `gemini_proxy.py` | `GeminiProxy` orchestrates the full pipeline; `execute()` routes DENY/SIMULATE as short-circuits, delegates ABSENT/ALLOW/ASK to executor; `list_tools()` returns manifest-filtered tools in Gemini function-declaration format |
+| `gemini_trace.py` | `GeminiTraceLogger` — append-only per-stage trace to `data/traces/gemini_trace.jsonl`; stages: `request → tool_call → intent (or absent) → policy → execution` |
+| `session_binder.py` | `SessionManifestBinder` — maps `agent_id → world_id → Executor`; executors cached per `world_id`; default fallback is `read_only` (restrictive, never permissive) |
+
+**Request flow:**
+
+```
+Gemini functionCall
+  → GeminiAdapter.parse()       → ToolCall
+  → IntentMapper.map()          → IntentIR   (IntentIRError → ontological absence)
+  → GeminiPolicyGate.evaluate() → ExecutionSpec
+  → GeminiProxy routes:
+      DENY     → short-circuit, audit via record_denial()
+      SIMULATE → simulate_external_action(), audit via record_simulation()
+      ABSENT / ALLOW / ASK → executor.execute()
+```
+
+Key invariant: **`IntentIRError` (ontological absence) ≠ `ABSENT`**. `IntentIRError` = tool completely unknown to the system (not in the full catalog). `ABSENT` = tool is known but hidden by policy (not in allowlist or capability disabled). Both are logged with distinct rules: `"action_not_in_ontology"` vs `"tool_not_allowlisted"`.
+
 ### MCPZero attack prevention demo (`mcpzero/`)
 
 A demonstration framework that runs attack scenarios against an unprotected baseline agent and the protected proxy, then compares verdicts:
@@ -169,6 +204,8 @@ FastAPI server exposing the full proxy surface:
 | `POST /approvals/{token}/reject` | Reject pending action |
 | `POST /atlassian/mcp` | Atlassian Remote MCP passthrough |
 | `GET /atlassian/config` | Show Atlassian proxy configuration |
+| `GET /integrations/gemini/tools/list` | Manifest-filtered tool surface in Gemini function-declaration format |
+| `POST /integrations/gemini/tools/execute` | Route a Gemini `functionCall` request through the proxy; returns `functionResponse` envelope |
 
 Seeds `audit.jsonl` from `seeds/demo.jsonl` on startup if log is empty.
 
@@ -176,7 +213,7 @@ Seeds `audit.jsonl` from `seeds/demo.jsonl` on startup if log is empty.
 
 **`world_manifest.yaml`** (repo root) — the primary policy surface: declares which tools are allowlisted, which capabilities are enabled, taint rules, side-effect policy, capability definitions (DSL), and approval requirements.
 
-**`worlds/`** — named world configurations (`world_a.yaml`, `world_b.yaml`, `world_c.yaml`, `mcpzero_demo.yaml`, `read_only.yaml`, `repo_assistant.yaml`). Pass `--world <world_id>` to CLI or `build_executor(world_id=...)` to select.
+**`worlds/`** — named world configurations (`world_a.yaml`, `world_b.yaml`, `world_c.yaml`, `mcpzero_demo.yaml`, `read_only.yaml`, `repo_assistant.yaml`, `gemini_demo.yaml`). Pass `--world <world_id>` to CLI or `build_executor(world_id=...)` to select. `gemini_demo.yaml` is the Gemini EPIC 8 demo world: `read_logs` and `investigate_incident` are allowed; `send_email` and `dangerous_exec` are ABSENT.
 
 **`safe_mcp_proxy/config/policy.yaml`** — controls whether external side effects are simulated (`simulation.external_side_effects: true`).
 
@@ -255,6 +292,27 @@ python -m unittest tests.test_capability_projection
 python -m unittest tests.test_api
 python -m unittest tests.test_mcpzero
 
+# Atlassian observability and demo tests
+python -m unittest tests.test_atlassian_observability
+python -m unittest tests.test_atlassian_demo
+
+# Gemini integration tests
+python -m unittest tests.test_gemini_adapter
+python -m unittest tests.test_gemini_proxy
+python -m unittest tests.test_gemini_policy_gate
+python -m unittest tests.test_gemini_absence
+python -m unittest tests.test_gemini_integration
+python -m unittest tests.test_gemini_simulate
+python -m unittest tests.test_intent_ir
+
+# Skill guard and trace tests
+python -m unittest tests.test_skill_execution_guard
+python -m unittest tests.test_skill_manifest
+python -m unittest tests.test_skill_trace
+
+# Demo runner test
+python -m unittest tests.test_run_demo
+
 # Run all tests
 python -m unittest discover tests
 ```
@@ -271,6 +329,6 @@ When asked **"what's next?"**, **"что дальше?"**, **"next issue"**, **"
 
 Issues live at: https://github.com/sv-pro/safe-mcp-proxy/issues
 
-- **Open** = work remaining (EPICs 8–9)
+- **Open** = work remaining (EPICs 8–11)
 - **Closed** = already implemented (EPICs 0–7)
 - Labels: `epic/N-*`, `type/*`, `priority/*`
