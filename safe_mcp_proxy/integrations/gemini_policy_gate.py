@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.descriptor import descriptor_hash_valid
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.integrations.execution_spec import ExecutionSpec
@@ -22,6 +23,7 @@ class GeminiPolicyGate:
     def __init__(self, executor: Executor) -> None:
         self._policy = executor.policy_engine
         self._registry = executor.registry
+        self._simulate_external: bool = executor.simulate_external
 
     def evaluate(self, intent: IntentIR, provenance: Provenance) -> ExecutionSpec:
         """Run policy evaluation for intent and return a typed ExecutionSpec.
@@ -48,6 +50,18 @@ class GeminiPolicyGate:
             side_effect_type=intent.side_effect_type,
             descriptor_hash_valid=hash_ok,
         )
+
+        if (
+            policy_result.decision == Decision.ALLOW
+            and self._simulate_external
+            and intent.side_effect_type == "external"
+        ):
+            return ExecutionSpec(
+                decision=Decision.SIMULATE,
+                rule="simulate_external_action",
+                intent=intent,
+                provenance=provenance,
+            )
 
         return ExecutionSpec(
             decision=policy_result.decision,

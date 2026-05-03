@@ -414,6 +414,24 @@ class Executor:
             source_channel=source_channel,
         )
 
+    def record_simulation(
+        self,
+        tool_name: str,
+        rule: str,
+        source_channel: str,
+        taint: bool = False,
+    ) -> None:
+        """Log a SIMULATE decision to the audit trail without executing anything."""
+        self._audit(
+            tool=tool_name,
+            decision="SIMULATE",
+            rule=rule,
+            taint=taint,
+            descriptor_hash="",
+            source_channel=source_channel,
+            simulated=True,
+        )
+
     def _audit(
         self,
         tool: str,
