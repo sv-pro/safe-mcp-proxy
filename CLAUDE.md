@@ -26,7 +26,16 @@ python -m safe_mcp_proxy.main --tool read_file --source cli --payload '{"path":"
 python -m safe_mcp_proxy.main --tool send_email --source web --payload '{}' --engine opa
 python -m safe_mcp_proxy.main --tool send_email --source cli --payload '{}' --mode background
 
+# MCP server (real Claude Code / VS Code integration)
+python -m safe_mcp_proxy.mcp_server --world default
+python -m safe_mcp_proxy.mcp_server --world read_only --mode background
+python -m safe_mcp_proxy.mcp_server --world default --upstream python -m safe_mcp_proxy.mcp_test_server
+
+# Test upstream MCP server (standalone)
+python -m safe_mcp_proxy.mcp_test_server
+
 # Run built-in demo scenarios
+python -m safe_mcp_proxy.examples.claude_code_demo
 python -m safe_mcp_proxy.examples.benign_flow
 python -m safe_mcp_proxy.examples.prompt_injection
 python -m safe_mcp_proxy.examples.poisoned_descriptor

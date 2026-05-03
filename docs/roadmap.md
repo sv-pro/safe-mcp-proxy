@@ -24,7 +24,8 @@ Full issue list: [EPIC 8 label filter](https://github.com/sv-pro/safe-mcp-proxy/
 
 | Idea | Description |
 |------|-------------|
-| Live MCP server | Real SSE/stdio MCP server (using MCP SDK) that intercepts live traffic between Claude Code and tools — currently everything is simulated |
+| Live MCP server | **EPIC 12 — in progress.** Real stdio MCP server (`safe_mcp_proxy/mcp_server.py`) using MCP SDK; Claude Code connects via `.mcp.json`; full policy enforcement on every `tools/call`. |
+| VS Code integration | **EPIC 13 — next.** Same `mcp_server.py` binary; different config file (`.vscode/mcp.json`). Issue: #165 |
 | Real Atlassian MCP upstream | Connect Atlassian passthrough to the actual Atlassian Remote MCP Server; validate all arg_rules and flow_rules against live Jira/Confluence data |
 
 ### Policy Depth
