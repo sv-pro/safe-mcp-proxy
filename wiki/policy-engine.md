@@ -2,6 +2,8 @@
 
 Six deterministic decision paths evaluated in fixed priority order. Same inputs always produce the same output. No LLM in the enforcement path.
 
+The policy engine covers **Layer 2 (Policy)** of the three-layer model. Layer 1 (Ontology) is handled by the Registry; Layer 3 (Effect Virtualization) is handled by the Executor. See [[architecture]] for the full pipeline.
+
 ## What it is
 
 The `PolicyEngine` class (`policy_engine.py`) implements the core decision logic. It takes five inputs and returns a `PolicyResult(decision, rule_hit)` tuple.
@@ -35,7 +37,7 @@ Inputs:
    → ALLOW / default_allow
 ```
 
-Rules 1 and 2 produce ABSENT. Rules 3 and 4 produce DENY. Rule 5 produces ASK. Only if all five checks pass does the request ALLOW.
+Rules 1–2 are **ontological** (Layer 1): they determine existence, not permission. Rules 3–4 are **policy** (Layer 2): they evaluate the context of an existing action. Rule 5 produces ASK. Only if all five checks pass does the request ALLOW.
 
 The ordering is critical: ABSENT checks run before DENY checks, and DENY checks run before ASK. A tool not in the allowlist cannot trigger a taint violation or an approval request — it simply does not exist.
 
@@ -49,7 +51,8 @@ Both implementations produce identical decisions for the same inputs. The Rego p
 
 ## See also
 
-- [[absent-deny]] — the two terminal failure modes (ABSENT and DENY)
+- [[absent-deny]] — Ontology (Layer 1) and Policy (Layer 2) decisions
+- [[effect-virtualization]] — Layer 3: how reality is presented after a policy decision
 - [[ask-approval]] — the ASK decision: approval lifecycle, execution modes, API endpoints
 - [[provenance-taint]] — source of the `taint` input
 - [[descriptor-drift]] — source of the `descriptor_hash_valid` input

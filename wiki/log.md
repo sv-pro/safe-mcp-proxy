@@ -4,9 +4,15 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
-## 2026-05-03 — Conceptual note: SIMULATE as generalised meta-layer
+## 2026-05-03 — Three-layer model: Ontology / Policy / Effect Virtualization
 
-Added open-question section to `wiki/absent-deny.md`. Captures the insight that ABSENT is a special case of a broader "reality substitution" concept, with a proposed taxonomy (absence / success / failure / delay / sandbox / partial) and two architectural options (Effect modifier vs first-class Decision). Status: not yet implemented.
+Reformulated the architectural model from a flat decision pipeline to three independent layers. Updated four pages and created one new page:
+
+- `wiki/effect-virtualization.md` *(new)* — Layer 3 concept page: effect modes (EXECUTE / SIMULATE / PROXY / SANITIZE / TRUNCATE / DEFER), security motivation (no boundary-learning signal), relationship to sandboxing, current implementation state
+- `wiki/absent-deny.md` — reframed ABSENT as Ontology Layer (Layer 1), DENY as Policy Layer (Layer 2); replaced old "Open question" section with reference to `[[effect-virtualization]]`
+- `wiki/architecture.md` — pipeline updated to show three layers; Executor dispatch section expanded with effect mode breakdown
+- `wiki/policy-engine.md` — noted that rules 1–2 are ontological (Layer 1) and rules 3–4 are policy (Layer 2)
+- `wiki/index.md` — added `[[effect-virtualization]]` to concept page table
 
 ---
 
