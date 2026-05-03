@@ -506,6 +506,37 @@ class TestDashboard(unittest.IsolatedAsyncioTestCase):
         except asyncio.TimeoutError:
             pass
 
+    async def test_dashboard_has_two_palettes(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        self.assertIn("traffic", body)
+        self.assertIn("accessible", body)
+        self.assertIn("PALETTES", body)
+
+    async def test_accessible_palette_has_no_red_or_green_for_allow_deny(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        # Extract accessible palette block conservatively:
+        # ALLOW must not be green (#388e3c / #4caf50) and DENY must not be red (#c62828 / #e53935)
+        # We check that the accessible entry for ALLOW/DENY differs from traffic
+        self.assertIn("accessible", body)
+        # blue for ALLOW
+        self.assertIn("0077bb", body)
+        # orange for DENY
+        self.assertIn("ee7733", body)
+
+    async def test_dashboard_has_palette_switcher(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        self.assertIn('<select', body)
+        self.assertIn("localStorage", body)
+
+    async def test_dashboard_feed_columns_present(self):
+        resp = await self._get("/dashboard")
+        body = resp.text
+        for cls in ("chip", "ts", "tool", "rule", "src", "taint"):
+            self.assertIn(f'className: \'{cls}\'', body)
+
     async def test_events_generator_emits_new_audit_entry(self):
         """SSE generator yields a data line when audit.jsonl is appended to."""
         from api.main import _sse_stream

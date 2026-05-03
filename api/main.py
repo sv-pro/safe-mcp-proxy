@@ -98,40 +98,130 @@ _DASHBOARD_HTML = """\
 <title>safe-mcp-proxy — dashboard</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
-  body { font-family: monospace; background: #0d0d0d; color: #c8c8c8;
-         margin: 0; padding: 16px 20px; font-size: 13px; }
-  header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px; }
-  h1 { font-size: 0.9rem; color: #555; margin: 0; letter-spacing: 0.08em; }
+  body  { font-family: monospace; background: #0d0d0d; color: #c8c8c8;
+          margin: 0; padding: 16px 20px; font-size: 13px; }
+  header { display: flex; align-items: center; gap: 14px;
+           margin-bottom: 12px; flex-wrap: wrap; }
+  h1    { font-size: 0.85rem; color: #555; margin: 0; letter-spacing: 0.08em; flex-shrink: 0; }
   #status { font-size: 0.75rem; color: #444; }
-  #status.ok { color: #4caf50; }
-  #status.err { color: #e53935; }
+  #status.ok  { color: #4caf50; }
+  #status.err { color: #bb4444; }
+  select { margin-left: auto; background: #161616; color: #777;
+           border: 1px solid #2e2e2e; font-family: monospace; font-size: 0.75rem;
+           padding: 3px 8px; cursor: pointer; border-radius: 3px; }
   #feed { list-style: none; padding: 0; margin: 0; }
-  #feed li { padding: 3px 8px; border-left: 3px solid #2a2a2a;
-             margin-bottom: 2px; color: #888; white-space: pre; overflow: hidden;
-             text-overflow: ellipsis; }
+  #feed li { display: grid;
+             grid-template-columns: 76px 84px minmax(80px,1fr) minmax(120px,2fr) 72px 18px;
+             gap: 8px; align-items: center;
+             padding: 3px 6px; margin-bottom: 2px;
+             border-left: 3px solid var(--row-accent, #222); }
+  #feed li:hover { background: #111; }
+  .chip { display: inline-block; padding: 1px 6px; border-radius: 3px;
+          font-size: 0.7rem; font-weight: bold; text-align: center;
+          white-space: nowrap; }
+  .ts   { color: #555; font-size: 0.72rem; }
+  .tool { color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rule { color: #666; font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .src  { color: #555; font-size: 0.72rem; }
+  .taint { font-size: 0.85rem; text-align: center; }
 </style>
 </head>
 <body>
 <header>
   <h1>safe-mcp-proxy / audit dashboard</h1>
   <span id="status">connecting…</span>
+  <select id="pal" title="Color palette" aria-label="Color palette">
+    <option value="traffic">palette: traffic</option>
+    <option value="accessible">palette: accessible</option>
+  </select>
 </header>
 <ul id="feed"></ul>
 <script>
-  const status = document.getElementById('status');
-  const feed   = document.getElementById('feed');
-  const MAX    = 200;
+const PALETTES = {
+  traffic: {
+    ALLOW:    { bg: '#388e3c', fg: '#fff' },
+    DENY:     { bg: '#c62828', fg: '#fff' },
+    ABSENT:   { bg: '#424242', fg: '#aaa' },
+    ASK:      { bg: '#e65100', fg: '#fff' },
+    SIMULATE: { bg: '#1565c0', fg: '#fff' },
+  },
+  accessible: {
+    ALLOW:    { bg: '#0077bb', fg: '#fff' },
+    DENY:     { bg: '#ee7733', fg: '#000' },
+    ABSENT:   { bg: '#555555', fg: '#ccc' },
+    ASK:      { bg: '#aa3377', fg: '#fff' },
+    SIMULATE: { bg: '#009988', fg: '#000' },
+  },
+};
 
-  const es = new EventSource('/events');
-  es.onopen  = () => { status.textContent = 'live'; status.className = 'ok'; };
-  es.onerror = () => { status.textContent = 'disconnected'; status.className = 'err'; };
-  es.onmessage = (e) => {
-    console.log('audit:', e.data);
-    const li = document.createElement('li');
-    li.textContent = e.data;
-    feed.prepend(li);
-    if (feed.children.length > MAX) feed.lastElementChild.remove();
-  };
+const MAX = 200;
+let palette = localStorage.getItem('smp-palette') || 'traffic';
+
+const statusEl = document.getElementById('status');
+const feed     = document.getElementById('feed');
+const palSel   = document.getElementById('pal');
+palSel.value   = palette;
+
+function colors(decision) {
+  return (PALETTES[palette] || PALETTES.traffic)[decision]
+      || { bg: '#333', fg: '#aaa' };
+}
+
+function applyChip(chip) {
+  const c = colors(chip.dataset.decision);
+  chip.style.background = c.bg;
+  chip.style.color       = c.fg;
+}
+
+function repaintChips() {
+  feed.querySelectorAll('.chip').forEach(applyChip);
+  feed.querySelectorAll('li').forEach(li => {
+    const c = colors(li.dataset.decision);
+    li.style.setProperty('--row-accent', c.bg + '66');
+  });
+}
+
+palSel.addEventListener('change', () => {
+  palette = palSel.value;
+  localStorage.setItem('smp-palette', palette);
+  repaintChips();
+});
+
+function fmtTs(iso) {
+  try { return new Date(iso).toLocaleTimeString(); } catch { return iso || ''; }
+}
+
+function addRow(e) {
+  const dec = e.decision || 'UNKNOWN';
+  const c   = colors(dec);
+
+  const li = document.createElement('li');
+  li.dataset.decision = dec;
+  li.style.setProperty('--row-accent', c.bg + '66');
+
+  const ts   = Object.assign(document.createElement('span'), { className: 'ts',   textContent: fmtTs(e.timestamp) });
+  const chip = Object.assign(document.createElement('span'), { className: 'chip', textContent: dec });
+  chip.dataset.decision     = dec;
+  chip.style.background     = c.bg;
+  chip.style.color          = c.fg;
+  const tool  = Object.assign(document.createElement('span'), { className: 'tool',  textContent: e.tool || '—', title: e.tool || '' });
+  const rule  = Object.assign(document.createElement('span'), { className: 'rule',  textContent: e.rule || '', title: e.rule || '' });
+  const src   = Object.assign(document.createElement('span'), { className: 'src',   textContent: e.source_channel || '' });
+  const taint = Object.assign(document.createElement('span'), { className: 'taint', textContent: e.taint ? '⚠' : '' });
+  if (e.taint) taint.style.color = c.bg;
+
+  li.append(ts, chip, tool, rule, src, taint);
+  feed.prepend(li);
+  if (feed.children.length > MAX) feed.lastElementChild.remove();
+}
+
+const es = new EventSource('/events');
+es.onopen    = () => { statusEl.textContent = 'live'; statusEl.className = 'ok'; };
+es.onerror   = () => { statusEl.textContent = 'disconnected'; statusEl.className = 'err'; };
+es.onmessage = (ev) => {
+  try { addRow(JSON.parse(ev.data)); }
+  catch { console.warn('bad SSE payload:', ev.data); }
+};
 </script>
 </body>
 </html>
