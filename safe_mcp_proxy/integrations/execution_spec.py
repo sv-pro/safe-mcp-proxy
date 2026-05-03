@@ -15,7 +15,7 @@ class ExecutionSpec:
     Sits between IntentIR mapping and execution routing (Issue #93).
 
     Fields:
-        decision  — ALLOW / DENY / ABSENT / ASK
+        decision  — ALLOW / DENY / ABSENT / ASK / SIMULATE
         rule      — the specific rule that produced the decision
         intent    — the resolved IntentIR this spec was built from
         provenance — taint / source / mode context that influenced the decision

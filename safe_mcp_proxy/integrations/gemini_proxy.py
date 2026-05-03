@@ -9,6 +9,7 @@ from safe_mcp_proxy.integrations.gemini_policy_gate import GeminiPolicyGate
 from safe_mcp_proxy.integrations.gemini_trace import GeminiTraceLogger
 from safe_mcp_proxy.integrations.intent_ir import IntentIRError, IntentMapper
 from safe_mcp_proxy.provenance import Provenance
+from safe_mcp_proxy.simulate import simulate_external_action
 
 _ABSENCE_MESSAGE = "Action does not exist in this world"
 
@@ -23,6 +24,7 @@ class GeminiProxy:
         executor.execute()          →  result + audit log  (ALLOW / ASK)
         executor.execute()          →  ABSENT result + audit log  (allowlist miss)
         short-circuit               →  DENY response (logged via record_denial)
+        short-circuit               →  SIMULATE response (logged via record_simulation)
     """
 
     def __init__(
@@ -129,6 +131,32 @@ class GeminiProxy:
                 "message": f"Action blocked by policy: {spec.rule}",
                 "result": None,
             }
+            return GeminiAdapter.format_response(tool_call.tool_name, result)
+
+        if spec.decision == Decision.SIMULATE:
+            self._executor.record_simulation(
+                tool_name=intent.action,
+                rule=spec.rule,
+                source_channel=provenance.source_channel,
+                taint=provenance.tainted,
+            )
+            result = {
+                "decision": Decision.SIMULATE.value,
+                "rule": spec.rule,
+                "simulated": True,
+                "result": simulate_external_action(),
+            }
+            if self._trace:
+                self._trace.record(
+                    stage="execution",
+                    tool=intent.action,
+                    taint=provenance.tainted,
+                    source_channel=source,
+                    world_id=world_id,
+                    decision=Decision.SIMULATE.value,
+                    rule=spec.rule,
+                    simulated=True,
+                )
             return GeminiAdapter.format_response(tool_call.tool_name, result)
 
         # ABSENT (allowlist miss), ALLOW, ASK: delegate to executor.
