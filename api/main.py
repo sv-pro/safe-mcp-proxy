@@ -19,6 +19,7 @@ from safe_mcp_proxy.integrations.gemini_proxy import GeminiProxy
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.trace_store import TraceStore
+from safe_mcp_proxy.world_controller import WorldController, WorldNotFoundError
 
 
 class CompareRequest(BaseModel):
@@ -334,6 +335,8 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     app = FastAPI(title="safe-mcp-proxy API")
     app.state.trace_store = _build_trace_store(resolved_base_dir)
     app.state.executor = executor or build_executor(resolved_base_dir)
+    # Expose the WorldController directly on app.state so switch endpoints can use it.
+    app.state.world_controller = getattr(app.state.executor, "world_controller", None)
     app.state.gemini_proxy = GeminiProxy(app.state.executor)
 
     app.add_middleware(
@@ -490,15 +493,56 @@ def create_app(base_dir: Optional[Path] = None, executor: Optional[Executor] = N
     @app.get("/worlds/current")
     async def worlds_current() -> dict:
         """Return active world_id and its exposed tool surface."""
-        tools = [
-            {
-                "name": t.name,
-                "capability": t.capability,
-                "side_effect_type": t.side_effect_type,
-            }
-            for t in app.state.executor.registry.list_exposed()
-        ]
-        return {"world_id": app.state.executor.world_id, "tools": tools}
+        wc: Optional[WorldController] = app.state.world_controller
+        if wc is not None:
+            tool_list = wc.list_tools()
+            wid = wc.current_id()
+        else:
+            tool_list = [
+                {"name": t.name, "capability": t.capability, "side_effect_type": t.side_effect_type}
+                for t in app.state.executor.registry.list_exposed()
+            ]
+            wid = app.state.executor.world_id
+        return {"world_id": wid, "tools": tool_list}
+
+    # ------------------------------------------------------------------
+    # Dynamic world switching (EPIC dynamic-world-switching)
+    # ------------------------------------------------------------------
+
+    def _write_world_switch_event(diff: dict) -> None:
+        """Append a WORLD_SWITCH event to audit.jsonl."""
+        import json as _json
+        from datetime import datetime, timezone
+        audit_path = resolved_base_dir / "safe_mcp_proxy" / "logs" / "audit.jsonl"
+        audit_path.parent.mkdir(parents=True, exist_ok=True)
+        event = {
+            "event": "WORLD_SWITCH",
+            "diff": diff,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        with audit_path.open("a", encoding="utf-8") as fh:
+            fh.write(_json.dumps(event, sort_keys=True) + "\n")
+
+    @app.post("/world/switch")
+    async def world_switch(world_id: str = Query(...), reason: str = Query(default="")) -> dict:
+        """Switch the active world and return a diff of appeared/vanished tools."""
+        wc: Optional[WorldController] = app.state.world_controller
+        if wc is None:
+            raise HTTPException(status_code=501, detail="WorldController not available")
+        try:
+            diff = wc.switch(world_id, reason=reason)
+        except WorldNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc))
+        _write_world_switch_event(diff)
+        return diff
+
+    @app.get("/world/current")
+    async def world_current() -> dict:
+        """Return the active world_id and the full switch history."""
+        wc: Optional[WorldController] = app.state.world_controller
+        if wc is None:
+            return {"world_id": app.state.executor.world_id, "history": []}
+        return {"world_id": wc.current_id(), "history": wc.history}
 
     # ------------------------------------------------------------------
     # Approval endpoints (DS7.1)

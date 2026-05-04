@@ -7,35 +7,20 @@ from typing import Optional, Union
 import yaml
 
 from safe_mcp_proxy.approval_store import ApprovalStore
-from safe_mcp_proxy.compiler import compile_world_manifest
+from safe_mcp_proxy.compiler import compile_world_manifest, resolve_manifest_path
 from safe_mcp_proxy.execution_mode import ExecutionMode
 from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.opa_engine import OPAPolicyEngine
 from safe_mcp_proxy.policy_engine import PolicyEngine
 from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.registry import ToolRegistry
+from safe_mcp_proxy.world_controller import WorldController
 
 
 def _load_simulation_flag(policy_path: Path) -> bool:
     with policy_path.open("r", encoding="utf-8") as handle:
         cfg = yaml.safe_load(handle) or {}
     return bool(cfg.get("simulation", {}).get("external_side_effects", False))
-
-
-def _resolve_manifest_path(base_dir: Path, world_id: Optional[str]) -> Path:
-    if world_id is None:
-        return base_dir / "world_manifest.yaml"
-
-    candidates = [
-        base_dir / "safe_mcp_proxy" / "config" / "worlds" / f"{world_id}.yaml",
-        base_dir / "worlds" / f"{world_id}.yaml",
-    ]
-    for manifest_path in candidates:
-        if manifest_path.exists():
-            return manifest_path
-
-    searched = ", ".join(str(path) for path in candidates)
-    raise FileNotFoundError(f"World manifest not found for world_id={world_id!r}. Searched: {searched}")
 
 
 def _build_policy_engine(
@@ -64,14 +49,20 @@ def build_executor(
     world_id: Optional[str] = None,
     engine: Optional[str] = None,
 ) -> Executor:
-    manifest_path = _resolve_manifest_path(base_dir, world_id)
+    # Build WorldController as the live world pointer.
+    controller = WorldController(initial_world_id=world_id or "", base_dir=base_dir)
+
+    # Also compile once to derive policy_version and the engine override.
+    manifest_path = resolve_manifest_path(base_dir, world_id)
     manifest_tables = compile_world_manifest(str(manifest_path))
     policy_version = hashlib.sha256(manifest_path.read_bytes()).hexdigest()[:8]
+
+    # Bootstrap registry/policy from the initial world so the Executor can
+    # function even if world_controller is bypassed (e.g. tests, replay fallback).
     registry = ToolRegistry.with_mock_tools(
         allowlist=manifest_tables["allowlist"],
         capability_defs=manifest_tables.get("capability_definitions"),
     )
-    # CLI --engine flag overrides the manifest's policy_engine key; default is "python"
     resolved_engine = engine if engine is not None else manifest_tables.get("policy_engine", "python")
     policy_engine = _build_policy_engine(manifest_tables, resolved_engine, base_dir)
     simulate_external = _load_simulation_flag(base_dir / "safe_mcp_proxy" / "config" / "policy.yaml")
@@ -83,6 +74,8 @@ def build_executor(
         approval_store=ApprovalStore(),
         world_id=manifest_tables.get("world_id", ""),
         policy_version=policy_version,
+        world_controller=controller,
+        base_dir=base_dir,
     )
 
 
