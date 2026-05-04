@@ -34,6 +34,20 @@ class UpstreamConnector:
         self._session = await self._stack.enter_async_context(ClientSession(read, write))
         await self._session.initialize()
 
+
+    async def list_tools(self) -> list[dict[str, Any]]:
+        if self._session is None:
+            raise RuntimeError("UpstreamConnector not connected — call connect() first")
+        result = await self._session.list_tools()
+        tools: list[dict[str, Any]] = []
+        for tool in result.tools:
+            tools.append({
+                "name": tool.name,
+                "description": tool.description,
+                "inputSchema": tool.inputSchema,
+            })
+        return tools
+
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if self._session is None:
             raise RuntimeError("UpstreamConnector not connected — call connect() first")
