@@ -1,0 +1,12 @@
+[
+  {"id": "C001", "name": "Acme Corp", "email": "billing@acme.com", "plan": "enterprise", "credit_card_last4": "4521", "contract_value": 120000},
+  {"id": "C002", "name": "Jane Doe", "email": "jane@smallbiz.io", "plan": "smb", "credit_card_last4": "8834", "contract_value": 4800},
+  {"id": "C003", "name": "Pinnacle Health", "email": "it@pinnacle.health", "plan": "enterprise", "credit_card_last4": "2291", "contract_value": 85000},
+  {"id": "C004", "name": "Orbit SaaS", "email": "admin@orbitsaas.com", "plan": "growth", "credit_card_last4": "7743", "contract_value": 24000},
+  {"id": "C005", "name": "Marco Polo Logistics", "email": "ops@marcopolo.io", "plan": "enterprise", "credit_card_last4": "9912", "contract_value": 200000},
+  {"id": "C006", "name": "Quiet Moon Studios", "email": "hello@quietmoon.co", "plan": "smb", "credit_card_last4": "3367", "contract_value": 3600},
+  {"id": "C007", "name": "Vertex Capital", "email": "security@vertexcap.com", "plan": "enterprise", "credit_card_last4": "1158", "contract_value": 350000},
+  {"id": "C008", "name": "Tandem Robotics", "email": "cto@tandemrobotics.com", "plan": "growth", "credit_card_last4": "6629", "contract_value": 42000},
+  {"id": "C009", "name": "BlueSky Analytics", "email": "data@bluesky.ai", "plan": "growth", "credit_card_last4": "5501", "contract_value": 18000},
+  {"id": "C010", "name": "Clara Patel", "email": "clara@freelance.dev", "plan": "smb", "credit_card_last4": "0044", "contract_value": 1200}
+]

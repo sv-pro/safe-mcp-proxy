@@ -1,0 +1,26 @@
+world_id: zombieagent_default
+
+allowed_tools:
+  - read_ticket
+  - read_customers
+  - send_email
+  - http_post
+  - add_ticket_note
+
+capabilities:
+  read_ticket:
+    allowed: true
+  read_customers:
+    allowed: true
+  send_email:
+    allowed: true
+  http_post:
+    allowed: true
+  add_ticket_note:
+    allowed: true
+
+taint_rules:
+  - tainted_external: deny
+
+side_effects:
+  external: restricted
