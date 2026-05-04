@@ -30,6 +30,7 @@ Requires:
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -249,11 +250,16 @@ def _ok(msg: str) -> None:
     console.print(f"  [green]{msg}[/green]")
 
 
+def _pause(step: bool) -> None:
+    if step:
+        console.input("  [dim]  press Enter to continue…[/dim]")
+
+
 # ---------------------------------------------------------------------------
 # Demo driver
 # ---------------------------------------------------------------------------
 
-def run_demo() -> None:
+def run_demo(step: bool = False) -> None:
     console.print()
     console.print(Rule("[bold cyan]safe-mcp-proxy  ·  ZombieAgent Taint Demo[/bold cyan]", style="cyan"))
     console.print()
@@ -313,6 +319,7 @@ def run_demo() -> None:
     )
     console.print()
     _warn("Injection detected in body: [SYSTEM OVERRIDE]")
+    _pause(step)
     _step("Agent obeys injection → calling read_customers, then exfiltrating…")
     console.print()
 
@@ -347,6 +354,7 @@ def run_demo() -> None:
     console.print("  [bold red]0 bytes exfiltrated.[/bold red]")
     console.print("  [dim]Audit entry written.[/dim]")
     console.print()
+    _pause(step)
 
     # Step 4: alternate exfil via send_email — also DENY
     call(
@@ -382,6 +390,7 @@ def run_demo() -> None:
     diff_table.add_row("[red]vanished[/red]", "[red]" + ", ".join(vanished) + "[/red]" if vanished else "[dim](none)[/dim]")
     console.print(diff_table)
     console.print()
+    _pause(step)
 
     _step("Re-running attack in lockdown world…")
     console.print()
@@ -446,4 +455,7 @@ def run_demo() -> None:
 
 
 if __name__ == "__main__":
-    run_demo()
+    parser = argparse.ArgumentParser(description="ZombieAgent Taint-Tracking Demo")
+    parser.add_argument("--step", action="store_true", help="Pause at key points for narration")
+    args = parser.parse_args()
+    run_demo(step=args.step)
