@@ -1,9 +1,34 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Union
 
 import yaml
 
 from safe_mcp_proxy.capability_dsl import parse_capability_definitions
+
+
+def resolve_manifest_path(base_dir: Path, world_id: Optional[str]) -> Path:
+    """Resolve the filesystem path for a world manifest.
+
+    None / empty string → root world_manifest.yaml (default world).
+    Named world_id → searched in safe_mcp_proxy/config/worlds/ then worlds/.
+    Raises FileNotFoundError when no matching file is found.
+    """
+    if not world_id:
+        return base_dir / "world_manifest.yaml"
+
+    candidates = [
+        base_dir / "safe_mcp_proxy" / "config" / "worlds" / f"{world_id}.yaml",
+        base_dir / "worlds" / f"{world_id}.yaml",
+    ]
+    for path in candidates:
+        if path.exists():
+            return path
+
+    searched = ", ".join(str(p) for p in candidates)
+    raise FileNotFoundError(
+        f"World manifest not found for world_id={world_id!r}. Searched: {searched}"
+    )
 
 
 @dataclass
