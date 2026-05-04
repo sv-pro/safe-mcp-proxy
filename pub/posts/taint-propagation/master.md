@@ -89,7 +89,7 @@ effects — actions that send data outside the system — are blocked when taint
 ## Running the demo
 
 ```bash
-python -m safe_mcp_proxy.examples.prompt_injection
+python -m demos.core.prompt_injection
 ```
 
 This invokes `send_email` with `source="web"` — simulating an agent that read a web
@@ -131,6 +131,6 @@ denied at rule 4. Without it, the call executes.
 
 - [Repository](https://github.com/sv-pro/safe-mcp-proxy)
 - `safe_mcp_proxy/provenance.py` — implementation
-- `safe_mcp_proxy/examples/prompt_injection.py` — demo
+- `demos/core/prompt_injection.py` — demo
 - `attacks/email_injection.yaml` — formalized attack scenario
 - `wiki/provenance-taint.md` — concept page

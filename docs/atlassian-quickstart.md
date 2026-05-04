@@ -38,7 +38,7 @@ Expected output (stub mode — no upstream required):
 Run the full attack-and-block scenario as a self-contained script:
 
 ```bash
-python -m safe_mcp_proxy.examples.atlassian_demo
+python -m demos.integrations.atlassian.demo
 ```
 
 **PATH A — no proxy:** the agent reads raw Confluence content (with

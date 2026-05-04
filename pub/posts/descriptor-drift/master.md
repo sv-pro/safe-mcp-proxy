@@ -54,7 +54,7 @@ the live schema to the stored hash.
 ## Running the demo
 
 ```bash
-python -m safe_mcp_proxy.examples.poisoned_descriptor
+python -m demos.core.poisoned_descriptor
 ```
 
 The demo:
@@ -105,6 +105,6 @@ detection.
 
 - [Repository](https://github.com/sv-pro/safe-mcp-proxy)
 - `safe_mcp_proxy/descriptor.py` — implementation
-- `safe_mcp_proxy/examples/poisoned_descriptor.py` — demo
+- `demos/core/poisoned_descriptor.py` — demo
 - `attacks/tool_chain.yaml` + `attacks/tool_chain.md` — formalized attack scenario
 - `wiki/descriptor-drift.md` — concept page

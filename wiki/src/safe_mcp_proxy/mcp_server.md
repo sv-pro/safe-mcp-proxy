@@ -50,7 +50,7 @@ All calls arrive with `Provenance.from_source("cli")` — the transport boundary
 ## Used by
 
 - Claude Code — via `.mcp.json` project config (auto-discovered)
-- [[src/safe_mcp_proxy/examples/claude_code_demo]] — integration demo
+- `demos/integrations/claude_code/demo.py` — integration demo
 - `tests/test_mcp_server.py` — unit and integration tests
 
 ## See also

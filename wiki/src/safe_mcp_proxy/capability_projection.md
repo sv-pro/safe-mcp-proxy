@@ -50,7 +50,7 @@ Background mode is strictly more restrictive than interactive mode.
 ## Used by
 
 - [[src/safe_mcp_proxy/executor]] — `list_tools()` method
-- EPIC 10 demo: `examples/safe_skills_demo/` (planned)
+- EPIC 10 demo: `demos/safe_skills/`
 
 ## See also
 

@@ -34,17 +34,17 @@ python -m safe_mcp_proxy.mcp_server --world default --upstream python -m safe_mc
 # Test upstream MCP server (standalone)
 python -m safe_mcp_proxy.mcp_test_server
 
-# Run built-in demo scenarios
-python -m safe_mcp_proxy.examples.claude_code_demo
-python -m safe_mcp_proxy.examples.benign_flow
-python -m safe_mcp_proxy.examples.prompt_injection
-python -m safe_mcp_proxy.examples.poisoned_descriptor
-python -m safe_mcp_proxy.examples.absent_tool_case
-python -m safe_mcp_proxy.examples.ask_modes
-python -m safe_mcp_proxy.examples.atlassian_demo
-python -m safe_mcp_proxy.examples.deterministic_replay
-python -m safe_mcp_proxy.examples.gemini_demo
-python -m safe_mcp_proxy.examples.dashboard_demo
+# Run built-in demo scenarios (canonical paths)
+python -m demos.integrations.claude_code.demo
+python -m demos.core.benign_flow
+python -m demos.core.prompt_injection
+python -m demos.core.poisoned_descriptor
+python -m demos.core.absent_tool_case
+python -m demos.core.ask_modes
+python -m demos.integrations.atlassian.demo
+python -m demos.core.deterministic_replay
+python -m demos.integrations.gemini.demo
+python -m demos.product.dashboard.demo
 
 # Atlassian trace CLI
 python -m safe_mcp_proxy.atlassian.cli list
@@ -188,6 +188,9 @@ A demonstration framework that runs attack scenarios against an unprotected base
 | `mcpzero/proxy/proxy.py` | Proxy adapter for MCPZero runner |
 | `mcpzero/demo.py` | CLI entry point: `--scenario NAME`, `--no-color`, `--output DIR` |
 
+Canonical human-facing demo docs live in `demos/README.md`; old
+`safe_mcp_proxy.examples.*` commands are compatibility wrappers.
+
 ### Attack corpus (`attacks/`)
 
 YAML/JSON attack scenarios loaded by `attacks/loader.py`:
@@ -198,6 +201,8 @@ YAML/JSON attack scenarios loaded by `attacks/loader.py`:
 - `attacks/schema.yaml` — scenario schema definition
 
 Valid scenario types: `email_injection`, `tool_chain`, `mcp_poison`. Valid source channels: `cli`, `email`, `web`, `tool_output`.
+
+`attacks/` is shared demo/test data, not a runnable demo folder.
 
 ### REST API (`api/main.py`)
 

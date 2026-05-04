@@ -12,5 +12,5 @@ The policy engine enforces this with strict ordering: ABSENT checks run before D
 
 The difference sounds subtle. The security implications are not.
 
-→ Run the demo: python -m safe_mcp_proxy.examples.absent_tool_case
+→ Run the demo: python -m demos.core.absent_tool_case
 → Code and docs: https://github.com/sv-pro/safe-mcp-proxy

@@ -101,4 +101,4 @@ Real Tools / APIs
 | `safe_mcp_proxy/integrations/session_binder.py` | agent_id → world_id → Executor binding |
 | `safe_mcp_proxy/integrations/gemini_trace.py` | Append-only 5-stage JSONL trace |
 | `worlds/gemini_demo.yaml` | Restricted demo world (EPIC 8 demo) |
-| `safe_mcp_proxy/examples/gemini_demo.py` | Runnable architectural difference proof |
+| `demos/integrations/gemini/demo.py` | Runnable architectural difference proof |

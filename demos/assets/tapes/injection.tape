@@ -1,6 +1,6 @@
 # VHS tape — prompt injection → DENY
-# Generate: vhs docs/demo/injection.tape
-Output docs/demo/injection.gif
+# Generate: vhs demos/assets/tapes/injection.tape
+Output demos/assets/injection.gif
 
 Set FontSize 14
 Set Width 80
@@ -9,7 +9,7 @@ Set Theme "Dracula"
 Set Padding 12
 
 Sleep 500ms
-Type "python -m safe_mcp_proxy.examples.prompt_injection"
+Type "python -m demos.core.prompt_injection"
 Sleep 300ms
 Enter
 Sleep 2s

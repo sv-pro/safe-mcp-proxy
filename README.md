@@ -125,14 +125,14 @@ Multiple worlds are supported via `safe_mcp_proxy/config/worlds/` (with legacy f
 
 **Prompt injection → DENY** — a request arriving from a tainted channel (`web`) that targets a tool with an external side effect is blocked before execution:
 
-![injection → DENY](docs/demo/injection.gif)
+![injection → DENY](demos/assets/injection.gif)
 
 **Absent tool → "does not exist"** — a tool not listed in the world manifest is invisible; the agent receives no denial, just absence:
 
-![absent tool](docs/demo/absent.gif)
+![absent tool](demos/assets/absent.gif)
 
-> GIFs are generated from VHS tape files in `docs/demo/`.
-> To regenerate: install [VHS](https://github.com/charmbracelet/vhs) and run `bash docs/demo/generate_gifs.sh`.
+> GIFs are generated from VHS tape files in `demos/assets/tapes/`.
+> To regenerate: install [VHS](https://github.com/charmbracelet/vhs) and run `bash demos/assets/generate_gifs.sh`.
 
 ## Quick start
 
@@ -143,14 +143,17 @@ are listed in `requirements.txt`.
 pip install -r requirements.txt
 ```
 
-Run the four demo scenarios:
+Run the four core demo scenarios:
 
 ```bash
-python -m safe_mcp_proxy.examples.benign_flow
-python -m safe_mcp_proxy.examples.prompt_injection
-python -m safe_mcp_proxy.examples.poisoned_descriptor
-python -m safe_mcp_proxy.examples.absent_tool_case
+python -m demos.core.benign_flow
+python -m demos.core.prompt_injection
+python -m demos.core.poisoned_descriptor
+python -m demos.core.absent_tool_case
 ```
+
+See [demos/README.md](demos/README.md) for the full demo catalog. Legacy
+commands under `safe_mcp_proxy.examples` still work as wrappers.
 
 Or call the CLI entrypoint directly:
 
@@ -341,8 +344,9 @@ data_flow_rules:
     rule: no_raw_confluence_to_jira
 ```
 
-See [docs/atlassian-quickstart.md](docs/atlassian-quickstart.md) for a
-guided 5-minute demo of the full attack-and-block scenario.
+See [docs/atlassian-quickstart.md](docs/atlassian-quickstart.md) and
+[demos/integrations/README.md](demos/integrations/README.md) for the full
+attack-and-block scenario.
 
 ## Adding a new tool
 
@@ -365,13 +369,17 @@ safe_mcp_proxy/
   simulate.py       External call stub for tests and demos
   config/
     policy.yaml     Simulation flag (external_side_effects: true/false)
-  examples/
-    benign_flow.py
-    prompt_injection.py
-    poisoned_descriptor.py
-    absent_tool_case.py
+  examples/         Compatibility wrappers; canonical demos live in demos/
   logs/             gitignored — runtime output only
     audit.jsonl     (created on first run; seeded from seeds/demo.jsonl by the API)
+demos/
+  README.md         Demo catalog
+  core/             Minimal policy-path demos
+  integrations/     Claude Code, Gemini, Atlassian demos
+  product/          Dashboard demo and launcher
+  narratives/       ZombieAgent narrative demo
+  safe_skills/      Skills supply-chain/capability projection demo
+  mcpzero/          MCPZero launcher wrapper and notebook assets
 seeds/
   demo.jsonl        Curated demo audit entries (committed; used as API seed data)
 worlds/

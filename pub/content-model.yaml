@@ -10,7 +10,7 @@ pillars:
     primary_code:
       - safe_mcp_proxy/registry.py
       - world_manifest.yaml
-      - safe_mcp_proxy/examples/absent_tool_case.py
+      - demos/core/absent_tool_case.py
 
   - id: P2
     name: "Absence Over Denial"
@@ -33,7 +33,7 @@ pillars:
     primary_code:
       - safe_mcp_proxy/provenance.py
       - wiki/provenance-taint.md
-      - safe_mcp_proxy/examples/prompt_injection.py
+      - demos/core/prompt_injection.py
 
   - id: P5
     name: "Supply-Chain for Capabilities"
@@ -87,7 +87,7 @@ posts:
     draws_from:
       - pub/posts/virtualize-tool-reality/master.md
     produces:
-      - demo: safe_mcp_proxy/examples/absent_tool_case.py
+      - demo: demos/core/absent_tool_case.py
 
   - slug: absent-deny
     series: S1
@@ -99,7 +99,7 @@ posts:
       - wiki/absent-deny.md
       - safe_mcp_proxy/policy_engine.py
     produces:
-      - demo: safe_mcp_proxy/examples/absent_tool_case.py
+      - demo: demos/core/absent_tool_case.py
       - wiki: wiki/absent-deny.md
 
   - slug: world-manifest
@@ -147,10 +147,10 @@ posts:
     draws_from:
       - wiki/provenance-taint.md
       - safe_mcp_proxy/provenance.py
-      - safe_mcp_proxy/examples/prompt_injection.py
+      - demos/core/prompt_injection.py
       - attacks/email_injection.yaml
     produces:
-      - demo: safe_mcp_proxy/examples/prompt_injection.py
+      - demo: demos/core/prompt_injection.py
       - attack: attacks/email_injection.yaml
 
   - slug: descriptor-drift
@@ -162,10 +162,10 @@ posts:
     draws_from:
       - wiki/descriptor-drift.md
       - safe_mcp_proxy/descriptor.py
-      - safe_mcp_proxy/examples/poisoned_descriptor.py
+      - demos/core/poisoned_descriptor.py
       - attacks/tool_chain.yaml
     produces:
-      - demo: safe_mcp_proxy/examples/poisoned_descriptor.py
+      - demo: demos/core/poisoned_descriptor.py
       - attack: attacks/tool_chain.yaml
       - attack_narrative: attacks/tool_chain.md
 
@@ -189,11 +189,11 @@ posts:
     draws_from:
       - docs/safe_skills_projection.md
       - safe_mcp_proxy/capability_projection.py
-      - examples/safe_skills_demo/run_with_proxy.py
-      - examples/safe_skills_demo/run_without_proxy.py
-      - examples/safe_skills_demo/world_manifest.yaml
+      - demos/safe_skills/run_with_proxy.py
+      - demos/safe_skills/run_without_proxy.py
+      - demos/safe_skills/world_manifest.yaml
     produces:
-      - demo: examples/safe_skills_demo/
+      - demo: demos/safe_skills/
 
   - slug: mcpzero-demo
     series: S3
@@ -253,8 +253,8 @@ content_graph:
         - safe_mcp_proxy/descriptor.py
         - wiki/provenance-taint.md
         - wiki/descriptor-drift.md
-        - safe_mcp_proxy/examples/prompt_injection.py
-        - safe_mcp_proxy/examples/poisoned_descriptor.py
+        - demos/core/prompt_injection.py
+        - demos/core/poisoned_descriptor.py
 
     - id: C
       name: Architecture

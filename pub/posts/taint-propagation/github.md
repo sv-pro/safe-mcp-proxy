@@ -32,7 +32,7 @@ Read operations (`read_file`) are allowed from tainted sources. External side ef
 ## Demo
 
 ```bash
-python -m safe_mcp_proxy.examples.prompt_injection
+python -m demos.core.prompt_injection
 # → DENY / tainted_external_side_effect
 ```
 

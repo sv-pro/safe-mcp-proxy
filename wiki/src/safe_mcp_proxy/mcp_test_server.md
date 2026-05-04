@@ -33,7 +33,7 @@ Run standalone: `python -m safe_mcp_proxy.mcp_test_server`
 
 - [[src/safe_mcp_proxy/mcp_upstream]] — spawned as subprocess by `UpstreamConnector`
 - `tests/test_mcp_server.py` — `TestMCPTestServer` and `TestUpstreamConnector`
-- [[src/safe_mcp_proxy/examples/claude_code_demo]] — upstream forwarding demo
+- `demos/integrations/claude_code/demo.py` — upstream forwarding demo
 
 ## See also
 

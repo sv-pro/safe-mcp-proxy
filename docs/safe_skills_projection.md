@@ -197,7 +197,7 @@ It pins every audit entry to an exact policy snapshot.
 
 ## Demo walkthrough
 
-The demo at `examples/safe_skills_demo/` runs the same scenario with and without the proxy.
+The demo at `demos/safe_skills/` runs the same scenario with and without the proxy.
 
 ### Setup
 
@@ -325,7 +325,7 @@ Safe MCP Proxy answers: "what capabilities are you allowed to use, right now, in
 ## See also
 
 - `world_manifest.yaml` — root policy surface
-- `examples/safe_skills_demo/` — runnable demo
+- `demos/safe_skills/` — runnable demo
 - `safe_mcp_proxy/skill_registry.py` — skill import without auto-exposure
 - `safe_mcp_proxy/capability_projection.py` — deterministic projection engine
 - `safe_mcp_proxy/executor.py` — `execute_skill()` guard and `list_tools()` logging

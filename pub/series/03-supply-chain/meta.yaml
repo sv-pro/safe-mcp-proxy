@@ -39,8 +39,8 @@ key_concepts:
 
 output_artifacts:
   - docs/safe_skills_projection.md
-  - examples/safe_skills_demo/run_with_proxy.py vs run_without_proxy.py
-  - examples/safe_skills_demo/world_manifest.yaml
+  - demos/safe_skills/run_with_proxy.py vs run_without_proxy.py
+  - demos/safe_skills/world_manifest.yaml
   - mcpzero/ full pipeline
   - attacks/mcpzero_demo.yaml
 

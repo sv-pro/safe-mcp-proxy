@@ -156,7 +156,7 @@ class TestDashboardIntegration(unittest.IsolatedAsyncioTestCase):
 class TestDashboardDemo(unittest.TestCase):
     def test_dashboard_demo_exits_zero(self):
         result = subprocess.run(
-            [sys.executable, "-m", "safe_mcp_proxy.examples.dashboard_demo"],
+            [sys.executable, "-m", "demos.product.dashboard.demo"],
             capture_output=True,
             text=True,
             cwd=str(BASE_DIR),
@@ -170,7 +170,7 @@ class TestDashboardDemo(unittest.TestCase):
 
     def test_dashboard_demo_outputs_all_sections(self):
         result = subprocess.run(
-            [sys.executable, "-m", "safe_mcp_proxy.examples.dashboard_demo"],
+            [sys.executable, "-m", "demos.product.dashboard.demo"],
             capture_output=True, text=True,
             cwd=str(BASE_DIR), timeout=30,
         )

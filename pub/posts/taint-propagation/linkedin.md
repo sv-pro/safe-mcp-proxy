@@ -8,6 +8,6 @@ The policy rule is simple: tainted request + external side effect = DENY. An age
 
 Read operations are not affected. The agent can still read files from tainted contexts. Only actions that send data outside the system are blocked when the origin is untrusted.
 
-Try it: python -m safe_mcp_proxy.examples.prompt_injection → DENY / tainted_external_side_effect
+Try it: python -m demos.core.prompt_injection → DENY / tainted_external_side_effect
 
 → https://github.com/sv-pro/safe-mcp-proxy

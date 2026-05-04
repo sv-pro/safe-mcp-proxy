@@ -58,7 +58,7 @@ The `safe-mcp-proxy-with-upstream` entry in `.mcp.json` already has this wired.
 ### 5. Run the demo
 
 ```bash
-python -m safe_mcp_proxy.examples.claude_code_demo
+python -m demos.integrations.claude_code.demo
 ```
 
 Expected output:

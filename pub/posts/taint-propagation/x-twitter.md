@@ -8,7 +8,7 @@
 
 5/ Read operations still work. The agent can read files from tainted contexts. Only actions that send data outside the system are blocked when the origin is untrusted.
 
-6/ Run it: python -m safe_mcp_proxy.examples.prompt_injection → DENY / tainted_external_side_effect
+6/ Run it: python -m demos.core.prompt_injection → DENY / tainted_external_side_effect
 
 7/ The attack corpus at attacks/email_injection.yaml formalizes the scenario. With the proxy: blocked. Without: exfiltrated.
 

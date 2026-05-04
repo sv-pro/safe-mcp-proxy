@@ -155,5 +155,5 @@ controls that prevent policy-compliant calls from doing more than intended.
 - [Repository](https://github.com/sv-pro/safe-mcp-proxy)
 - `docs/safe_skills_projection.md` — full positioning document
 - `safe_mcp_proxy/capability_projection.py` — projection engine
-- `examples/safe_skills_demo/` — the baseline vs protected demo
+- `demos/safe_skills/` — the baseline vs protected demo
 - `safe_mcp_proxy/skill_registry.py` — skill import without auto-exposure

@@ -8,7 +8,7 @@
 
 5/ The hash also appears in every audit entry. You can verify which schema was active at any past decision, and detect drift between entries.
 
-6/ Demo: python -m safe_mcp_proxy.examples.poisoned_descriptor → DENY / descriptor_drift
+6/ Demo: python -m demos.core.poisoned_descriptor → DENY / descriptor_drift
 
 7/ The attack scenario is formalized in attacks/tool_chain.yaml. With the proxy: blocked at first call after mutation. Without: silent schema compromise.
 

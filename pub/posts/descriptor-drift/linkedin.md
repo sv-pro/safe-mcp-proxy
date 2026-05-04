@@ -8,6 +8,6 @@ The hash uses normalized JSON (sorted keys, no extra whitespace) so the same sch
 
 The hash also appears in every audit log entry. This means you can verify which schema was active at any past decision, detect when a schema changed between two entries, and replay past decisions to check if drift would have changed the outcome.
 
-Run the demo: python -m safe_mcp_proxy.examples.poisoned_descriptor → DENY / descriptor_drift
+Run the demo: python -m demos.core.poisoned_descriptor → DENY / descriptor_drift
 
 → https://github.com/sv-pro/safe-mcp-proxy

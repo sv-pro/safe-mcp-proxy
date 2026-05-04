@@ -10,6 +10,6 @@
 
 6/ You cannot be manipulated into calling something you've never seen.
 
-7/ Run it yourself: python -m safe_mcp_proxy.examples.absent_tool_case → ABSENT / tool_not_allowlisted
+7/ Run it yourself: python -m demos.core.absent_tool_case → ABSENT / tool_not_allowlisted
 
 8/ Full code + docs: https://github.com/sv-pro/safe-mcp-proxy

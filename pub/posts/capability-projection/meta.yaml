@@ -19,8 +19,8 @@ tags:
 draws_from:
   - docs/safe_skills_projection.md
   - safe_mcp_proxy/capability_projection.py
-  - examples/safe_skills_demo/run_with_proxy.py
-  - examples/safe_skills_demo/run_without_proxy.py
-  - examples/safe_skills_demo/world_manifest.yaml
+  - demos/safe_skills/run_with_proxy.py
+  - demos/safe_skills/run_without_proxy.py
+  - demos/safe_skills/world_manifest.yaml
 produces:
-  - demo: examples/safe_skills_demo/
+  - demo: demos/safe_skills/

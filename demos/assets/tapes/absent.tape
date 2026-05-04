@@ -1,6 +1,6 @@
 # VHS tape — absent tool → "Action does not exist in this world"
-# Generate: vhs docs/demo/absent.tape
-Output docs/demo/absent.gif
+# Generate: vhs demos/assets/tapes/absent.tape
+Output demos/assets/absent.gif
 
 Set FontSize 14
 Set Width 80
@@ -9,7 +9,7 @@ Set Theme "Dracula"
 Set Padding 12
 
 Sleep 500ms
-Type "python -m safe_mcp_proxy.examples.absent_tool_case"
+Type "python -m demos.core.absent_tool_case"
 Sleep 300ms
 Enter
 Sleep 2s

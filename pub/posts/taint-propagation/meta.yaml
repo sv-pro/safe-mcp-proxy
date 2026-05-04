@@ -19,8 +19,8 @@ tags:
 draws_from:
   - wiki/provenance-taint.md
   - safe_mcp_proxy/provenance.py
-  - safe_mcp_proxy/examples/prompt_injection.py
+  - demos/core/prompt_injection.py
   - attacks/email_injection.yaml
 produces:
-  - demo: safe_mcp_proxy/examples/prompt_injection.py
+  - demo: demos/core/prompt_injection.py
   - attack: attacks/email_injection.yaml

@@ -99,7 +99,7 @@ You cannot be manipulated into calling something you've never seen.
 ## Running the demo
 
 ```bash
-python -m safe_mcp_proxy.examples.absent_tool_case
+python -m demos.core.absent_tool_case
 ```
 
 This invokes `dangerous_exec` with a `cli` source (clean, not tainted). Even though
@@ -142,6 +142,6 @@ The three outcomes map to three distinct situations:
 
 - [Repository](https://github.com/sv-pro/safe-mcp-proxy)
 - `safe_mcp_proxy/policy_engine.py` — the 6-path decision logic
-- `safe_mcp_proxy/examples/absent_tool_case.py` — ABSENT demo
-- `safe_mcp_proxy/examples/prompt_injection.py` — DENY demo
+- `demos/core/absent_tool_case.py` — ABSENT demo
+- `demos/core/prompt_injection.py` — DENY demo
 - `wiki/absent-deny.md` — concept page

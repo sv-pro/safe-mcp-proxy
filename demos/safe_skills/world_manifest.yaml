@@ -9,7 +9,7 @@ world_id: safe-skills-demo
 skill_sources:
   mock_skills:
     type: local
-    path: examples/safe_skills_demo/mock_skills_repo
+    path: demos/safe_skills/mock_skills_repo
     trust_level: internal_mock
     import_mode: explicit_only
 

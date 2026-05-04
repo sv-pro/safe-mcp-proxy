@@ -82,7 +82,7 @@ Gemini Agent
 
 ## Demo Explanation
 
-`safe_mcp_proxy/examples/gemini_demo.py` proves the architectural difference:
+`demos/integrations/gemini/demo.py` proves the architectural difference:
 
 ```
 BASELINE (without Agent Hypervisor):
@@ -100,7 +100,7 @@ The block is deterministic and policy-driven, not model-driven.
 
 Run:
 ```bash
-python -m safe_mcp_proxy.examples.gemini_demo
+python -m demos.integrations.gemini.demo
 ```
 
 ## Configuration

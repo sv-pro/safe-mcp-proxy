@@ -52,7 +52,7 @@ Content-oriented catalog of all pages in this wiki.
 | Page | Description |
 |------|-------------|
 | [[src/safe_mcp_proxy/config/index]] | `config/` — `policy.yaml` and per-world YAML manifests |
-| [[src/safe_mcp_proxy/examples/index]] | `examples/` — standalone demo scripts |
+| [[src/safe_mcp_proxy/examples/index]] | `demos/` — standalone demo scripts and compatibility wrappers |
 | [[src/safe_mcp_proxy/scenarios/index]] | `scenarios/` — registered, runnable test scenarios |
 | [[src/safe_mcp_proxy/policies/index]] | `policies/` — OPA Rego policy and tests |
 | [[src/safe_mcp_proxy/atlassian/index]] | `atlassian/` — Atlassian MCP passthrough subpackage |

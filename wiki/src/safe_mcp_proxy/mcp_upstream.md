@@ -39,7 +39,7 @@ The connector is created once per server startup and reused across all ALLOW'd c
 
 - [[src/safe_mcp_proxy/mcp_server]] — ALLOW path in `_call_tool()`
 - `tests/test_mcp_server.py` — `TestUpstreamConnector`, `test_allow_with_upstream_uses_upstream_result`
-- [[src/safe_mcp_proxy/examples/claude_code_demo]] — upstream forwarding demo
+- `demos/integrations/claude_code/demo.py` — upstream forwarding demo
 
 ## See also
 

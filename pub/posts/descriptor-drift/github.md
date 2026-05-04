@@ -24,7 +24,7 @@ On every `execute()` call, `descriptor_hash_valid(live_schema, stored_hash)` is 
 ## Demo
 
 ```bash
-python -m safe_mcp_proxy.examples.poisoned_descriptor
+python -m demos.core.poisoned_descriptor
 # Mutates read_file schema, then invokes → DENY / descriptor_drift
 ```
 

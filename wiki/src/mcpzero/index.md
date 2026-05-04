@@ -18,7 +18,7 @@ python -m mcpzero.demo --output results/
 Interactive walkthrough:
 
 ```
-jupyter notebook docs/notebooks/mcpzero-demo-walkthrough.ipynb
+jupyter notebook demos/mcpzero/notebooks/walkthrough.ipynb
 ```
 
 ## Layout

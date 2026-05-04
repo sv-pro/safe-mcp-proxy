@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 echo "Generating injection.gif …"
-vhs docs/demo/injection.tape
+vhs demos/assets/tapes/injection.tape
 echo "Generating absent.gif …"
-vhs docs/demo/absent.tape
-echo "Done. GIFs written to docs/demo/"
+vhs demos/assets/tapes/absent.tape
+echo "Done. GIFs written to demos/assets/"

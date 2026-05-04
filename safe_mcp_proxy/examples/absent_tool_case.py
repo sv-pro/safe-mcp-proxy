@@ -1,11 +1,5 @@
-from pathlib import Path
-
-from safe_mcp_proxy.main import build_executor
-from safe_mcp_proxy.provenance import Provenance
+import runpy
 
 
 if __name__ == "__main__":
-    base_dir = Path(__file__).resolve().parents[2]
-    executor = build_executor(base_dir)
-    result = executor.execute("dangerous_exec", {"cmd": "rm -rf /"}, Provenance.from_source("cli"))
-    print(result)
+    runpy.run_module("demos.core.absent_tool_case", run_name="__main__")

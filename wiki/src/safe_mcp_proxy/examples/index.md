@@ -1,26 +1,26 @@
-# `safe_mcp_proxy/examples/`
+# `demos/core/`
 
 ## Role
 
-Standalone demo scripts. Each script builds a full executor and runs one representative scenario, printing the result to stdout.
+Standalone core demo scripts. Each script builds a full executor and runs one representative scenario, printing the result to stdout. `safe_mcp_proxy/examples/` now contains compatibility wrappers.
 
 ## Scripts
 
 | File | Scenario | Expected outcome |
 |------|----------|-----------------|
-| `benign_flow.py` | CLI reads a file | `ALLOW / default_allow` |
-| `prompt_injection.py` | Web-sourced request to send_email | `DENY / tainted_external_side_effect` |
-| `poisoned_descriptor.py` | Schema mutated before invocation | `DENY / descriptor_drift` |
-| `absent_tool_case.py` | Tool not in allowlist | `ABSENT / tool_not_allowlisted` |
-| `deterministic_replay.py` | Replay of a recorded audit entry | `matches: True` |
+| `demos/core/benign_flow.py` | CLI reads a file | `ALLOW / default_allow` |
+| `demos/core/prompt_injection.py` | Web-sourced request to send_email | `DENY / tainted_external_side_effect` |
+| `demos/core/poisoned_descriptor.py` | Schema mutated before invocation | `DENY / descriptor_drift` |
+| `demos/core/absent_tool_case.py` | Tool not in allowlist | `ABSENT / tool_not_allowlisted` |
+| `demos/core/deterministic_replay.py` | Replay of a recorded audit entry | `matches: True` |
 
 ## Running
 
 ```bash
-python -m safe_mcp_proxy.examples.benign_flow
-python -m safe_mcp_proxy.examples.prompt_injection
-python -m safe_mcp_proxy.examples.poisoned_descriptor
-python -m safe_mcp_proxy.examples.absent_tool_case
+python -m demos.core.benign_flow
+python -m demos.core.prompt_injection
+python -m demos.core.poisoned_descriptor
+python -m demos.core.absent_tool_case
 ```
 
 ## Difference from scenarios

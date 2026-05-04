@@ -19,9 +19,9 @@ tags:
 draws_from:
   - wiki/descriptor-drift.md
   - safe_mcp_proxy/descriptor.py
-  - safe_mcp_proxy/examples/poisoned_descriptor.py
+  - demos/core/poisoned_descriptor.py
   - attacks/tool_chain.yaml
 produces:
-  - demo: safe_mcp_proxy/examples/poisoned_descriptor.py
+  - demo: demos/core/poisoned_descriptor.py
   - attack: attacks/tool_chain.yaml
   - attack_narrative: attacks/tool_chain.md

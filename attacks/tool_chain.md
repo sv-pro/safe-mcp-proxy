@@ -90,7 +90,7 @@ steps. Once a chain starts from a tainted origin, it stays tainted.
   rather than `tool_output`. See `attacks/email_injection.yaml`.
   
 - **Web injection:** The agent reads a web page (tainted), which contains instructions
-  to call `send_email`. Same rule fires. See `safe_mcp_proxy/examples/prompt_injection.py`.
+  to call `send_email`. Same rule fires. See `demos/core/prompt_injection.py`.
 
 ---
 

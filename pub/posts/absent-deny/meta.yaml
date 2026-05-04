@@ -19,7 +19,7 @@ tags:
 draws_from:
   - wiki/absent-deny.md
   - safe_mcp_proxy/policy_engine.py
-  - safe_mcp_proxy/examples/absent_tool_case.py
+  - demos/core/absent_tool_case.py
 produces:
-  - demo: safe_mcp_proxy/examples/absent_tool_case.py
+  - demo: demos/core/absent_tool_case.py
   - wiki: wiki/absent-deny.md

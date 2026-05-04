@@ -43,10 +43,10 @@ ABSENT checks run before DENY checks. A tool not in the allowlist cannot trigger
 
 ```bash
 # ABSENT: tool not in allowlist — clean source, no mutation, still absent
-python -m safe_mcp_proxy.examples.absent_tool_case
+python -m demos.core.absent_tool_case
 
 # DENY: tool is visible but call is tainted
-python -m safe_mcp_proxy.examples.prompt_injection
+python -m demos.core.prompt_injection
 ```
 
 **See also:** [`wiki/absent-deny.md`](../../wiki/absent-deny.md) · [`policy_engine.py`](../../safe_mcp_proxy/policy_engine.py)

@@ -45,7 +45,7 @@ Skills are stored internally under a compound key `"{source_name}:{skill_name}"`
 
 ## Used by
 
-- EPIC 10 demo: `examples/safe_skills_demo/` (planned)
+- EPIC 10 demo: `demos/safe_skills/`
 - World manifest compiler extension (planned — [[src/safe_mcp_proxy/compiler]])
 
 ## See also

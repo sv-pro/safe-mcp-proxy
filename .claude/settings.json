@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m safe_mcp_proxy.examples.claude_code_demo)",
+      "Bash(python -m safe_mcp_proxy.examples.deterministic_replay)",
+      "Bash(python -m safe_mcp_proxy.examples.atlassian_demo)",
+      "Bash(python -m safe_mcp_proxy.examples.gemini_demo)",
+      "Bash(python -m safe_mcp_proxy.examples.dashboard_demo)",
+      "Bash(python demos/run_demo.py)"
+    ]
+  }
+}
