@@ -33,13 +33,13 @@ def _row(label: str, value) -> None:
 def _make_proxy(world_id=None, simulate=True):
     import hashlib
     from safe_mcp_proxy.approval_store import ApprovalStore
-    from safe_mcp_proxy.compiler import compile_world_manifest
+    from safe_mcp_proxy.compiler import compile_world_manifest, resolve_manifest_path
     from safe_mcp_proxy.executor import Executor
-    from safe_mcp_proxy.main import _build_policy_engine, _load_simulation_flag, _resolve_manifest_path
+    from safe_mcp_proxy.main import _build_policy_engine, _load_simulation_flag
     from safe_mcp_proxy.mcp_server import MCPProxyServer
     from safe_mcp_proxy.registry import ToolRegistry
 
-    manifest_path = _resolve_manifest_path(BASE_DIR, world_id)
+    manifest_path = resolve_manifest_path(BASE_DIR, world_id)
     manifest_tables = compile_world_manifest(str(manifest_path))
     policy_version = hashlib.sha256(manifest_path.read_bytes()).hexdigest()[:8]
     registry = ToolRegistry.with_mock_tools(
