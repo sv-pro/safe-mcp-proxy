@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "safe-proxy": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "safe_mcp_proxy/server.py",
+        "--policy",
+        "safe_mcp_proxy/config/jira_policy.yaml",
+        "--upstream",
+        "python",
+        "-m",
+        "safe_mcp_proxy.mcp_test_server"
+      ]
+    }
+  }
+}

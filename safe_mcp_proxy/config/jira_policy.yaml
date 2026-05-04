@@ -1,0 +1,11 @@
+mode: sprint_triage
+simulate: false
+
+jira:
+  allowed_jql: "assignee = currentUser() AND status = 'Open'"
+  allowed_actions:
+    - read_issue
+    - comment_issue
+  denied_actions:
+    - delete_issue
+    - transition_issue
