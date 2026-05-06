@@ -6,10 +6,10 @@ import unittest
 from pathlib import Path
 
 from safe_mcp_proxy.decision import Decision
-from safe_mcp_proxy.integrations.execution_spec import ExecutionSpec
-from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
-from safe_mcp_proxy.integrations.gemini_policy_gate import GeminiPolicyGate
-from safe_mcp_proxy.integrations.intent_ir import IntentMapper
+from safe_mcp_proxy.integrations.gemini.execution_spec import ExecutionSpec
+from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
+from safe_mcp_proxy.integrations.gemini.policy_gate import GeminiPolicyGate
+from safe_mcp_proxy.integrations.gemini.intent_ir import IntentMapper
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.provenance import Provenance
 
@@ -45,7 +45,7 @@ def _tool_call(name: str, args: dict | None = None):
 
 class ExecutionSpecTests(unittest.TestCase):
     def test_is_frozen(self):
-        from safe_mcp_proxy.integrations.intent_ir import IntentIR
+        from safe_mcp_proxy.integrations.gemini.intent_ir import IntentIR
         intent = IntentIR(
             action="read_file", parameters={},
             required_capabilities=["read_file"],
@@ -58,7 +58,7 @@ class ExecutionSpecTests(unittest.TestCase):
             spec.decision = Decision.DENY  # type: ignore[misc]
 
     def test_fields_accessible(self):
-        from safe_mcp_proxy.integrations.intent_ir import IntentIR
+        from safe_mcp_proxy.integrations.gemini.intent_ir import IntentIR
         intent = IntentIR(
             action="read_file", parameters={"path": "x"},
             required_capabilities=["read_file"],

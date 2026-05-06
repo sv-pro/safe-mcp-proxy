@@ -14,8 +14,8 @@ import safe_mcp_proxy.scenarios as _scenarios
 from safe_mcp_proxy.compiler import compile_world_manifest
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
-from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter, GeminiAdapterError
-from safe_mcp_proxy.integrations.gemini_proxy import GeminiProxy
+from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter, GeminiAdapterError
+from safe_mcp_proxy.integrations.gemini.proxy import GeminiProxy
 from safe_mcp_proxy.main import build_executor
 from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.trace_store import TraceStore

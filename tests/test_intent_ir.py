@@ -1,8 +1,8 @@
 """Tests for EPIC 8 Issue #90 — Intent IR Mapping (ToolCall → IntentIR)."""
 import unittest
 
-from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
-from safe_mcp_proxy.integrations.intent_ir import IntentIR, IntentIRError, IntentMapper
+from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
+from safe_mcp_proxy.integrations.gemini.intent_ir import IntentIR, IntentIRError, IntentMapper
 from safe_mcp_proxy.registry import ToolRegistry
 
 
@@ -117,7 +117,7 @@ class IntentMapperTests(unittest.TestCase):
 
     def test_empty_name_raises_intent_ir_error(self):
         # GeminiAdapter rejects empty name, but we test mapper directly
-        from safe_mcp_proxy.integrations.gemini_adapter import ToolCall
+        from safe_mcp_proxy.integrations.gemini.adapter import ToolCall
         tool_call = ToolCall(
             tool_name="ghost_tool",
             arguments={},

@@ -1,6 +1,6 @@
 import unittest
 
-from safe_mcp_proxy.integrations.gemini_adapter import (
+from safe_mcp_proxy.integrations.gemini.adapter import (
     GeminiAdapter,
     GeminiAdapterError,
     ToolCall,

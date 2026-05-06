@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
-from safe_mcp_proxy.integrations.gemini_adapter import ToolCall
+from safe_mcp_proxy.integrations.gemini.adapter import ToolCall
 from safe_mcp_proxy.registry import ToolRegistry
 
 

@@ -13,8 +13,8 @@ import textwrap
 import unittest
 from pathlib import Path
 
-from safe_mcp_proxy.integrations.gemini_proxy import GeminiProxy
-from safe_mcp_proxy.integrations.gemini_trace import GeminiTraceLogger
+from safe_mcp_proxy.integrations.gemini.proxy import GeminiProxy
+from safe_mcp_proxy.integrations.gemini.trace import GeminiTraceLogger
 from safe_mcp_proxy.main import build_executor
 
 
@@ -268,14 +268,14 @@ class TestSessionManifestBinder(unittest.TestCase):
         return req
 
     def test_explicit_agent_gets_correct_world(self):
-        from safe_mcp_proxy.integrations.session_binder import SessionManifestBinder
+        from safe_mcp_proxy.integrations.gemini.session_binder import SessionManifestBinder
 
         binder = SessionManifestBinder(
             base_dir=self._repo_root,
             agent_manifest_map={"agent-prod": "gemini_demo"},
             default_world_id="read_only",
         )
-        from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
+        from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
         tool_call = GeminiAdapter.parse(self._make_request(agent_id="agent-prod"))
         proxy, world_id = binder.bind(tool_call)
 
@@ -286,37 +286,37 @@ class TestSessionManifestBinder(unittest.TestCase):
         self.assertEqual(response["decision"], "ABSENT")
 
     def test_missing_agent_id_gets_default_world(self):
-        from safe_mcp_proxy.integrations.session_binder import SessionManifestBinder
+        from safe_mcp_proxy.integrations.gemini.session_binder import SessionManifestBinder
 
         binder = SessionManifestBinder(
             base_dir=self._repo_root,
             agent_manifest_map={"agent-prod": "gemini_demo"},
             default_world_id="read_only",
         )
-        from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
+        from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
         tool_call = GeminiAdapter.parse(self._make_request())  # no agent_id
         _, world_id = binder.bind(tool_call)
         self.assertEqual(world_id, "read_only")
 
     def test_unknown_agent_id_gets_default_world(self):
-        from safe_mcp_proxy.integrations.session_binder import SessionManifestBinder
+        from safe_mcp_proxy.integrations.gemini.session_binder import SessionManifestBinder
 
         binder = SessionManifestBinder(
             base_dir=self._repo_root,
             agent_manifest_map={"agent-prod": "gemini_demo"},
             default_world_id="read_only",
         )
-        from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
+        from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
         tool_call = GeminiAdapter.parse(self._make_request(agent_id="unknown-agent"))
         _, world_id = binder.bind(tool_call)
         self.assertEqual(world_id, "read_only")
 
     def test_default_world_is_restrictive(self):
         """Default fallback world (read_only) must not allow external side-effect tools."""
-        from safe_mcp_proxy.integrations.session_binder import SessionManifestBinder
+        from safe_mcp_proxy.integrations.gemini.session_binder import SessionManifestBinder
 
         binder = SessionManifestBinder(base_dir=self._repo_root)
-        from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
+        from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
         tool_call = GeminiAdapter.parse(self._make_request())
         proxy, world_id = binder.bind(tool_call)
 
@@ -328,7 +328,7 @@ class TestSessionManifestBinder(unittest.TestCase):
 
     def test_executor_cached_per_world(self):
         """Same world_id always returns the same executor instance."""
-        from safe_mcp_proxy.integrations.session_binder import SessionManifestBinder
+        from safe_mcp_proxy.integrations.gemini.session_binder import SessionManifestBinder
 
         binder = SessionManifestBinder(
             base_dir=self._repo_root,
@@ -340,7 +340,7 @@ class TestSessionManifestBinder(unittest.TestCase):
 
     def test_trace_includes_world_id_and_agent(self):
         """Trace entries carry world_id and agent_id for full auditability."""
-        from safe_mcp_proxy.integrations.session_binder import SessionManifestBinder
+        from safe_mcp_proxy.integrations.gemini.session_binder import SessionManifestBinder
 
         binder = SessionManifestBinder(
             base_dir=self._repo_root,
@@ -350,7 +350,7 @@ class TestSessionManifestBinder(unittest.TestCase):
         tmp_trace = Path(tempfile.mkdtemp()) / "trace.jsonl"
         trace = GeminiTraceLogger(tmp_trace)
 
-        from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
+        from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
         request = self._make_request(agent_id="agent-prod", session_id="sess-42")
         tool_call = GeminiAdapter.parse(request)
         proxy, _ = binder.bind(tool_call, trace_logger=trace)

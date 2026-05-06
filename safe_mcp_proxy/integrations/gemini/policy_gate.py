@@ -3,8 +3,8 @@ from __future__ import annotations
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.descriptor import descriptor_hash_valid
 from safe_mcp_proxy.executor import Executor
-from safe_mcp_proxy.integrations.execution_spec import ExecutionSpec
-from safe_mcp_proxy.integrations.intent_ir import IntentIR
+from safe_mcp_proxy.integrations.gemini.execution_spec import ExecutionSpec
+from safe_mcp_proxy.integrations.gemini.intent_ir import IntentIR
 from safe_mcp_proxy.provenance import Provenance
 
 

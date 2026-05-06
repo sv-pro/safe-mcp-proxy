@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 from safe_mcp_proxy.executor import Executor
-from safe_mcp_proxy.integrations.gemini_adapter import ToolCall
-from safe_mcp_proxy.integrations.gemini_proxy import GeminiProxy
-from safe_mcp_proxy.integrations.gemini_trace import GeminiTraceLogger
+from safe_mcp_proxy.integrations.gemini.adapter import ToolCall
+from safe_mcp_proxy.integrations.gemini.proxy import GeminiProxy
+from safe_mcp_proxy.integrations.gemini.trace import GeminiTraceLogger
 from safe_mcp_proxy.main import build_executor
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # The fallback world used when no explicit mapping is found.
 # Must be restrictive — a missing mapping must never grant more capability.

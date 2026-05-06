@@ -4,10 +4,10 @@ from typing import Optional
 
 from safe_mcp_proxy.decision import Decision
 from safe_mcp_proxy.executor import Executor
-from safe_mcp_proxy.integrations.gemini_adapter import GeminiAdapter
-from safe_mcp_proxy.integrations.gemini_policy_gate import GeminiPolicyGate
-from safe_mcp_proxy.integrations.gemini_trace import GeminiTraceLogger
-from safe_mcp_proxy.integrations.intent_ir import IntentIRError, IntentMapper
+from safe_mcp_proxy.integrations.gemini.adapter import GeminiAdapter
+from safe_mcp_proxy.integrations.gemini.policy_gate import GeminiPolicyGate
+from safe_mcp_proxy.integrations.gemini.trace import GeminiTraceLogger
+from safe_mcp_proxy.integrations.gemini.intent_ir import IntentIRError, IntentMapper
 from safe_mcp_proxy.provenance import Provenance
 from safe_mcp_proxy.simulate import simulate_external_action
 

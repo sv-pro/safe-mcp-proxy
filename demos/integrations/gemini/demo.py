@@ -28,8 +28,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from safe_mcp_proxy.integrations.gemini_proxy import GeminiProxy
-from safe_mcp_proxy.integrations.gemini_trace import GeminiTraceLogger
+from safe_mcp_proxy.integrations.gemini.proxy import GeminiProxy
+from safe_mcp_proxy.integrations.gemini.trace import GeminiTraceLogger
 from safe_mcp_proxy.main import build_executor
 
 _BASE_DIR = Path(__file__).resolve().parents[3]

@@ -6,7 +6,12 @@
       "Bash(python -m safe_mcp_proxy.examples.atlassian_demo)",
       "Bash(python -m safe_mcp_proxy.examples.gemini_demo)",
       "Bash(python -m safe_mcp_proxy.examples.dashboard_demo)",
-      "Bash(python demos/run_demo.py)"
+      "Bash(python demos/run_demo.py)",
+      "Bash(python -m unittest tests.test_gemini_adapter tests.test_intent_ir tests.test_gemini_policy_gate tests.test_gemini_proxy tests.test_gemini_simulate tests.test_gemini_absence tests.test_gemini_integration)",
+      "Bash(python -m unittest discover tests)",
+      "Bash(python -m unittest tests.test_mcp_server)",
+      "Bash(git stash *)",
+      "Bash(python -m unittest tests.test_mcp_server tests.test_trace_store)"
     ]
   }
 }

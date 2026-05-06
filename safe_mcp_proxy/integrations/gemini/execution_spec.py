@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from safe_mcp_proxy.decision import Decision
-from safe_mcp_proxy.integrations.intent_ir import IntentIR
+from safe_mcp_proxy.integrations.gemini.intent_ir import IntentIR
 from safe_mcp_proxy.provenance import Provenance
 
 
