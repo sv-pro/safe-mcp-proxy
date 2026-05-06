@@ -23,6 +23,7 @@ Content-oriented catalog of all pages in this wiki.
 | Page | Description |
 |------|-------------|
 | [[src/index]] | Project root — entry points, configuration files, world manifests |
+| [[src/demos/index]] | Canonical runnable demo tree |
 
 ### `safe_mcp_proxy/` package
 
@@ -52,7 +53,7 @@ Content-oriented catalog of all pages in this wiki.
 | Page | Description |
 |------|-------------|
 | [[src/safe_mcp_proxy/config/index]] | `config/` — `policy.yaml` and per-world YAML manifests |
-| [[src/safe_mcp_proxy/examples/index]] | `demos/` — standalone demo scripts and compatibility wrappers |
+| [[src/safe_mcp_proxy/examples/index]] | `safe_mcp_proxy/examples/` compatibility wrappers |
 | [[src/safe_mcp_proxy/scenarios/index]] | `scenarios/` — registered, runnable test scenarios |
 | [[src/safe_mcp_proxy/policies/index]] | `policies/` — OPA Rego policy and tests |
 | [[src/safe_mcp_proxy/atlassian/index]] | `atlassian/` — Atlassian MCP passthrough subpackage |
@@ -66,6 +67,19 @@ Content-oriented catalog of all pages in this wiki.
 | [[src/tests/index]] | Test suite overview |
 | [[src/attacks/index]] | Attack corpus — YAML/MD scenarios and loader for the MCPZero Demo (EPIC 11) |
 | [[src/mcpzero/index]] | MCPZero Demo package — baseline vs protected run pipeline, verdict, metrics |
+| [[src/demos/index]] | Demo catalog, canonical commands, and migrated demo assets |
+
+### `demos/`
+
+| Page | Description |
+|------|-------------|
+| [[src/demos/core]] | Minimal policy-path demo scripts |
+| [[src/demos/integrations]] | Claude Code, Gemini, and Atlassian integration demos |
+| [[src/demos/product]] | Dashboard demo and web launcher |
+| [[src/demos/narratives]] | ZombieAgent narrative demo |
+| [[src/demos/safe_skills]] | Safe Skills Projection demo |
+| [[src/demos/mcpzero]] | MCPZero wrapper and notebook assets |
+| [[src/demos/assets]] | VHS tapes and generated demo media |
 
 ## Meta Pages
 

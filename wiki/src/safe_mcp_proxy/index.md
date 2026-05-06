@@ -32,7 +32,7 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 | Package | Role |
 |---------|------|
 | [[src/safe_mcp_proxy/config/index]] | `policy.yaml` + per-world YAML manifests |
-| [[src/safe_mcp_proxy/examples/index]] | Standalone demo scripts and compatibility wrappers |
+| [[src/safe_mcp_proxy/examples/index]] | Compatibility wrappers for demos now stored under `demos/` |
 | [[src/safe_mcp_proxy/scenarios/index]] | Registered, runnable test scenarios |
 | [[src/safe_mcp_proxy/policies/index]] | OPA Rego policy files |
 | [[src/safe_mcp_proxy/atlassian/index]] | Atlassian MCP passthrough — policy, filter, flow, adapters, trace reader, CLI |
@@ -52,3 +52,4 @@ The core enforcement package. All policy logic, tool registry, provenance tracki
 - [[ask-approval]] — ASK decision lifecycle and approval workflow
 - [[audit-replay]] — audit log format and replay semantics
 - [[architecture]] — how these modules wire together
+- [[src/demos/index]] — canonical runnable demos

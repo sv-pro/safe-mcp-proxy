@@ -4,6 +4,21 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-05-05 — Demo tree synchronization
+
+- Added `wiki/src/demos/` source pages for the canonical demo tree:
+  `index`, `core`, `integrations`, `product`, `narratives`, `safe_skills`,
+  `mcpzero`, and `assets`.
+- Updated `wiki/src/index.md` and `wiki/index.md` so demos are represented as a
+  first-class top-level source tree rather than as `safe_mcp_proxy/examples/`.
+- Reframed `wiki/src/safe_mcp_proxy/examples/index.md` as compatibility
+  wrappers that delegate to `demos/`.
+- Updated MCPZero and attacks wiki pages to distinguish framework code and
+  shared attack corpus from runnable demo entry points.
+- Updated `wiki/meta.yaml` sync metadata for the demo refactor.
+
+---
+
 ## 2026-05-03 — EPIC 12 complete: real MCP server (Claude Code integration)
 
 Three new source pages for the MCP transport layer:

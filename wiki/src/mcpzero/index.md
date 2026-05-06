@@ -2,10 +2,13 @@
 
 ## Role
 
-Self-contained MCPZero Demo package (EPIC 11). Runs an attack scenario in two
-modes — baseline (direct tool access, attack succeeds) and protected (routed
-through Safe MCP Proxy, attack blocked deterministically) — and produces a
-side-by-side comparison with JSON traces, verdicts, and metrics.
+MCPZero framework package (EPIC 11). Runs an attack scenario in two modes —
+baseline (direct tool access, attack succeeds) and protected (routed through
+Safe MCP Proxy, attack blocked deterministically) — and produces a side-by-side
+comparison with JSON traces, verdicts, and metrics.
+
+Human-facing MCPZero demo wrappers and notebook assets live under
+[[src/demos/mcpzero]].
 
 ## Entry point
 
@@ -13,6 +16,7 @@ side-by-side comparison with JSON traces, verdicts, and metrics.
 python -m mcpzero.demo                          # run all scenarios
 python -m mcpzero.demo --scenario email_injection
 python -m mcpzero.demo --output results/
+python -m demos.mcpzero.demo                    # canonical demos-tree wrapper
 ```
 
 Interactive walkthrough:
@@ -25,7 +29,7 @@ jupyter notebook demos/mcpzero/notebooks/walkthrough.ipynb
 
 | Module / directory | Description |
 |--------------------|-------------|
-| `demo.py` | CLI entry point — runs all scenarios in both modes, prints comparison |
+| `demo.py` | Compatibility CLI entry point — runs all scenarios in both modes, prints comparison |
 | `agent/runner.py` | [[src/mcpzero/agent]] — `BaselineAgent`, direct tool execution, no policy |
 | `runner/interface.py` | [[src/mcpzero/runner]] — `ScenarioRunner`, mode switch, observer wiring |
 | `proxy/proxy.py` | [[src/mcpzero/proxy]] — `SafeMCPProxy`, wraps executor with mcpzero_demo world |
@@ -67,6 +71,7 @@ attacks/            →  ScenarioRunner
 ## See also
 
 - [[src/attacks/index]] — attack corpus loaded by the runner
+- [[src/demos/mcpzero]] — demo wrapper and notebook assets
 - [[src/mcpzero/agent]] — BaselineAgent detail
 - [[src/mcpzero/runner]] — ScenarioRunner and mode switch
 - [[src/mcpzero/proxy]] — SafeMCPProxy detail

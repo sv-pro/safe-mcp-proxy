@@ -13,7 +13,7 @@ Test suite for the proxy pipeline, API layer, OPA engine, trace store, scenarios
 | `test_opa_engine.py` | `OPAPolicyEngine` subprocess and REST evaluators |
 | `test_trace_store.py` | `TraceStore` filtering and streaming |
 | `test_scenarios.py` | Named scenario registration and execution |
-| `test_run_demo.py` | `run_demo.py` smoke test |
+| `test_run_demo.py` | Top-level `run_demo.py` compatibility wrapper smoke test |
 | `test_attack_corpus.py` | Attack corpus loader and scenario validation |
 | `test_mcpzero.py` | MCPZero demo pipeline — baseline vs protected mode |
 | `test_capability_projection.py` | `CapabilityProjectionEngine` filtering rules |

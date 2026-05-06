@@ -2,9 +2,12 @@
 
 ## Role
 
-Attack corpus for the MCPZero Demo (EPIC 11). Contains structured attack scenario
-configs (YAML), raw adversarial documents (Markdown), and the Python loader that
-parses and validates them.
+Attack corpus for MCPZero, tests, and scenario APIs. Contains structured attack
+scenario configs (YAML/JSON), raw adversarial documents (Markdown), and the
+Python loader that parses and validates them.
+
+This is shared input data, not a runnable demo directory. Runnable demo entry
+points live under [[src/demos/index]].
 
 ## Layout
 
@@ -31,6 +34,7 @@ Two formats coexist:
 ## See also
 
 - [[src/attacks/loader]] — detailed symbol reference for the loader
+- [[src/demos/index]] — runnable demo catalog
 - [[provenance-taint]] — `source_channel` maps directly to taint classification
 - [[absent-deny]] — `expected.protected` values mirror ABSENT/DENY decisions
 - [[src/safe_mcp_proxy/scenarios/index]] — the existing Python-native scenario registry

@@ -12,13 +12,14 @@
 #   to see every commit that landed since the last sync, then update affected pages.
 
 last_update:
-  commit: "6e82b9c5cc9a383c3aa65b69fabee9614fe677bf"
-  timestamp: "2026-05-01T00:00:00Z"
+  commit: "3be0262c4004c193fcc70a249f4f6743765a1984"
+  timestamp: "2026-05-05T06:14:16Z"
   branch: "main"
-  updated_by: "claude-sonnet-4-6"
+  updated_by: "codex"
   coverage_note: >
-    Full audit against HEAD. Added wiki pages for safe_mcp_proxy/atlassian/ (9 pages),
-    safe_mcp_proxy/integrations/ (2 pages). Fixed policy_engine source page (5→6 rules,
-    approval_required constructor arg). Updated index.md, src/index.md,
-    src/safe_mcp_proxy/index.md, src/tests/index.md to reflect all modules present
-    in the codebase.
+    Synced wiki against the demo tree refactor in the working tree. Added
+    src/demos/ pages for core, integrations, product/dashboard, narratives,
+    safe_skills, mcpzero, and assets. Updated root/source indexes,
+    safe_mcp_proxy/examples wrapper docs, attacks corpus docs, MCPZero docs,
+    tests overview, and log.md to reflect that runnable demos now live under
+    demos/ while old entry points remain compatibility wrappers.
