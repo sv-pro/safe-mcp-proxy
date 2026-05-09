@@ -1,142 +1,117 @@
 """
-Safe MCP Proxy — policy-enforced MCP server for Claude Code and VS Code.
+Safe MCP Proxy — stdio JSON-RPC transport for Claude Code.
 
-Every tool call from the MCP client is routed through the executor's
-policy pipeline before being forwarded to the upstream MCP server.
+Handles MCP protocol (JSON-RPC 2.0 over stdio) without any external SDK.
+Every tool call is routed through the executor policy pipeline before execution.
 
 Decision mapping:
-  ALLOW  → forward to upstream (or return mock result if no upstream)
-  DENY   → MCP error with rule name
-  ABSENT → MCP error ("tool does not exist in this world")
-  ASK    → MCP error with approval token (INTERACTIVE) or DENY (BACKGROUND)
+  ALLOW  → {"content": [{"type": "text", "text": "<json result>"}]}
+  DENY   → {"isError": true, "content": [{"type": "text", "text": "<decision: rule>"}]}
+  ABSENT → {"isError": true, "content": [{"type": "text", "text": "<decision: rule>"}]}
+  ASK    → {"isError": true, "content": [{"type": "text", "text": "ASK: <rule>"}]}
 
 Usage:
-    python -m safe_mcp_proxy.mcp_server [--world WORLD_ID] [--upstream CMD...] [--mode interactive|background]
+    python -m safe_mcp_proxy.mcp_server [--world WORLD_ID] [--mode interactive|background]
 """
 import argparse
-import asyncio
 import json
+import sys
 from pathlib import Path
-from typing import Any
-
-import mcp.types as types
-from mcp import McpError
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-from mcp.types import INTERNAL_ERROR, ErrorData
 
 from safe_mcp_proxy.execution_mode import ExecutionMode
-from safe_mcp_proxy.executor import Executor
 from safe_mcp_proxy.main import build_executor
-from safe_mcp_proxy.mcp_upstream import UpstreamConnector
 from safe_mcp_proxy.provenance import Provenance
 
 _BASE_DIR = Path(__file__).resolve().parents[1]
+_SERVER_NAME = "safe-mcp-proxy"
+_SERVER_VERSION = "0.1.0"
 
 
-class MCPProxyServer:
-    """Policy-enforced MCP proxy server.
-
-    Wraps an Executor and optionally an UpstreamConnector.  The MCP SDK
-    Server instance is built once; list_tools and call_tool handlers delegate
-    to the public _list_tools / _call_tool methods so they are directly
-    testable without running the stdio transport.
-    """
-
-    def __init__(
-        self,
-        executor: Executor,
-        upstream: UpstreamConnector | None = None,
-        execution_mode: ExecutionMode = ExecutionMode.INTERACTIVE,
-    ):
-        self.executor = executor
-        self.upstream = upstream
-        self.execution_mode = execution_mode
-        self._server = self._build_sdk_server()
-
-    # ------------------------------------------------------------------
-    # Public, directly testable handlers
-    # ------------------------------------------------------------------
-
-    def _list_tools(self) -> list[types.Tool]:
-        return [
-            types.Tool(
-                name=t.name,
-                description=t.schema.get("description", t.name),
-                inputSchema=t.schema,
-            )
-            for t in self.executor.registry.list_exposed()
-        ]
-
-    async def _call_tool(self, name: str, arguments: dict[str, Any]) -> list[types.ContentBlock]:
-        provenance = Provenance.from_source("cli", execution_mode=self.execution_mode)
-        outcome = self.executor.execute(name, arguments or {}, provenance)
-        decision = outcome["decision"]
-        rule = outcome["rule"]
-
-        if decision == "ALLOW":
-            if self.upstream is not None:
-                raw = await self.upstream.call_tool(name, arguments or {})
-            else:
-                raw = outcome["result"]
-            return [types.TextContent(type="text", text=json.dumps(raw))]
-
-        raise McpError(ErrorData(code=INTERNAL_ERROR, message=f"{decision}: {rule}"))
-
-    # ------------------------------------------------------------------
-    # Transport
-    # ------------------------------------------------------------------
-
-    def _build_sdk_server(self) -> Server:
-        server = Server("safe-mcp-proxy")
-
-        @server.list_tools()
-        async def _handle_list_tools() -> list[types.Tool]:
-            return self._list_tools()
-
-        @server.call_tool()
-        async def _handle_call_tool(name: str, arguments: dict) -> list[types.ContentBlock]:
-            return await self._call_tool(name, arguments)
-
-        return server
-
-    async def run_stdio(self) -> None:
-        async with stdio_server() as (read, write):
-            await self._server.run(read, write, self._server.create_initialization_options())
+def _write(obj: dict) -> None:
+    sys.stdout.write(json.dumps(obj) + "\n")
+    sys.stdout.flush()
 
 
-# ------------------------------------------------------------------
-# CLI entry point
-# ------------------------------------------------------------------
+def _respond(req_id, result: dict) -> None:
+    _write({"jsonrpc": "2.0", "id": req_id, "result": result})
 
-async def _run(world_id: str | None, upstream_cmd: list[str] | None, execution_mode: ExecutionMode) -> None:
+
+def _error(req_id, code: int, message: str) -> None:
+    _write({"jsonrpc": "2.0", "id": req_id, "error": {"code": code, "message": message}})
+
+
+def run_stdio_server(
+    world_id: str | None = None,
+    execution_mode: ExecutionMode = ExecutionMode.INTERACTIVE,
+) -> None:
     executor = build_executor(_BASE_DIR, world_id=world_id)
 
-    upstream: UpstreamConnector | None = None
-    if upstream_cmd:
-        upstream = UpstreamConnector(upstream_cmd)
-        await upstream.connect()
+    for raw in sys.stdin:
+        raw = raw.strip()
+        if not raw:
+            continue
 
-    try:
-        server = MCPProxyServer(executor, upstream=upstream, execution_mode=execution_mode)
-        await server.run_stdio()
-    finally:
-        if upstream:
-            await upstream.disconnect()
+        try:
+            req = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            print(f"[mcp_server] malformed JSON: {exc}", file=sys.stderr, flush=True)
+            continue
+
+        req_id = req.get("id")
+        method = req.get("method", "")
+        params = req.get("params") or {}
+
+        if method == "notifications/initialized":
+            # Notification — no response expected
+            continue
+
+        elif method == "initialize":
+            _respond(req_id, {
+                "protocolVersion": "2024-11-05",
+                "serverInfo": {"name": _SERVER_NAME, "version": _SERVER_VERSION},
+                "capabilities": {"tools": {}},
+            })
+
+        elif method == "tools/list":
+            tools = [
+                {
+                    "name": t.name,
+                    "description": t.schema.get("description", t.name),
+                    "inputSchema": t.schema,
+                }
+                for t in executor.registry.list_exposed()
+            ]
+            _respond(req_id, {"tools": tools})
+
+        elif method == "tools/call":
+            name = params.get("name", "")
+            arguments = params.get("arguments") or {}
+            provenance = Provenance.from_source("cli", execution_mode=execution_mode)
+            outcome = executor.execute(name, arguments, provenance)
+            decision = outcome["decision"]
+            rule = outcome["rule"]
+
+            if decision == "ALLOW":
+                _respond(req_id, {
+                    "content": [{"type": "text", "text": json.dumps(outcome.get("result", {}))}],
+                })
+            else:
+                _respond(req_id, {
+                    "isError": True,
+                    "content": [{"type": "text", "text": f"{decision}: {rule}"}],
+                })
+
+        else:
+            _error(req_id, -32601, f"Method not found: {method}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Safe MCP Proxy — policy-enforced MCP server")
-    parser.add_argument("--world", default=None, help="World ID (e.g. default, read_only, gemini_demo)")
-    parser.add_argument(
-        "--upstream", nargs="+", default=None,
-        help="Command to spawn upstream MCP server (e.g. python -m safe_mcp_proxy.mcp_test_server)",
-    )
+    parser = argparse.ArgumentParser(description="Safe MCP Proxy — stdio JSON-RPC transport")
+    parser.add_argument("--world", default=None, help="World ID (e.g. read_only, gemini_demo)")
     parser.add_argument("--mode", choices=["interactive", "background"], default="interactive")
     args = parser.parse_args()
-
-    execution_mode = ExecutionMode.INTERACTIVE if args.mode == "interactive" else ExecutionMode.BACKGROUND
-    asyncio.run(_run(args.world, args.upstream, execution_mode))
+    mode = ExecutionMode.INTERACTIVE if args.mode == "interactive" else ExecutionMode.BACKGROUND
+    run_stdio_server(world_id=args.world, execution_mode=mode)
 
 
 if __name__ == "__main__":

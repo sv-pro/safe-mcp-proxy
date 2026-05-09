@@ -249,7 +249,7 @@ class TestTraceStoreFilter(unittest.TestCase):
         for rec in records:
             self.assertIn(
                 rec.decision.value if isinstance(rec.decision, Decision) else rec.decision,
-                {"ALLOW", "DENY", "ABSENT", "SIMULATE", ""},
+                {"ALLOW", "DENY", "ABSENT", "SIMULATE", "ASK", ""},
             )
             self.assertEqual(rec.schema_version, SCHEMA_VERSION)
 
