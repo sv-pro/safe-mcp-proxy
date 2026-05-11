@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "default_decision": "absent",
+  "tools": [
+    {
+      "upstream_routing_key": "default",
+      "upstream_tool": "write_file",
+      "exposed_as": "write_tmp_note",
+      "decision": "allow",
+      "expose": {
+        "description": "Write a markdown note to /tmp/mcp-file-adapter-writes.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "description": "Filename without directory prefix."
+            },
+            "body": {
+              "type": "string",
+              "description": "Markdown content."
+            }
+          },
+          "required": ["filename", "body"],
+          "additionalProperties": false
+        }
+      },
+      "call": {
+        "args": {
+          "path": { "template": "/tmp/mcp-file-adapter-writes/{{filename}}.md" },
+          "content": { "from": "body" }
+        }
+      },
+      "constraints": [
+        { "kind": "path_within", "arg": "path", "base": "/tmp/mcp-file-adapter-writes" }
+      ]
+    }
+  ]
+}
