@@ -1,0 +1,21 @@
+{
+  "name": "mcp-adapter",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Declarative MCP proxy adapter — reshapes upstream tools via JSON manifest",
+  "main": "dist/adapter.js",
+  "bin": {
+    "mcp-adapter": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
