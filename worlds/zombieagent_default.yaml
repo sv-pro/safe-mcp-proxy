@@ -6,6 +6,7 @@ allowed_tools:
   - send_email
   - http_post
   - add_ticket_note
+  - write_memory
 
 capabilities:
   read_ticket:
@@ -17,6 +18,8 @@ capabilities:
   http_post:
     allowed: true
   add_ticket_note:
+    allowed: true
+  write_memory:
     allowed: true
 
 taint_rules:

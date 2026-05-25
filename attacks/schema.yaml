@@ -20,7 +20,9 @@
 
 name: string
 description: string
-type: string          # email_injection | tool_chain | mcp_poison
+type: string          # email_injection | tool_chain | mcp_poison | memory_poison | worm_propagation
+                      # memory_poison:    taint + persistent_write side_effect → tainted_persistent_write
+                      # worm_propagation: zombie agent spreads payload via send_email to contacts
 source_channel: string
 steps:
   - tool: string

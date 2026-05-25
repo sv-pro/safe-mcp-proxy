@@ -37,6 +37,8 @@ class PolicyEngine:
             return PolicyResult(decision=Decision.DENY, rule_hit="descriptor_drift")
         if taint and side_effect_type == "external":
             return PolicyResult(decision=Decision.DENY, rule_hit="tainted_external_side_effect")
+        if taint and side_effect_type == "persistent_write":
+            return PolicyResult(decision=Decision.DENY, rule_hit="tainted_persistent_write")
         if capability in self.approval_required:
             return PolicyResult(decision=Decision.ASK, rule_hit="approval_required")
         return PolicyResult(decision=Decision.ALLOW, rule_hit="default_allow")

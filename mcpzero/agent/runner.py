@@ -9,10 +9,15 @@ from typing import Any, Callable, Dict, List
 from attacks.loader import AttackScenario
 
 _DEFAULT_HANDLERS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
-    "read_file":  lambda p: {"ok": True, "content": f"mock-read:{p.get('path', '')}"},
-    "list_repo":  lambda p: {"ok": True, "files": ["README.md", "config.yaml", "sensitive_data.txt"]},
-    "send_email": lambda p: {"ok": True, "sent_to": p.get("to", "unknown@example.com")},
+    "read_file":      lambda p: {"ok": True, "content": f"mock-read:{p.get('path', '')}"},
+    "list_repo":      lambda p: {"ok": True, "files": ["README.md", "config.yaml", "sensitive_data.txt"]},
+    "send_email":     lambda p: {"ok": True, "sent_to": p.get("to", "unknown@example.com")},
     "dangerous_exec": lambda p: {"ok": True, "cmd": p.get("cmd", "")},
+    "read_ticket":    lambda p: {"ok": True, "ticket_id": p.get("ticket_id"), "body": "mock-ticket"},
+    "read_customers": lambda p: {"ok": True, "customers": [], "count": 0},
+    "http_post":      lambda p: {"ok": True, "status_code": 200, "url": p.get("url")},
+    "write_memory":   lambda p: {"ok": True, "key": p.get("key"), "stored": True},
+    "add_ticket_note": lambda p: {"ok": True, "ticket_id": p.get("ticket_id")},
 }
 
 

@@ -9,7 +9,7 @@ import yaml
 
 ATTACKS_DIR = Path(__file__).parent
 
-VALID_TYPES = {"email_injection", "tool_chain", "mcp_poison"}
+VALID_TYPES = {"email_injection", "tool_chain", "mcp_poison", "memory_poison", "worm_propagation"}
 VALID_CHANNELS = {"cli", "email", "web", "tool_output"}
 VALID_DECISIONS = {"ALLOW", "DENY", "ABSENT"}
 

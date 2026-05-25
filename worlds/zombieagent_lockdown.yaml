@@ -1,6 +1,6 @@
 world_id: zombieagent_lockdown
 
-# Emergency lockdown — read_customers, send_email, http_post removed from allowlist.
+# Emergency lockdown — read_customers, send_email, http_post, write_memory removed from allowlist.
 # These tools are ABSENT: they do not exist in this world.
 allowed_tools:
   - read_ticket
@@ -17,6 +17,8 @@ capabilities:
     allowed: false
   add_ticket_note:
     allowed: true
+  write_memory:
+    allowed: false
 
 taint_rules:
   - tainted_external: deny

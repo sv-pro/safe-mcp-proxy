@@ -136,6 +136,36 @@ class ToolRegistry:
                 "internal",
                 lambda payload: {"ok": True, "analysis": f"mock-analysis:{payload.get('incident_id', '0')}"},
             ),
+            (
+                "write_memory", "write_memory",
+                {"type": "object", "properties": {"key": {"type": "string"}, "value": {"type": "string"}}},
+                "persistent_write",
+                lambda payload: {"ok": True, "key": payload.get("key"), "stored": True},
+            ),
+            (
+                "read_ticket", "read_ticket",
+                {"type": "object", "properties": {"ticket_id": {"type": "string"}}},
+                "read",
+                lambda payload: {"ok": True, "ticket_id": payload.get("ticket_id"), "body": "mock-ticket"},
+            ),
+            (
+                "read_customers", "read_customers",
+                {"type": "object", "properties": {}},
+                "internal",
+                lambda payload: {"ok": True, "customers": [], "count": 0},
+            ),
+            (
+                "http_post", "http_post",
+                {"type": "object", "properties": {"url": {"type": "string"}, "payload": {"type": "string"}}},
+                "external",
+                lambda payload: {"ok": True, "status_code": 200, "url": payload.get("url")},
+            ),
+            (
+                "add_ticket_note", "add_ticket_note",
+                {"type": "object", "properties": {"ticket_id": {"type": "string"}, "note": {"type": "string"}}},
+                "internal",
+                lambda payload: {"ok": True, "ticket_id": payload.get("ticket_id")},
+            ),
         ]
 
         tools = [
