@@ -2,9 +2,9 @@ __pycache__/
 *.pyc
 .codex
 site/
-safe_mcp_proxy/logs/
-mcpzero/traces/*.jsonl
-demos/safe_skills/demo_audit.jsonl
+src/main/python/safe_mcp_proxy/logs/
+src/main/python/mcpzero/traces/*.jsonl
+src/main/python/demos/safe_skills/demo_audit.jsonl
 docs/**/*-Copy*.ipynb
 .python-version
 **/*-xhigh.md
