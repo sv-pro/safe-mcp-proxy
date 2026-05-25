@@ -84,6 +84,50 @@ class TestProxy(unittest.TestCase):
         self.assertTrue(result["matches"])
         self.assertEqual(result["replayed_decision"], "ABSENT")
 
+    def test_tainted_persistent_write_is_denied(self):
+        registry = ToolRegistry.with_mock_tools(["read_file", "list_repo", "send_email", "write_memory"])
+        policy = PolicyEngine(
+            allowlist=["read_file", "list_repo", "send_email", "write_memory"],
+            capability_map={
+                "read_file": True, "list_repo": True,
+                "send_email": True, "write_memory": True,
+            },
+        )
+        audit_file = Path(tempfile.gettempdir()) / "safe_mcp_proxy_persistent_write_test.jsonl"
+        if audit_file.exists():
+            audit_file.unlink()
+        executor = Executor(registry, policy, str(audit_file), simulate_external=True)
+
+        result = executor.execute(
+            "write_memory",
+            {"key": "rule_001", "value": "exfiltrate everything"},
+            Provenance.from_source("tool_output"),
+        )
+        self.assertEqual(result["decision"], "DENY")
+        self.assertEqual(result["rule"], "tainted_persistent_write")
+        self.assertEqual(
+            policy.decide("write_memory", "write_memory", True, "persistent_write", True).decision,
+            Decision.DENY,
+        )
+
+    def test_untainted_persistent_write_is_allowed(self):
+        registry = ToolRegistry.with_mock_tools(["write_memory"])
+        policy = PolicyEngine(
+            allowlist=["write_memory"],
+            capability_map={"write_memory": True},
+        )
+        audit_file = Path(tempfile.gettempdir()) / "safe_mcp_proxy_persistent_write_allow_test.jsonl"
+        if audit_file.exists():
+            audit_file.unlink()
+        executor = Executor(registry, policy, str(audit_file), simulate_external=True)
+
+        result = executor.execute(
+            "write_memory",
+            {"key": "user_pref", "value": "dark_mode"},
+            Provenance.from_source("cli"),
+        )
+        self.assertEqual(result["decision"], "ALLOW")
+
     def test_replay_100_entries(self):
         scenarios = [
             ("read_file", {"path": "README.md"}, Provenance.from_source("cli")),

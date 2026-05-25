@@ -6,7 +6,7 @@
 #   input.tool_name           string  — name of the requested tool
 #   input.capability          string  — capability key declared for the tool
 #   input.taint               boolean — true when request originates from an untrusted channel
-#   input.side_effect_type    string  — "external" | "internal" | "read" | "unknown"
+#   input.side_effect_type    string  — "external" | "internal" | "persistent_write" | "read" | "unknown"
 #   input.descriptor_hash_valid boolean — true when current schema hash matches the pinned hash
 #   input.allowlist           array   — tool names permitted in this world
 #   input.capability_map      object  — capability → boolean (allowed flag)
@@ -20,6 +20,7 @@
 #   2. ABSENT / capability_not_allowed
 #   3. DENY   / descriptor_drift
 #   4. DENY   / tainted_external_side_effect
+#   4b.DENY   / tainted_persistent_write
 #   5. ASK    / approval_required
 #   6. ALLOW  / default_allow
 
@@ -57,13 +58,23 @@ decision = {"decision": "DENY", "rule": "tainted_external_side_effect"} if {
 	input.side_effect_type == "external"
 }
 
+# Rule 4b: tainted source attempting a persistent memory write → DENY
+decision = {"decision": "DENY", "rule": "tainted_persistent_write"} if {
+	_tool_allowlisted
+	_capability_allowed
+	input.descriptor_hash_valid
+	input.taint == true
+	input.side_effect_type == "persistent_write"
+}
+
 # Rule 5: capability requires explicit approval → ASK
-# Only evaluated when all prior checks pass (not tainted+external).
+# Only evaluated when all prior checks pass (not tainted+external, not tainted+persistent_write).
 decision = {"decision": "ASK", "rule": "approval_required"} if {
 	_tool_allowlisted
 	_capability_allowed
 	input.descriptor_hash_valid
 	not _tainted_external
+	not _tainted_persistent_write
 	_capability_approval_required
 }
 
@@ -82,6 +93,11 @@ _capability_allowed if {
 _tainted_external if {
 	input.taint == true
 	input.side_effect_type == "external"
+}
+
+_tainted_persistent_write if {
+	input.taint == true
+	input.side_effect_type == "persistent_write"
 }
 
 _capability_approval_required if {
