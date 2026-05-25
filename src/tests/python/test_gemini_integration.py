@@ -168,7 +168,7 @@ class TestGeminiDemoWorld(unittest.TestCase):
     """Issue #96 — gemini_demo world manifest loads; send_email is ABSENT."""
 
     def setUp(self):
-        self._repo_root = Path(__file__).resolve().parents[1]
+        self._repo_root = Path(__file__).resolve().parents[3] / "src" / "main" / "python"
         cfg = self._repo_root / "safe_mcp_proxy" / "config"
         policy_path = cfg / "policy.yaml"
         if not policy_path.exists():
@@ -220,7 +220,7 @@ class TestGeminiDemoScenario(unittest.TestCase):
     """Issue #97 — demo scenario: same prompt, different outcome."""
 
     def setUp(self):
-        self._repo_root = Path(__file__).resolve().parents[1]
+        self._repo_root = Path(__file__).resolve().parents[3] / "src" / "main" / "python"
         policy_path = self._repo_root / "safe_mcp_proxy" / "config" / "policy.yaml"
         if not policy_path.exists():
             self.skipTest("policy.yaml not found")
@@ -248,7 +248,7 @@ class TestSessionManifestBinder(unittest.TestCase):
     """Issue #94 — agent_id / session_id → World Manifest binding."""
 
     def setUp(self):
-        self._repo_root = Path(__file__).resolve().parents[1]
+        self._repo_root = Path(__file__).resolve().parents[3] / "src" / "main" / "python"
         policy_path = self._repo_root / "safe_mcp_proxy" / "config" / "policy.yaml"
         if not policy_path.exists():
             self.skipTest("policy.yaml not found")

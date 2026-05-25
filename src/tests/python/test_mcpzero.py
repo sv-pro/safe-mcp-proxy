@@ -133,7 +133,7 @@ class TestScenarioRunner(unittest.TestCase):
 # I8 — Tool Surface Inventory
 # ---------------------------------------------------------------------------
 class TestToolGraph(unittest.TestCase):
-    TOOL_GRAPH = Path(__file__).parent.parent / "mcpzero" / "tools" / "tool_graph.yaml"
+    TOOL_GRAPH = Path(__file__).resolve().parents[3] / "src" / "main" / "python" / "mcpzero" / "tools" / "tool_graph.yaml"
 
     def _tools(self):
         import yaml

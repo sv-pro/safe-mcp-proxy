@@ -220,7 +220,7 @@ class TestPassthroughFlowTracking(unittest.TestCase):
         self.assertNotIn("_debug", resp.get("result", {}))
 
     def test_real_manifest_data_flow_rules_loaded(self):
-        manifest_path = Path(__file__).resolve().parents[1] / "manifests" / "atlassian_mvp.yaml"
+        manifest_path = Path(__file__).resolve().parents[3] / "manifests" / "atlassian_mvp.yaml"
         engine = ManifestPolicyEngine.from_yaml(manifest_path)
         fc = FlowContext()
         fc.tag_output("confluence_get_page", was_abstracted=False)

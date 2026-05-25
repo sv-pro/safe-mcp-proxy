@@ -185,7 +185,7 @@ class TestPassthroughSafeAbstraction(unittest.TestCase):
 class TestManifestConsistency(unittest.TestCase):
     def _load_manifest(self):
         import yaml
-        path = Path(__file__).resolve().parents[1] / "manifests" / "atlassian_mvp.yaml"
+        path = Path(__file__).resolve().parents[3] / "manifests" / "atlassian_mvp.yaml"
         with path.open(encoding="utf-8") as f:
             return yaml.safe_load(f)
 

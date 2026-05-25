@@ -20,7 +20,7 @@ from pathlib import Path
 
 import httpx
 
-BASE_DIR = Path(__file__).resolve().parents[1]
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 
 def _build_test_app(world_yaml: str | None = None):

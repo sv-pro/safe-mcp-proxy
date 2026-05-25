@@ -10,7 +10,7 @@ import sys
 import unittest
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[1]
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 
 def _spawn(world: str | None = None, mode: str = "interactive") -> subprocess.Popen:

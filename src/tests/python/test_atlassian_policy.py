@@ -124,7 +124,7 @@ class TestManifestPolicyEngine(unittest.TestCase):
             path.unlink()
 
     def test_from_yaml_loads_real_atlassian_manifest(self):
-        manifest_path = Path(__file__).resolve().parents[1] / "manifests" / "atlassian_mvp.yaml"
+        manifest_path = Path(__file__).resolve().parents[3] / "manifests" / "atlassian_mvp.yaml"
         engine = ManifestPolicyEngine.from_yaml(manifest_path)
         self.assertEqual(
             engine.evaluate("jira_get_issue", {}, tainted=False).decision, "ALLOW"
@@ -215,7 +215,7 @@ class TestPassthroughPolicyEnforcement(unittest.TestCase):
 
     def test_config_from_env_manifest_path(self):
         manifest_path = str(
-            Path(__file__).resolve().parents[1] / "manifests" / "atlassian_mvp.yaml"
+            Path(__file__).resolve().parents[3] / "manifests" / "atlassian_mvp.yaml"
         )
         with patch.dict(os.environ, {"ATLASSIAN_MANIFEST_PATH": manifest_path}):
             cfg = AtlassianProxyConfig.from_env()
