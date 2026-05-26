@@ -20,6 +20,20 @@ allowlist/denylist по URL и команде, флаг `allowManagedMcpServersO
 
 ---
 
+### [ClawPatrol](https://clawpatrol.dev/) · [GitHub](https://github.com/denoland/clawpatrol)
+*Deno Land · добавлено 2026-05-26*
+
+Security firewall для AI-агентов от Deno: перехватывает и валидирует сетевой трафик агента
+до того, как он достигает целевых систем. Сидит между агентом и сервисами, анализируя
+запросы по правилам на HCL + CEL-выражениях. Умеет работать на уровне протокола —
+Kubernetes API, SQL, HTTP — и блокировать конкретные операции (например, DELETE на
+определённую таблицу или удаление ресурса в k8s). Деплоится как gateway-прокси,
+per-process туннель или хостовый туннель через WireGuard. Подход к проблеме другой:
+если safe-mcp-proxy контролирует вызовы MCP-инструментов на уровне решений политики,
+ClawPatrol контролирует исходящий сетевой трафик на уровне wire-протокола.
+
+---
+
 ### [Announcing Agent Governance Toolkit MCP Extensions for .NET](https://devblogs.microsoft.com/dotnet/announcing-agent-governance-toolkit-mcp-extensions-for-dotnet/)
 *Microsoft .NET Blog · добавлено 2026-05-26*
 
