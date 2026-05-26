@@ -19,3 +19,18 @@ allowlist/denylist по URL и команде, флаг `allowManagedMcpServersO
 «что разрешено вызвать и при каких условиях».
 
 ---
+
+### [Announcing Agent Governance Toolkit MCP Extensions for .NET](https://devblogs.microsoft.com/dotnet/announcing-agent-governance-toolkit-mcp-extensions-for-dotnet/)
+*Microsoft .NET Blog · добавлено 2026-05-26*
+
+Microsoft открыла превью пакета `Microsoft.AgentGovernance.Extensions.ModelContextProtocol` —
+надстройки над официальным MCP C# SDK, которая добавляет governance одним вызовом
+`WithGovernance(…)` на `IMcpServerBuilder`. Покрывает три слоя: сканирование инструментов
+при старте сервера (жёсткий gate — если инструмент не прошёл, сервер не запускается),
+runtime policy enforcement на каждый tool call, и санитизацию ответов.
+Часть более широкого [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) —
+первого open-source фреймворка, закрывающего все 10 рисков OWASP Agentic Top 10.
+Идейный аналог safe-mcp-proxy в экосистеме .NET: детерминированный, sub-millisecond контроль
+над тем, какие инструменты видны, выполняются и что возвращают.
+
+---
