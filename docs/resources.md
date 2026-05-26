@@ -8,43 +8,43 @@ control planes, supply-chain security, policy enforcement, and trust boundaries 
 ## MCP & Agent Security
 
 ### [Control MCP server access for your organization](https://code.claude.com/docs/en/managed-mcp)
-*Claude Code — official docs · добавлено 2026-05-26*
+*Claude Code — official docs · added 2026-05-26*
 
-Официальный механизм Anthropic для корпоративного контроля над MCP-серверами в Claude Code.
-Описывает `managed-mcp.json` (фиксированный набор серверов с исключительным контролем),
-allowlist/denylist по URL и команде, флаг `allowManagedMcpServersOnly` для блокировки
-пользовательских расширений, мониторинг через OpenTelemetry.
-Решает ту же задачу, что и safe-mcp-proxy, но на уровне политики развёртывания, а не
-на уровне исполняемого прокси: Managed MCP — «что разрешено запустить», safe-mcp-proxy —
-«что разрешено вызвать и при каких условиях».
+Anthropic's official mechanism for enterprise-level control over MCP servers in Claude Code.
+Covers `managed-mcp.json` (a fixed server set with exclusive control),
+URL- and command-based allowlists/denylists, the `allowManagedMcpServersOnly` flag for blocking
+user extensions, and monitoring via OpenTelemetry.
+Solves the same problem as safe-mcp-proxy but at the deployment-policy layer rather than the
+executable-proxy layer: Managed MCP defines *what is allowed to run*; safe-mcp-proxy defines
+*what is allowed to be called, and under what conditions*.
 
 ---
 
 ### [ClawPatrol](https://clawpatrol.dev/) · [GitHub](https://github.com/denoland/clawpatrol)
-*Deno Land · добавлено 2026-05-26*
+*Deno Land · added 2026-05-26*
 
-Security firewall для AI-агентов от Deno: перехватывает и валидирует сетевой трафик агента
-до того, как он достигает целевых систем. Сидит между агентом и сервисами, анализируя
-запросы по правилам на HCL + CEL-выражениях. Умеет работать на уровне протокола —
-Kubernetes API, SQL, HTTP — и блокировать конкретные операции (например, DELETE на
-определённую таблицу или удаление ресурса в k8s). Деплоится как gateway-прокси,
-per-process туннель или хостовый туннель через WireGuard. Подход к проблеме другой:
-если safe-mcp-proxy контролирует вызовы MCP-инструментов на уровне решений политики,
-ClawPatrol контролирует исходящий сетевой трафик на уровне wire-протокола.
+A security firewall for AI agents from Deno: intercepts and validates an agent's network traffic
+before it reaches target systems. Sits between the agent and downstream services, evaluating
+requests against rules written in HCL + CEL expressions. Operates at the protocol level —
+Kubernetes API, SQL, HTTP — and can block specific operations (e.g. DELETE on a particular table
+or deletion of a k8s resource). Deploys as a gateway proxy, a per-process tunnel, or a host
+tunnel over WireGuard. The approach differs from safe-mcp-proxy: where safe-mcp-proxy enforces
+policy decisions at the MCP tool-call layer, ClawPatrol enforces controls at the wire-protocol
+level of outbound network traffic.
 
 ---
 
 ### [Announcing Agent Governance Toolkit MCP Extensions for .NET](https://devblogs.microsoft.com/dotnet/announcing-agent-governance-toolkit-mcp-extensions-for-dotnet/)
-*Microsoft .NET Blog · добавлено 2026-05-26*
+*Microsoft .NET Blog · added 2026-05-26*
 
-Microsoft открыла превью пакета `Microsoft.AgentGovernance.Extensions.ModelContextProtocol` —
-надстройки над официальным MCP C# SDK, которая добавляет governance одним вызовом
-`WithGovernance(…)` на `IMcpServerBuilder`. Покрывает три слоя: сканирование инструментов
-при старте сервера (жёсткий gate — если инструмент не прошёл, сервер не запускается),
-runtime policy enforcement на каждый tool call, и санитизацию ответов.
-Часть более широкого [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) —
-первого open-source фреймворка, закрывающего все 10 рисков OWASP Agentic Top 10.
-Идейный аналог safe-mcp-proxy в экосистеме .NET: детерминированный, sub-millisecond контроль
-над тем, какие инструменты видны, выполняются и что возвращают.
+Microsoft has released a preview of the `Microsoft.AgentGovernance.Extensions.ModelContextProtocol`
+package — a governance overlay for the official MCP C# SDK that adds governance with a single
+`WithGovernance(…)` call on `IMcpServerBuilder`. Covers three layers: tool scanning at server
+startup (a hard gate — if a tool fails, the server does not start), runtime policy enforcement
+on every tool call, and response sanitization.
+Part of the broader [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) —
+the first open-source framework addressing all 10 risks in the OWASP Agentic Top 10.
+A conceptual counterpart of safe-mcp-proxy in the .NET ecosystem: deterministic, sub-millisecond
+control over which tools are visible, which are executed, and what they return.
 
 ---
