@@ -16,7 +16,7 @@ from safe_mcp_proxy.atlassian.flow import FlowContext, LABEL_CONFLUENCE_RAW
 from safe_mcp_proxy.atlassian.passthrough import MCPPassthrough
 from safe_mcp_proxy.atlassian.policy import ManifestPolicyEngine
 
-_MANIFEST_PATH = Path(__file__).resolve().parents[1] / "manifests" / "atlassian_mvp.yaml"
+_MANIFEST_PATH = Path(__file__).resolve().parents[3] / "manifests" / "atlassian_mvp.yaml"
 
 _CONFLUENCE_RESPONSE = {
     "jsonrpc": "2.0",

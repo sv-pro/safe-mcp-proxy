@@ -16,50 +16,50 @@ Core design principle: *"Some actions are denied. Others do not exist."*
 
 ```bash
 # Run all tests
-python -m unittest tests.test_proxy
+PYTHONPATH=src/main/python python -m unittest discover src/tests/python
 
 # Run a single test
-python -m unittest tests.test_proxy.TestProxy.test_benign_cli_read_allows
+PYTHONPATH=src/main/python python -m unittest tests.test_proxy.TestProxy.test_benign_cli_read_allows
 
 # CLI entrypoint (--engine python|opa; --mode interactive|background; --world <world_id>)
-python -m safe_mcp_proxy.main --tool read_file --source cli --payload '{"path":"README.md"}'
-python -m safe_mcp_proxy.main --tool send_email --source web --payload '{}' --engine opa
-python -m safe_mcp_proxy.main --tool send_email --source cli --payload '{}' --mode background
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.main --tool read_file --source cli --payload '{"path":"README.md"}'
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.main --tool send_email --source web --payload '{}' --engine opa
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.main --tool send_email --source cli --payload '{}' --mode background
 
 # MCP server (real Claude Code / VS Code integration)
-python -m safe_mcp_proxy.mcp_server --world default
-python -m safe_mcp_proxy.mcp_server --world read_only --mode background
-python -m safe_mcp_proxy.mcp_server --world default --upstream python -m safe_mcp_proxy.mcp_test_server
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.mcp_server --world default
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.mcp_server --world read_only --mode background
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.mcp_server --world default --upstream python -m safe_mcp_proxy.mcp_test_server
 
 # Test upstream MCP server (standalone)
-python -m safe_mcp_proxy.mcp_test_server
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.mcp_test_server
 
 # Run built-in demo scenarios (canonical paths)
-python -m demos.integrations.claude_code.demo
-python -m demos.core.benign_flow
-python -m demos.core.prompt_injection
-python -m demos.core.poisoned_descriptor
-python -m demos.core.absent_tool_case
-python -m demos.core.ask_modes
-python -m demos.integrations.atlassian.demo
-python -m demos.core.deterministic_replay
-python -m demos.integrations.gemini.demo
-python -m demos.product.dashboard.demo
+PYTHONPATH=src/main/python python -m demos.integrations.claude_code.demo
+PYTHONPATH=src/main/python python -m demos.core.benign_flow
+PYTHONPATH=src/main/python python -m demos.core.prompt_injection
+PYTHONPATH=src/main/python python -m demos.core.poisoned_descriptor
+PYTHONPATH=src/main/python python -m demos.core.absent_tool_case
+PYTHONPATH=src/main/python python -m demos.core.ask_modes
+PYTHONPATH=src/main/python python -m demos.integrations.atlassian.demo
+PYTHONPATH=src/main/python python -m demos.core.deterministic_replay
+PYTHONPATH=src/main/python python -m demos.integrations.gemini.demo
+PYTHONPATH=src/main/python python -m demos.product.dashboard.demo
 
 # Atlassian trace CLI
-python -m safe_mcp_proxy.atlassian.cli list
-python -m safe_mcp_proxy.atlassian.cli stats
-python -m safe_mcp_proxy.atlassian.cli trace --trace-id ID
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.atlassian.cli list
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.atlassian.cli stats
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.atlassian.cli trace --trace-id ID
 
 # Offline bundle replay (policy drift detection)
-python -m safe_mcp_proxy.bundle_replay path/to/bundle.json
+PYTHONPATH=src/main/python python -m safe_mcp_proxy.bundle_replay path/to/bundle.json
 
 # MCPZero attack prevention demo
-python -m mcpzero.demo --scenario email_injection
-python -m mcpzero.demo --scenario tool_chain --output ./results/
+PYTHONPATH=src/main/python python -m mcpzero.demo --scenario email_injection
+PYTHONPATH=src/main/python python -m mcpzero.demo --scenario tool_chain --output ./results/
 
 # Start FastAPI server
-uvicorn api.main:app --reload
+PYTHONPATH=src/main/python uvicorn api.main:app --reload
 # Open audit dashboard (requires running server)
 # http://localhost:8000/dashboard
 ```
@@ -289,52 +289,52 @@ Every decision is appended to `safe_mcp_proxy/logs/audit.jsonl` in JSON Lines fo
 
 ```bash
 # Core proxy tests
-python -m unittest tests.test_proxy
+PYTHONPATH=src/main/python python -m unittest tests.test_proxy
 
 # OPA/Rego engine parity tests (requires opa binary)
-python -m unittest tests.test_opa_engine
+PYTHONPATH=src/main/python python -m unittest tests.test_opa_engine
 
 # Atlassian integration tests
-python -m unittest tests.test_atlassian_policy
-python -m unittest tests.test_atlassian_flow
-python -m unittest tests.test_atlassian_passthrough
-python -m unittest tests.test_atlassian_filter
-python -m unittest tests.test_atlassian_adapters
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_policy
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_flow
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_passthrough
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_filter
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_adapters
 
 # Attack corpus, skill, trace, and scenario tests
-python -m unittest tests.test_attack_corpus
-python -m unittest tests.test_skill_registry
-python -m unittest tests.test_trace_store
-python -m unittest tests.test_scenarios
-python -m unittest tests.test_capability_projection
+PYTHONPATH=src/main/python python -m unittest tests.test_attack_corpus
+PYTHONPATH=src/main/python python -m unittest tests.test_skill_registry
+PYTHONPATH=src/main/python python -m unittest tests.test_trace_store
+PYTHONPATH=src/main/python python -m unittest tests.test_scenarios
+PYTHONPATH=src/main/python python -m unittest tests.test_capability_projection
 
 # API and MCPZero tests
-python -m unittest tests.test_api
-python -m unittest tests.test_mcpzero
+PYTHONPATH=src/main/python python -m unittest tests.test_api
+PYTHONPATH=src/main/python python -m unittest tests.test_mcpzero
 
 # Atlassian observability and demo tests
-python -m unittest tests.test_atlassian_observability
-python -m unittest tests.test_atlassian_demo
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_observability
+PYTHONPATH=src/main/python python -m unittest tests.test_atlassian_demo
 
 # Gemini integration tests
-python -m unittest tests.test_gemini_adapter
-python -m unittest tests.test_gemini_proxy
-python -m unittest tests.test_gemini_policy_gate
-python -m unittest tests.test_gemini_absence
-python -m unittest tests.test_gemini_integration
-python -m unittest tests.test_gemini_simulate
-python -m unittest tests.test_intent_ir
+PYTHONPATH=src/main/python python -m unittest tests.test_gemini_adapter
+PYTHONPATH=src/main/python python -m unittest tests.test_gemini_proxy
+PYTHONPATH=src/main/python python -m unittest tests.test_gemini_policy_gate
+PYTHONPATH=src/main/python python -m unittest tests.test_gemini_absence
+PYTHONPATH=src/main/python python -m unittest tests.test_gemini_integration
+PYTHONPATH=src/main/python python -m unittest tests.test_gemini_simulate
+PYTHONPATH=src/main/python python -m unittest tests.test_intent_ir
 
 # Skill guard and trace tests
-python -m unittest tests.test_skill_execution_guard
-python -m unittest tests.test_skill_manifest
-python -m unittest tests.test_skill_trace
+PYTHONPATH=src/main/python python -m unittest tests.test_skill_execution_guard
+PYTHONPATH=src/main/python python -m unittest tests.test_skill_manifest
+PYTHONPATH=src/main/python python -m unittest tests.test_skill_trace
 
 # Demo runner test
-python -m unittest tests.test_run_demo
+PYTHONPATH=src/main/python python -m unittest tests.test_run_demo
 
 # Run all tests
-python -m unittest discover tests
+PYTHONPATH=src/main/python python -m unittest discover src/tests/python
 ```
 
 All tests use temp audit files and `simulate_external=True` to avoid side effects.

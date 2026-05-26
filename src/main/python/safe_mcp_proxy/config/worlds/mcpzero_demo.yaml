@@ -1,0 +1,59 @@
+world_id: mcpzero_demo
+
+# MCPZero Demo world — send_email is reachable but blocked by taint policy when
+# the request originates from an untrusted channel (web / email / tool_output).
+# No approval gate is used so the DENY is immediate and deterministic.
+
+allowed_tools:
+  - read_file
+  - list_repo
+  - send_email
+  - send_email_to_self
+  - read_ticket
+  - read_customers
+  - http_post
+  - write_memory
+  - add_ticket_note
+
+capabilities:
+  read_file:
+    allowed: true
+  list_repo:
+    allowed: true
+  send_email:
+    allowed: true
+  send_email_to_self:
+    allowed: true
+  dangerous_exec:
+    allowed: false
+  read_ticket:
+    allowed: true
+  read_customers:
+    allowed: true
+  http_post:
+    allowed: true
+  write_memory:
+    allowed: true
+  add_ticket_note:
+    allowed: true
+
+capability_definitions:
+  send_email_to_self:
+    base_tool: send_email
+    args:
+      to:
+        valueFrom:
+          literal:
+            value: owner@example.com
+      subject:
+        valueFrom:
+          actor_input: {}
+      body:
+        valueFrom:
+          actor_input: {}
+
+taint_rules:
+  - tainted_external: deny
+
+side_effects:
+  external: restricted

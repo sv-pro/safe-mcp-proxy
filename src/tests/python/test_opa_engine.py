@@ -16,7 +16,10 @@ from safe_mcp_proxy.registry import ToolRegistry
 _OPA_AVAILABLE = shutil.which("opa") is not None
 
 _POLICY_PATH = str(
-    Path(__file__).resolve().parents[1]
+    Path(__file__).resolve().parents[3]
+    / "src"
+    / "main"
+    / "python"
     / "safe_mcp_proxy"
     / "policies"
     / "proxy.rego"
