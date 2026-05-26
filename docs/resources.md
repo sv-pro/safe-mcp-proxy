@@ -8,7 +8,7 @@ control planes, supply-chain security, policy enforcement, and trust boundaries 
 ## MCP & Agent Security
 
 ### [Control MCP server access for your organization](https://code.claude.com/docs/en/managed-mcp)
-*Claude Code — official docs*
+*Claude Code — official docs · добавлено 2026-05-26*
 
 Официальный механизм Anthropic для корпоративного контроля над MCP-серверами в Claude Code.
 Описывает `managed-mcp.json` (фиксированный набор серверов с исключительным контролем),
