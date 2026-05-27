@@ -34,6 +34,21 @@ level of outbound network traffic.
 
 ---
 
+### [Secure MCP Tunnels](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)
+*OpenAI API docs · added 2026-05-27*
+
+OpenAI's official guide for securely exposing local MCP servers to the OpenAI platform over
+authenticated HTTPS tunnels. The `openai mcp tunnel` CLI command starts a persistent tunnel
+that wraps a stdio-based MCP server in an HTTP transport and forwards traffic through OpenAI's
+tunnel infrastructure, eliminating the need to self-host a public endpoint. Authentication is
+enforced via OAuth 2.0 so only the owning OpenAI account can reach the tunnel. Directly
+relevant to safe-mcp-proxy: tunnels solve the *connectivity* problem (how a remote LLM reaches
+a local server), while safe-mcp-proxy solves the *authorization* problem (which tools within
+that server are callable, under what taint conditions, and with what approval requirements).
+The two layers compose naturally — safe-mcp-proxy can sit in front of any tunnel endpoint.
+
+---
+
 ### [Announcing Agent Governance Toolkit MCP Extensions for .NET](https://devblogs.microsoft.com/dotnet/announcing-agent-governance-toolkit-mcp-extensions-for-dotnet/)
 *Microsoft .NET Blog · added 2026-05-26*
 

@@ -34,6 +34,21 @@ ClawPatrol контролирует исходящий сетевой трафи
 
 ---
 
+### [Secure MCP Tunnels](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)
+*OpenAI API docs · добавлено 2026-05-27*
+
+Официальный гайд OpenAI по безопасному подключению локальных MCP-серверов к платформе OpenAI
+через аутентифицированные HTTPS-туннели. Команда `openai mcp tunnel` запускает постоянный туннель,
+оборачивающий stdio-based MCP-сервер в HTTP-транспорт и перенаправляющий трафик через инфраструктуру
+OpenAI — без необходимости самостоятельно хостить публичный endpoint. Аутентификация реализована
+через OAuth 2.0: к туннелю может обратиться только аккаунт-владелец. Прямая точка пересечения с
+safe-mcp-proxy: туннели решают задачу *связности* (как удалённая LLM достигает локального сервера),
+а safe-mcp-proxy решает задачу *авторизации* (какие инструменты внутри этого сервера вызываемы,
+при каких условиях по taint, с каким уровнем approve). Оба слоя компонуются естественно —
+safe-mcp-proxy можно поставить перед любым tunnel endpoint.
+
+---
+
 ### [Announcing Agent Governance Toolkit MCP Extensions for .NET](https://devblogs.microsoft.com/dotnet/announcing-agent-governance-toolkit-mcp-extensions-for-dotnet/)
 *Microsoft .NET Blog · добавлено 2026-05-26*
 
