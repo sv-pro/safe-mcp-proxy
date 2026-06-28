@@ -8,6 +8,7 @@ Usage:
     await connector.disconnect()
 """
 import json
+import os
 import sys
 from contextlib import AsyncExitStack
 from typing import Any
@@ -26,6 +27,10 @@ class UpstreamConnector:
         params = StdioServerParameters(
             command=self._command[0],
             args=self._command[1:],
+            # Inherit the full environment so the spawned upstream gets PATH /
+            # PYTHONPATH / credentials (needed for `npx mcp-remote` and for the
+            # bundled python test upstream alike).
+            env=os.environ.copy(),
         )
         self._stack = AsyncExitStack()
         read, write = await self._stack.enter_async_context(

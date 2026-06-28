@@ -4,6 +4,21 @@ Append-only record of ingests, queries, and maintenance operations.
 
 ---
 
+## 2026-06-28 — Safe MCP Gateway (governed stdio proxy over a real upstream)
+
+- Added `safe_mcp_proxy/mcp_gateway.py`: a host-facing stdio MCP server that composes
+  `ManifestPolicyEngine` (ABSENT / arg_rules / taint) + `UpstreamConnector` (real MCP
+  client). `tools/list` is filtered to the manifest allowlist (ABSENT); `tools/call` is
+  gated by the policy engine and only ALLOW is forwarded upstream; decisions are audited
+  (JSONL). Flags: `--manifest`, `--source`, `--audit`, `--upstream` (REMAINDER, pass last).
+- `mcp_upstream.py`: pass `env=os.environ.copy()` to the spawned upstream so it inherits
+  PATH / PYTHONPATH / credentials (needed for `npx mcp-remote` and the python test upstream).
+- Tests: `tests/test_mcp_gateway.py` — 11 unit (fake upstream, no SDK) + 1 end-to-end
+  (subprocess ⇄ real UpstreamConnector ⇄ `mcp_test_server`). Full suite: 550 OK (12 skipped).
+- Purpose: ai2rules **E16 / D32** — govern GitHub Copilot's JIRA MCP surface
+  (read + comment, destructive tools ABSENT) host-agnostically, one proxy for VS Code /
+  JetBrains Copilot + Claude Code.
+
 ## 2026-05-05 — Demo tree synchronization
 
 - Added `wiki/src/demos/` source pages for the canonical demo tree:
