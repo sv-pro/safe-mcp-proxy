@@ -1,3 +1,9 @@
+> **⚠️ Archived — reference only.** Part of the *Agentic Execution Governance* research cluster, preserved read-only for its lineage. **Active development lives in [ai2rules](https://github.com/sv-pro/ai2rules).** See that repo's `DECISIONS.md` (D38, D40) for how this work was superseded and where each idea now lives.
+>
+> **This repo:** Productized MCP spinoff; source of `ABSENT ≠ DENY` and the three decision stages (THESIS §5). Superseded by the Rust `harness mcp-gateway`.
+
+---
+
 # safe-mcp-proxy
 
 A minimal, deterministic control plane for MCP that constrains tool exposure and execution to mitigate runtime supply-chain risks.
